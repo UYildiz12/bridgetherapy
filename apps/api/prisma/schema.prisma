@@ -1,0 +1,329 @@
+// This is your Prisma schema file
+// Learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ==========================================
+// User & Authentication
+// ==========================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String?   // Null if using external auth
+  firstName     String
+  lastName      String
+  role          UserRole
+  avatarUrl     String?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Role-specific profiles
+  therapistProfile TherapistProfile?
+  patientProfile   PatientProfile?
+
+  // Audit logs for therapist access
+  auditLogs AuditLog[]
+
+  @@index([email])
+}
+
+enum UserRole {
+  PATIENT
+  THERAPIST
+  ADMIN
+}
+
+model TherapistProfile {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  licenseNumber String?
+  specialty     String?
+  bio           String?
+
+  // Relationships
+  patients      PatientTherapist[]
+  createdHomework Homework[]
+  sessionNotes  SessionNote[]
+}
+
+model PatientProfile {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dateOfBirth   DateTime?
+  emergencyContact String?
+
+  // Relationships
+  therapists    PatientTherapist[]
+  moodEntries   MoodEntry[]
+  journalEntries JournalEntry[]
+  homeworkAssignments HomeworkAssignment[]
+  patientNotes  PatientNote[]
+  sessions      Session[]
+}
+
+// Many-to-many relationship between patients and therapists
+model PatientTherapist {
+  id          String   @id @default(cuid())
+  patientId   String
+  therapistId String
+  startDate   DateTime @default(now())
+  endDate     DateTime?
+  isActive    Boolean  @default(true)
+
+  patient     PatientProfile   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  therapist   TherapistProfile @relation(fields: [therapistId], references: [id], onDelete: Cascade)
+
+  @@unique([patientId, therapistId])
+  @@index([patientId])
+  @@index([therapistId])
+}
+
+// ==========================================
+// Homework & Assignments
+// ==========================================
+
+model Homework {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  type        HomeworkType
+  content     Json     // Flexible content structure (questions, tasks, etc.)
+  createdById String
+  createdBy   TherapistProfile @relation(fields: [createdById], references: [id])
+  isTemplate  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  assignments HomeworkAssignment[]
+}
+
+enum HomeworkType {
+  READING
+  WRITING
+  QUIZ
+  DRAWING
+  VOICE_NOTE
+  CHECKLIST
+  CUSTOM
+}
+
+model HomeworkAssignment {
+  id          String   @id @default(cuid())
+  homeworkId  String
+  patientId   String
+  dueDate     DateTime?
+  status      AssignmentStatus @default(PENDING)
+  response    Json?    // Patient's completed response
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  homework    Homework       @relation(fields: [homeworkId], references: [id])
+  patient     PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId])
+  @@index([homeworkId])
+}
+
+enum AssignmentStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  OVERDUE
+}
+
+// ==========================================
+// Mood Tracking
+// ==========================================
+
+model MoodEntry {
+  id          String   @id @default(cuid())
+  patientId   String
+  patient     PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  moodScore   Int      // 1-10 scale
+  notes       String?
+  tags        String[] // e.g., ["anxious", "tired", "hopeful"]
+  createdAt   DateTime @default(now())
+
+  @@index([patientId])
+  @@index([createdAt])
+}
+
+// ==========================================
+// Smart Journal
+// ==========================================
+
+model JournalEntry {
+  id             String   @id @default(cuid())
+  patientId      String
+  patient        PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  
+  // E2E Encryption - server only stores ciphertext
+  encryptedContent String
+  iv              String   // Initialization vector
+  
+  // Metadata (not encrypted)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Follow-up prompts (chat-like)
+  followUps       JournalFollowUp[]
+
+  @@index([patientId])
+}
+
+model JournalFollowUp {
+  id             String   @id @default(cuid())
+  journalEntryId String
+  journalEntry   JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+  
+  prompt         String   // System-generated follow-up question
+  encryptedResponse String?
+  iv             String?
+  createdAt      DateTime @default(now())
+}
+
+// ==========================================
+// Patient Notes (questions for therapist)
+// ==========================================
+
+model PatientNote {
+  id          String   @id @default(cuid())
+  patientId   String
+  patient     PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  content     String
+  isResolved  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([patientId])
+}
+
+// ==========================================
+// Sessions
+// ==========================================
+
+model Session {
+  id          String   @id @default(cuid())
+  patientId   String
+  patient     PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  scheduledAt DateTime
+  startedAt   DateTime?
+  endedAt     DateTime?
+  status      SessionStatus @default(SCHEDULED)
+  
+  // Video session info
+  videoRoomId String?
+  videoProvider String? // "daily", "twilio", etc.
+
+  notes       SessionNote[]
+  summary     SessionSummary?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([patientId])
+  @@index([scheduledAt])
+}
+
+enum SessionStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+model SessionNote {
+  id          String   @id @default(cuid())
+  sessionId   String
+  session     Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  therapistId String
+  therapist   TherapistProfile @relation(fields: [therapistId], references: [id])
+  content     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([sessionId])
+}
+
+model SessionSummary {
+  id          String   @id @default(cuid())
+  sessionId   String   @unique
+  session     Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  summary     String
+  keyPoints   String[]
+  nextSteps   String[]
+  createdAt   DateTime @default(now())
+}
+
+// ==========================================
+// Media & Attachments
+// ==========================================
+
+model Media {
+  id          String   @id @default(cuid())
+  uploaderId  String
+  type        MediaType
+  filename    String
+  s3Key       String
+  mimeType    String
+  sizeBytes   Int
+  metadata    Json?    // Duration for audio, dimensions for images, etc.
+  createdAt   DateTime @default(now())
+
+  @@index([uploaderId])
+}
+
+enum MediaType {
+  IMAGE
+  VOICE_NOTE
+  DRAWING
+  DOCUMENT
+}
+
+// ==========================================
+// Push Notifications
+// ==========================================
+
+model PushToken {
+  id          String   @id @default(cuid())
+  userId      String
+  token       String   @unique
+  platform    String   // "ios", "android"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// ==========================================
+// Audit Logging
+// ==========================================
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  action      String   // "VIEW_PATIENT", "UPDATE_HOMEWORK", etc.
+  resourceType String
+  resourceId  String
+  metadata    Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([resourceType, resourceId])
+  @@index([createdAt])
+}

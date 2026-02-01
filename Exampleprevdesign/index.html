@@ -1,0 +1,1645 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Exhale — therapy designed for steady focus</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:opsz@8..60&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #f1f0eb;
+      --paper: #0b0c10;
+      --accent: #ffffff;
+      --panel: #121318;
+      --panel-strong: #171820;
+      --line: rgba(245, 244, 239, 0.14);
+      --line-strong: rgba(245, 244, 239, 0.28);
+      --hover: rgba(255, 255, 255, 0.06);
+      --strike: rgba(255, 255, 255, 0.75);
+      --accent-glow: rgba(255, 255, 255, 0.35);
+      --accent-dust: rgba(255, 255, 255, 0.25);
+      --fold-edge: rgba(255, 255, 255, 0.32);
+      --fold-fill: rgba(255, 255, 255, 0.06);
+      --fold-highlight: rgba(255, 255, 255, 0.22);
+      --fold-shadow: rgba(0, 0, 0, 0.35);
+      --grid-minor: rgba(245, 244, 239, 0.03);
+      --grid-major: rgba(245, 244, 239, 0.08);
+      --blueprint: rgba(110, 170, 255, 0.28);
+      --blueprint-weak: rgba(110, 170, 255, 0.14);
+      --mode-grid: rgba(110, 170, 255, 0.2);
+      --mode-grid-strong: rgba(110, 170, 255, 0.34);
+      --sketch: rgba(236, 202, 140, 0.22);
+      --smudge: rgba(255, 255, 255, 0.08);
+      --muted: rgba(245, 244, 239, 0.65);
+      --shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { height: 100%; }
+
+    body {
+      margin: 0;
+      font-family: "Instrument Sans", sans-serif;
+      color: var(--ink);
+      background:
+        repeating-linear-gradient(90deg, var(--grid-minor) 0 1px, transparent 1px 36px),
+        repeating-linear-gradient(0deg, var(--grid-minor) 0 1px, transparent 1px 36px),
+        repeating-linear-gradient(90deg, var(--grid-major) 0 1px, transparent 1px 180px),
+        repeating-linear-gradient(0deg, var(--grid-major) 0 1px, transparent 1px 180px),
+        radial-gradient(900px 520px at 80% -10%, #08090d 0%, transparent 60%),
+        linear-gradient(180deg, #050608 0%, #0a0b0f 100%);
+      overflow-x: hidden;
+    }
+
+    .noise-layer::before,
+    .noise-layer::after {
+      content: none;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: -20% 0 0;
+      background: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0 1px, transparent 1px 7px);
+      opacity: 0.08;
+      mix-blend-mode: screen;
+      pointer-events: none;
+      animation: scan 22s linear infinite;
+      z-index: 0;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.6'/></svg>");
+      opacity: 0.16;
+      mix-blend-mode: soft-light;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body[data-theme="light"] {
+      --ink: #0b0c10;
+      --paper: #f6f5f2;
+      --accent: #0b0c10;
+      --panel: #ffffff;
+      --panel-strong: #f1efe9;
+      --line: rgba(11, 12, 16, 0.12);
+      --line-strong: rgba(11, 12, 16, 0.28);
+      --hover: rgba(11, 12, 16, 0.06);
+      --strike: rgba(11, 12, 16, 0.75);
+      --accent-glow: rgba(11, 12, 16, 0.28);
+      --accent-dust: rgba(11, 12, 16, 0.22);
+      --fold-edge: rgba(11, 12, 16, 0.22);
+      --fold-fill: rgba(11, 12, 16, 0.05);
+      --fold-highlight: rgba(11, 12, 16, 0.18);
+      --fold-shadow: rgba(0, 0, 0, 0.18);
+      --grid-minor: rgba(11, 12, 16, 0.04);
+      --grid-major: rgba(11, 12, 16, 0.08);
+      --blueprint: rgba(20, 60, 120, 0.22);
+      --blueprint-weak: rgba(20, 60, 120, 0.12);
+      --mode-grid: rgba(20, 60, 120, 0.16);
+      --mode-grid-strong: rgba(20, 60, 120, 0.28);
+      --sketch: rgba(120, 90, 40, 0.2);
+      --smudge: rgba(11, 12, 16, 0.08);
+      --muted: rgba(11, 12, 16, 0.65);
+      --shadow: 0 18px 40px rgba(12, 12, 14, 0.12);
+      background:
+        repeating-linear-gradient(90deg, var(--grid-minor) 0 1px, transparent 1px 48px),
+        repeating-linear-gradient(0deg, var(--grid-minor) 0 1px, transparent 1px 48px),
+        repeating-linear-gradient(90deg, var(--grid-major) 0 1px, transparent 1px 200px),
+        repeating-linear-gradient(0deg, var(--grid-major) 0 1px, transparent 1px 200px),
+        radial-gradient(900px 520px at 80% -10%, #e9e6e1 0%, transparent 60%),
+        linear-gradient(180deg, #f6f5f2 0%, #f0ede7 100%);
+    }
+
+    body[data-theme="light"]::before {
+      background: repeating-linear-gradient(180deg, rgba(11, 12, 16, 0.08) 0 1px, transparent 1px 7px);
+      opacity: 0.05;
+      mix-blend-mode: multiply;
+    }
+
+    body[data-theme="light"]::after {
+      opacity: 0.08;
+      mix-blend-mode: multiply;
+    }
+
+    .page {
+      position: relative;
+      z-index: 2;
+    }
+
+    .blueprint-svg {
+      position: fixed;
+      inset: -10%;
+      width: 120%;
+      height: 120%;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.55;
+      mix-blend-mode: screen;
+    }
+
+    body[data-theme="light"] .blueprint-svg {
+      opacity: 0.25;
+      mix-blend-mode: multiply;
+    }
+
+    .blueprint-secondary {
+      opacity: 0.35;
+      transform: rotate(-2.2deg) scale(1.03);
+      transform-origin: center;
+    }
+
+    body[data-theme="light"] .blueprint-secondary {
+      opacity: 0.18;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 6vw;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(11, 12, 16, 0.85);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(12px);
+    }
+
+    body[data-theme="light"] .nav {
+      background: rgba(246, 245, 242, 0.9);
+    }
+
+    .logo {
+      font-family: "Instrument Serif", serif;
+      font-size: 24px;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-badge {
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      position: relative;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .logo-badge::after {
+      content: "";
+      position: absolute;
+      inset: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 6px rgba(245, 244, 239, 0.08);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 22px;
+      align-items: center;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: var(--ink);
+      opacity: 0.7;
+      transition: opacity 0.3s ease;
+      position: relative;
+    }
+
+    .nav-links a:hover { opacity: 1; }
+
+    .nav-links a::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -6px;
+      height: 1px;
+      background: var(--accent);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s ease;
+    }
+
+    .nav-links a:hover::after { transform: scaleX(1); }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .theme-toggle {
+      background: transparent;
+      color: var(--ink);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 11px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: border 0.3s ease, background 0.3s ease, color 0.3s ease;
+    }
+
+    .theme-toggle:hover {
+      border-color: var(--accent);
+      background: var(--panel);
+    }
+
+    .cta-button {
+      border: none;
+      background: var(--accent);
+      color: var(--paper);
+      padding: 12px 22px;
+      border-radius: 999px;
+      font-size: 14px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border: 1px solid var(--accent);
+      box-shadow: none;
+      transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+    }
+
+    .cta-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
+      background: #ffffff;
+    }
+
+    body[data-theme="light"] .cta-button:hover {
+      background: #15161c;
+      color: #f6f5f2;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 40px;
+      padding: 70px 6vw 90px;
+      align-items: center;
+      position: relative;
+    }
+
+    .hero-copy h1 {
+      font-family: "Instrument Serif", serif;
+      font-size: clamp(40px, 6vw, 78px);
+      line-height: 1.05;
+      margin: 0 0 24px;
+    }
+
+    .hero-copy p {
+      font-size: 20px;
+      line-height: 1.55;
+      max-width: 520px;
+      margin: 0 0 30px;
+      color: var(--muted);
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .ghost-button {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--ink);
+      padding: 12px 20px;
+      border-radius: 999px;
+      font-size: 14px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: border 0.3s ease, transform 0.25s ease, background 0.25s ease;
+    }
+
+    .ghost-button:hover {
+      border-color: var(--ink);
+      background: rgba(255, 255, 255, 0.08);
+      transform: translateY(-2px);
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: 26px;
+      margin-top: 36px;
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      background: var(--panel);
+      padding: 14px 18px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      box-shadow: none;
+      min-width: 150px;
+      color: var(--muted);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 24px;
+      color: var(--accent);
+    }
+
+    .hero-visual {
+      position: relative;
+      min-height: 360px;
+      display: grid;
+      place-items: center;
+      --tilt-x: 0deg;
+      --tilt-y: 0deg;
+      perspective: 800px;
+    }
+
+    .orb {
+      width: 240px;
+      height: 240px;
+      border-radius: 50%;
+      border: 1px solid var(--line);
+      background: radial-gradient(circle at 30% 30%, #ffffff 0%, #dedad4 70%, #cfcac4 100%);
+      animation: breathe 10s ease-in-out infinite;
+      position: relative;
+      display: grid;
+      place-items: center;
+    }
+
+    body[data-theme="light"] .orb {
+      background: radial-gradient(circle at 30% 30%, #0b0c10 0%, #1c1d23 70%, #2b2d35 100%);
+    }
+
+    body[data-theme="light"] .ritual-item.done .dot {
+      box-shadow: 0 0 0 4px rgba(11, 12, 16, 0.12);
+    }
+
+    .orb-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid var(--line);
+      opacity: 0.6;
+      animation: ripple 12s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    .orb-ring.ring-one {
+      width: 320px;
+      height: 320px;
+    }
+
+    .orb-ring.ring-two {
+      width: 380px;
+      height: 380px;
+      border-style: dashed;
+      opacity: 0.35;
+      animation-delay: -4s;
+    }
+
+    .orb-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--paper);
+      border: 1px solid var(--accent);
+      box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.08);
+      animation: pulse 6s ease-in-out infinite;
+    }
+
+    .card-stack {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+      transform-style: preserve-3d;
+      transform: rotateX(var(--tilt-y)) rotateY(var(--tilt-x));
+      transition: transform 0.45s ease;
+    }
+
+    .ritual-panel {
+      width: 250px;
+      padding: 16px;
+      border-radius: 16px;
+      background: var(--panel-strong);
+      border: 1px solid var(--line);
+      box-shadow: none;
+      position: absolute;
+      --card-x: 90px;
+      --card-y: 60px;
+      --card-rot: -2deg;
+      transform: translate(var(--card-x), var(--card-y)) rotate(var(--card-rot));
+      animation: cardFloat 14s ease-in-out infinite;
+    }
+
+    .ritual-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .ritual-header .chip {
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .ritual-list {
+      list-style: none;
+      margin: 14px 0 0;
+      padding: 0;
+      display: grid;
+      gap: 10px;
+      font-size: 14px;
+    }
+
+    .ritual-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--ink);
+      padding: 6px 8px;
+      border-radius: 12px;
+      transition: background 0.3s ease, transform 0.3s ease;
+    }
+
+    .ritual-item .label {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      position: relative;
+    }
+
+    .ritual-item .label::after {
+      content: "";
+      position: absolute;
+      left: 18px;
+      right: -2px;
+      top: 50%;
+      height: 3px;
+      background: var(--strike);
+      transform: scaleX(0);
+      transform-origin: left;
+      opacity: 0;
+      transition: transform 0.35s ease, opacity 0.35s ease;
+    }
+
+    .ritual-item:hover .label::after {
+      transform: scaleX(1);
+      opacity: 0.95;
+    }
+
+    .ritual-item:hover {
+      background: var(--hover);
+      transform: translateX(2px);
+    }
+
+    .ritual-item .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      border: 1px solid var(--line);
+      background: transparent;
+    }
+
+    .ritual-item.done {
+      color: var(--muted);
+    }
+
+    .ritual-item.done .label::after {
+      transform: scaleX(1);
+      opacity: 0.9;
+    }
+
+    .ritual-item.done .dot {
+      background: var(--accent);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.12);
+    }
+
+    .ritual-item.active .dot {
+      border-color: var(--accent);
+      animation: dotPulse 2.6s ease-in-out infinite;
+    }
+
+    .ritual-item.active {
+      font-weight: 600;
+    }
+
+    .ritual-item .time {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .section {
+      padding: 70px 6vw;
+      position: relative;
+      border-top: 1px solid var(--line);
+    }
+
+    .section-title {
+      font-family: "Instrument Serif", serif;
+      font-size: clamp(30px, 4vw, 48px);
+      margin: 0 0 20px;
+    }
+
+    .section-title::after {
+      content: "";
+      display: block;
+      width: 36px;
+      height: 2px;
+      background: var(--accent);
+      margin-top: 14px;
+    }
+
+    .accent { color: var(--accent); }
+
+    .box-reveal {
+      position: relative;
+      --frame-inset: 10px;
+      --corner: 22px;
+      --stroke: 2px;
+      --after-inset: 8px;
+      --dash-style: dashed;
+      --frame-opacity: 0.85;
+      --dash-opacity: 0.35;
+    }
+
+    .box-reveal::before {
+      content: "";
+      position: absolute;
+      inset: var(--frame-inset);
+      background:
+        linear-gradient(var(--accent), var(--accent)) left top/0 var(--stroke) no-repeat,
+        linear-gradient(var(--accent), var(--accent)) left top/var(--stroke) 0 no-repeat,
+        linear-gradient(var(--accent), var(--accent)) right top/0 var(--stroke) no-repeat,
+        linear-gradient(var(--accent), var(--accent)) right top/var(--stroke) 0 no-repeat,
+        linear-gradient(var(--accent), var(--accent)) left bottom/0 var(--stroke) no-repeat,
+        linear-gradient(var(--accent), var(--accent)) left bottom/var(--stroke) 0 no-repeat,
+        linear-gradient(var(--accent), var(--accent)) right bottom/0 var(--stroke) no-repeat,
+        linear-gradient(var(--accent), var(--accent)) right bottom/var(--stroke) 0 no-repeat;
+      opacity: 0;
+      pointer-events: none;
+      mix-blend-mode: screen;
+      transition: background-size 0.9s ease, opacity 0.35s ease;
+      border-radius: inherit;
+    }
+
+    .box-reveal::after {
+      content: "";
+      position: absolute;
+      inset: var(--after-inset);
+      border: 1px var(--dash-style) var(--line-strong);
+      opacity: 0;
+      transform: scale(0.98);
+      pointer-events: none;
+      transition: opacity 0.6s ease, transform 0.6s ease;
+      border-radius: inherit;
+    }
+
+    .reveal.in-view .box-reveal::before {
+      opacity: var(--frame-opacity);
+      background-size:
+        var(--corner) var(--stroke),
+        var(--stroke) var(--corner),
+        var(--corner) var(--stroke),
+        var(--stroke) var(--corner),
+        var(--corner) var(--stroke),
+        var(--stroke) var(--corner),
+        var(--corner) var(--stroke),
+        var(--stroke) var(--corner);
+      animation: frameFlash 2.6s ease 0.1s forwards;
+    }
+
+    .reveal.in-view .box-reveal::after {
+      opacity: var(--dash-opacity);
+      transform: scale(1);
+      animation: dashFlash 2.6s ease 0.1s forwards;
+    }
+
+    .box-reveal--double {
+      --frame-inset: 12px;
+      --after-inset: 6px;
+      --dash-style: solid;
+      --dash-opacity: 0.2;
+    }
+
+    .box-reveal--double::after {
+      box-shadow: inset 0 0 0 1px var(--line-strong);
+    }
+
+    .box-reveal--grid::after {
+      background:
+        repeating-linear-gradient(90deg, var(--line) 0 1px, transparent 1px 22px),
+        repeating-linear-gradient(0deg, var(--line) 0 1px, transparent 1px 22px);
+      opacity: 0;
+    }
+
+    .reveal.in-view .box-reveal--grid::after {
+      opacity: 0.25;
+    }
+
+    .box-reveal--rail::after {
+      border-style: solid;
+      background: linear-gradient(90deg, var(--accent) 0 2px, transparent 2px);
+      opacity: 0;
+    }
+
+    .reveal.in-view .box-reveal--rail::after {
+      opacity: 0.35;
+    }
+
+    .box-reveal--halo::after {
+      border-style: solid;
+      border-color: var(--accent);
+      opacity: 0;
+      box-shadow: 0 0 24px rgba(255, 255, 255, 0.12);
+    }
+
+    .reveal.in-view .box-reveal--halo::after {
+      opacity: 0.22;
+    }
+
+    .box-reveal--cut::after {
+      border-style: dashed;
+      background:
+        linear-gradient(135deg, transparent 48%, var(--line-strong) 49%, var(--line-strong) 51%, transparent 52%);
+    }
+
+    .box-reveal--tight {
+      --frame-inset: 8px;
+      --after-inset: 10px;
+      --corner: 16px;
+      --stroke: 1px;
+      --dash-opacity: 0.25;
+    }
+
+    .box-reveal--offset {
+      --frame-inset: 14px 10px 8px 12px;
+      --after-inset: 8px 14px 12px 10px;
+    }
+
+    .box-reveal--cornerflip {
+      background-image:
+        linear-gradient(135deg, transparent 0 16px, var(--hover) 16px 28px, transparent 28px),
+        linear-gradient(135deg, transparent 0 16px, var(--line-strong) 16px 17px, transparent 17px);
+      background-repeat: no-repeat;
+      background-position: top right;
+      background-size: 30px 30px;
+    }
+
+    .box-reveal--notch {
+      background-image:
+        linear-gradient(135deg, transparent 0 18px, var(--hover) 18px 30px, transparent 30px);
+      background-repeat: no-repeat;
+      background-position: top left;
+      background-size: 34px 34px;
+    }
+
+    .box-reveal--notch::after {
+      clip-path: polygon(18px 0, 100% 0, 100% 100%, 0 100%, 0 18px, 18px 0);
+    }
+
+    .box-reveal--angle::after {
+      transform: scale(0.98) skewX(-2deg);
+    }
+
+    .reveal.in-view .box-reveal--angle::after {
+      transform: scale(1) skewX(-2deg);
+    }
+
+    .box-reveal--ticks::after {
+      border: none;
+      background:
+        repeating-linear-gradient(90deg, var(--line-strong) 0 6px, transparent 6px 14px) left top/100% 1px no-repeat,
+        repeating-linear-gradient(90deg, var(--line-strong) 0 6px, transparent 6px 14px) left bottom/100% 1px no-repeat,
+        repeating-linear-gradient(0deg, var(--line-strong) 0 6px, transparent 6px 14px) left top/1px 100% no-repeat,
+        repeating-linear-gradient(0deg, var(--line-strong) 0 6px, transparent 6px 14px) right top/1px 100% no-repeat;
+    }
+
+    .box-reveal--rail-top::after {
+      border-style: solid;
+      background: linear-gradient(180deg, var(--accent) 0 2px, transparent 2px);
+      background-repeat: no-repeat;
+      background-size: 100% 2px;
+      background-position: top;
+    }
+
+    .box-reveal--silent::before,
+    .box-reveal--silent::after {
+      opacity: 0 !important;
+      background-size: 0 0 !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
+
+    .mode-card .tile-fold-inner {
+      position: relative;
+      background-image:
+        repeating-linear-gradient(90deg, var(--mode-grid) 0 1px, transparent 1px 26px),
+        repeating-linear-gradient(0deg, var(--mode-grid) 0 1px, transparent 1px 26px),
+        repeating-linear-gradient(90deg, var(--mode-grid-strong) 0 1px, transparent 1px 104px),
+        repeating-linear-gradient(0deg, var(--mode-grid-strong) 0 1px, transparent 1px 104px),
+        var(--tile-base);
+      background-blend-mode: screen;
+    }
+
+    .mode-card .tile-fold-inner::before {
+      content: "";
+      position: absolute;
+      inset: 12px;
+      background:
+        repeating-linear-gradient(90deg, var(--mode-grid) 0 1px, transparent 1px 18px),
+        repeating-linear-gradient(0deg, var(--mode-grid) 0 1px, transparent 1px 18px);
+      opacity: 0.22;
+      mix-blend-mode: screen;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .mode-card .tile-fold-inner > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    body[data-theme="light"] .mode-card .tile-fold-inner {
+      background-blend-mode: multiply;
+    }
+
+    .exhale-word {
+      position: relative;
+      display: inline-block;
+      animation: exhale 10s ease-in-out infinite;
+    }
+
+    .exhale-word::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -6px;
+      height: 2px;
+      background:
+        repeating-linear-gradient(90deg, var(--accent-dust) 0 2px, transparent 2px 6px),
+        linear-gradient(90deg, var(--accent) 0%, var(--accent) 100%);
+      opacity: 0.18;
+      transform: scaleX(0.7);
+      transform-origin: left;
+      animation: exhaleUnderline 10s ease-in-out infinite;
+    }
+
+    .exhale-word::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -8px;
+      height: 8px;
+      background: linear-gradient(90deg, var(--accent-glow) 0%, var(--accent-glow) 100%);
+      filter: blur(6px);
+      opacity: 0.15;
+      transform: scaleX(0.6);
+      transform-origin: left;
+      animation: exhaleUnderlineGlow 10s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    .flow-axis {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 11px;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+
+    .flow-axis::before {
+      content: "";
+      width: 52px;
+      height: 1px;
+      background: var(--accent);
+      opacity: 0.55;
+    }
+
+    .section-subtitle {
+      font-size: 18px;
+      max-width: 620px;
+      color: var(--muted);
+      margin: 0 0 36px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 24px;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+
+    .tile {
+      --tile-base: var(--panel);
+      background: var(--tile-base);
+      border-radius: var(--radius);
+      padding: 26px;
+      box-shadow: none;
+      border: 1px solid var(--line);
+      min-height: 200px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .tile:hover {
+      --tile-base: var(--panel-strong);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow);
+    }
+
+    .tile h3 { margin: 0 0 12px; font-size: 18px; text-transform: uppercase; letter-spacing: 0.08em; }
+    .tile p { margin: 0; color: var(--muted); }
+
+    .tile-fold {
+      --fold-size: 28px;
+      --fold-size-hover: 38px;
+      position: relative;
+      padding: 0;
+      border: none;
+      border-top-right-radius: 0;
+      background: transparent;
+      overflow: visible;
+    }
+
+    .tile-fold:hover {
+      --fold-size: var(--fold-size-hover);
+    }
+
+    .tile-fold-inner {
+      position: relative;
+      min-height: inherit;
+      padding: 26px;
+      background: var(--tile-base);
+      border-radius: inherit;
+      border-top-right-radius: 0;
+      border: 1px solid var(--line);
+      clip-path: polygon(0 0, calc(100% - var(--fold-size)) 0, 100% var(--fold-size), 100% 100%, 0 100%);
+      transition: background 0.3s ease, clip-path 0.35s ease;
+      overflow: hidden;
+    }
+
+    .tile-fold::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 0 var(--fold-size) var(--fold-size) 0;
+      border-color: transparent var(--paper) var(--fold-fill) transparent;
+      filter: drop-shadow(-2px 2px 4px var(--fold-shadow));
+      pointer-events: none;
+      transition: border-width 0.35s ease, border-color 0.35s ease;
+      z-index: 2;
+    }
+
+    .tile-fold::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 0 var(--fold-size) var(--fold-size) 0;
+      border-color: transparent transparent var(--fold-edge) transparent;
+      opacity: 0.85;
+      pointer-events: none;
+      transition: border-width 0.35s ease, opacity 0.35s ease;
+      z-index: 3;
+    }
+
+    .tile-fold:hover::before {
+      border-color: transparent var(--paper) var(--fold-highlight) transparent;
+    }
+
+    .flow {
+      display: grid;
+      gap: 18px;
+    }
+
+    .flow-step {
+      display: grid;
+      grid-template-columns: 36px 1fr;
+      gap: 18px;
+      align-items: start;
+      padding: 18px 22px;
+      border-radius: 18px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: none;
+    }
+
+    .flow-index {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      background: var(--accent);
+      color: var(--paper);
+      display: grid;
+      place-items: center;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .testimonial {
+      background: #0f1014;
+      color: var(--ink);
+      border-radius: 24px;
+      padding: 36px;
+      display: grid;
+      gap: 16px;
+      box-shadow: none;
+      border: 1px solid var(--line);
+    }
+
+    body[data-theme="light"] .testimonial {
+      background: #ffffff;
+      color: var(--ink);
+    }
+
+    .testimonial blockquote {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.5;
+    }
+
+    .testimonial span { font-size: 14px; text-transform: uppercase; letter-spacing: 0.12em; }
+
+    .pricing {
+      display: grid;
+      gap: 24px;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+
+    .price-card {
+      border-radius: 24px;
+      padding: 28px;
+      background: var(--panel);
+      box-shadow: none;
+      border: 1px solid var(--line);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .price-card.highlight {
+      background: #f5f4ef;
+      color: #0b0c10;
+      border-color: rgba(11, 12, 16, 0.2);
+    }
+
+    .price-card h4 { margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.1em; }
+    .price-card strong { font-size: 34px; display: block; margin-bottom: 16px; }
+
+    .price-card.highlight strong { color: #0b0c10; }
+
+    .price-card ul { margin: 0; padding: 0 0 0 16px; line-height: 1.7; }
+    .price-card ul { color: var(--muted); }
+    .price-card.highlight ul { color: rgba(11, 12, 16, 0.7); }
+
+    body[data-theme="light"] .price-card.highlight {
+      background: #0b0c10;
+      color: #f6f5f2;
+      border-color: rgba(11, 12, 16, 0.2);
+    }
+
+    body[data-theme="light"] .price-card.highlight strong {
+      color: #f6f5f2;
+    }
+
+    body[data-theme="light"] .price-card.highlight ul {
+      color: rgba(246, 245, 242, 0.7);
+    }
+
+    .cta-panel {
+      background: var(--panel);
+      border-radius: 28px;
+      padding: 50px;
+      display: grid;
+      gap: 16px;
+      box-shadow: none;
+      border: 1px solid var(--line);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-panel::before {
+      content: "";
+      width: 64px;
+      height: 2px;
+      background: var(--accent);
+    }
+
+    .cta-panel h2 { margin: 0; font-family: "Instrument Serif", serif; font-size: 38px; }
+    .cta-panel p { font-size: 18px; max-width: 560px; color: var(--muted); }
+
+    footer {
+      padding: 40px 6vw 60px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 16px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    .reveal.in-view { opacity: 1; transform: translateY(0); }
+
+    .stagger > * {
+      opacity: 0;
+      transform: translateY(20px);
+      animation: rise 0.8s ease forwards;
+    }
+
+    .stagger > *:nth-child(1) { animation-delay: 0.1s; }
+    .stagger > *:nth-child(2) { animation-delay: 0.2s; }
+    .stagger > *:nth-child(3) { animation-delay: 0.3s; }
+    .stagger > *:nth-child(4) { animation-delay: 0.4s; }
+
+    @keyframes breathe {
+      0%, 100% { transform: scale(0.98); }
+      50% { transform: scale(1.02); }
+    }
+
+    @keyframes ripple {
+      0%, 100% { transform: scale(0.98); opacity: 0.2; }
+      50% { transform: scale(1.03); opacity: 0.4; }
+    }
+
+    @keyframes frameFlash {
+      0% { opacity: 0; }
+      35% { opacity: var(--frame-opacity); }
+      75% { opacity: var(--frame-opacity); }
+      100% { opacity: 0; }
+    }
+
+    @keyframes dashFlash {
+      0% { opacity: 0; }
+      35% { opacity: var(--dash-opacity); }
+      75% { opacity: var(--dash-opacity); }
+      100% { opacity: 0; }
+    }
+
+    @keyframes cardFloat {
+      0%, 100% { transform: translate(var(--card-x), var(--card-y)) rotate(var(--card-rot)); }
+      50% { transform: translate(calc(var(--card-x) + 8px), calc(var(--card-y) - 8px)) rotate(calc(var(--card-rot) + 1deg)); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.08); opacity: 1; }
+    }
+
+    @keyframes dotPulse {
+      0%, 100% { transform: scale(1); opacity: 0.7; }
+      50% { transform: scale(1.2); opacity: 1; }
+    }
+
+    @keyframes exhale {
+      0%, 100% { opacity: 1; transform: translateY(0); }
+      50% { opacity: 0.82; transform: translateY(0); }
+    }
+
+    @keyframes exhaleUnderline {
+      0%, 100% { opacity: 0.22; transform: scaleX(0.3); }
+      40% { opacity: 0.75; transform: scaleX(1); }
+      60% { opacity: 0.75; transform: scaleX(1); }
+    }
+
+    @keyframes exhaleUnderlineGlow {
+      0%, 100% { opacity: 0.12; transform: scaleX(0.3); }
+      40% { opacity: 0.35; transform: scaleX(1); }
+      60% { opacity: 0.35; transform: scaleX(1); }
+    }
+
+    @keyframes scan {
+      0% { transform: translateY(-30%); }
+      100% { transform: translateY(30%); }
+    }
+
+    @keyframes rise {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 900px) {
+      .nav-links { display: none; }
+      .hero { padding-top: 40px; }
+      .hero-visual { min-height: 320px; }
+      .cta-panel { padding: 36px; }
+      .orb { width: 200px; height: 200px; }
+      .orb-ring.ring-one { width: 260px; height: 260px; }
+      .orb-ring.ring-two { width: 310px; height: 310px; }
+      .ritual-panel { --card-x: 50px; --card-y: 40px; width: 220px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .reveal { opacity: 1; transform: none; }
+    }
+  </style>
+</head>
+<body class="noise-layer">
+  <svg class="blueprint-svg" aria-hidden="true" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <pattern id="hatch" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+        <line x1="0" y1="0" x2="0" y2="12" stroke="var(--sketch)" stroke-width="1" />
+      </pattern>
+      <marker id="arrow" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+        <path d="M0,0 L8,4 L0,8 Z" fill="var(--blueprint)" />
+      </marker>
+      <marker id="arrow-weak" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+        <path d="M0,0 L8,4 L0,8 Z" fill="var(--blueprint-weak)" />
+      </marker>
+      <filter id="smudge">
+        <feGaussianBlur stdDeviation="0.6" />
+      </filter>
+    </defs>
+    <g fill="none" stroke="var(--blueprint)" stroke-width="1">
+      <circle cx="340" cy="260" r="160" />
+      <circle cx="340" cy="260" r="110" />
+      <line x1="340" y1="80" x2="340" y2="440" />
+      <line x1="180" y1="260" x2="500" y2="260" />
+      <rect x="980" y="140" width="360" height="220" rx="24" />
+      <path d="M980 360 L1340 140" />
+      <path d="M1040 170 L1280 330" />
+      <circle cx="1060" cy="260" r="42" />
+      <circle cx="1060" cy="260" r="16" />
+      <line x1="1060" y1="210" x2="1060" y2="310" />
+      <line x1="1010" y1="260" x2="1110" y2="260" />
+      <rect x="620" y="260" width="220" height="130" rx="16" />
+      <line x1="620" y1="325" x2="840" y2="325" />
+      <line x1="730" y1="260" x2="730" y2="390" />
+    </g>
+    <g fill="none" stroke="var(--blueprint-weak)" stroke-width="1" stroke-dasharray="6 8">
+      <circle cx="1200" cy="640" r="180" />
+      <circle cx="1200" cy="640" r="120" />
+      <line x1="1020" y1="640" x2="1380" y2="640" />
+      <line x1="1200" y1="460" x2="1200" y2="820" />
+      <rect x="160" y="620" width="260" height="160" rx="18" />
+      <ellipse cx="520" cy="620" rx="180" ry="120" />
+      <ellipse cx="520" cy="620" rx="110" ry="70" />
+      <line x1="340" y1="620" x2="700" y2="620" />
+    </g>
+    <g fill="none" stroke="var(--blueprint-weak)" stroke-width="1">
+      <path d="M160 700 L420 700" />
+      <path d="M290 620 L290 780" />
+      <path d="M620 520 L820 520" />
+      <path d="M720 440 L720 600" />
+      <path d="M900 540 L1120 540" />
+      <path d="M1010 470 L1010 610" />
+      <path d="M1260 520 L1420 520" />
+      <path d="M1340 460 L1340 580" />
+    </g>
+    <g fill="none" stroke="var(--blueprint)" stroke-width="1" opacity="0.7">
+      <line x1="120" y1="170" x2="460" y2="170" marker-start="url(#arrow)" marker-end="url(#arrow)" />
+      <line x1="120" y1="180" x2="120" y2="340" marker-start="url(#arrow)" marker-end="url(#arrow)" />
+      <line x1="980" y1="400" x2="1340" y2="400" marker-start="url(#arrow)" marker-end="url(#arrow)" />
+      <line x1="980" y1="410" x2="980" y2="560" marker-start="url(#arrow)" marker-end="url(#arrow)" />
+    </g>
+    <g fill="none" stroke="var(--blueprint-weak)" stroke-width="1" stroke-dasharray="3 6">
+      <line x1="520" y1="120" x2="520" y2="320" marker-start="url(#arrow-weak)" marker-end="url(#arrow-weak)" />
+      <line x1="520" y1="320" x2="700" y2="320" marker-start="url(#arrow-weak)" marker-end="url(#arrow-weak)" />
+      <line x1="760" y1="740" x2="980" y2="740" marker-start="url(#arrow-weak)" marker-end="url(#arrow-weak)" />
+    </g>
+    <g fill="none" stroke="var(--blueprint-weak)" stroke-width="1">
+      <path d="M720 200 C760 220, 800 220, 840 200" />
+      <path d="M860 200 C900 220, 940 220, 980 200" />
+      <path d="M520 860 C600 820, 740 820, 820 860" />
+      <path d="M980 120 C1080 160, 1200 160, 1300 120" />
+    </g>
+    <g fill="none" stroke="var(--blueprint-weak)" stroke-width="1" stroke-dasharray="2 10">
+      <path d="M80 520 C180 480, 280 480, 380 520" />
+      <path d="M380 520 C480 560, 580 560, 680 520" />
+      <path d="M680 520 C780 480, 880 480, 980 520" />
+    </g>
+    <g fill="none" stroke="var(--sketch)" stroke-width="1" filter="url(#smudge)" opacity="0.6">
+      <path d="M220 680 C300 620, 420 620, 520 700" />
+      <path d="M540 710 C620 770, 720 760, 820 700" />
+      <path d="M980 460 C1040 520, 1120 520, 1180 470" />
+    </g>
+    <g fill="url(#hatch)" opacity="0.25">
+      <rect x="700" y="140" width="160" height="120" rx="12" />
+    </g>
+    <g fill="var(--sketch)" font-family="Instrument Serif, serif" letter-spacing="2" opacity="0.5" filter="url(#smudge)">
+      <text x="90" y="520" font-size="12">RATIO 1.618</text>
+      <text x="940" y="910" font-size="11">BREATH CYCLE</text>
+      <text x="220" y="110" font-size="11">x² + y² = r²</text>
+      <text x="360" y="148" font-size="10">Δt = 1.4s</text>
+      <text x="520" y="880" font-size="11">θ = 34°</text>
+      <text x="1080" y="320" font-size="10">∫ calm dt</text>
+      <text x="1220" y="370" font-size="10">f(t) = e⁻ᵗ</text>
+      <text x="114" y="780" font-size="11">phase 03</text>
+      <text x="640" y="110" font-size="10">λ = 0.618</text>
+      <text x="720" y="150" font-size="10">Σ (σᵢ) / n</text>
+      <text x="860" y="220" font-size="10">R = 2πr</text>
+      <text x="980" y="250" font-size="10">rₙ = r₀ · φⁿ</text>
+      <text x="1180" y="520" font-size="10">Δψ = 0.07</text>
+      <text x="128" y="240" font-size="10">scale 1 : 12</text>
+      <text x="260" y="320" font-size="10">layer B</text>
+      <text x="420" y="420" font-size="10">micro timing</text>
+      <text x="560" y="640" font-size="10">τ = 5s</text>
+      <text x="720" y="700" font-size="10">curve fit</text>
+      <text x="980" y="760" font-size="10">Δ = 0.12</text>
+      <text x="1160" y="840" font-size="10">breath / reset</text>
+      <text x="1340" y="620" font-size="10">phase shift</text>
+      <text x="220" y="910" font-size="10">note: soften edge</text>
+    </g>
+    <g fill="var(--sketch)" font-family="Instrument Serif, serif" letter-spacing="1.5" opacity="0.35" filter="url(#smudge)">
+      <text x="140" y="560" font-size="9">Δx = 12</text>
+      <text x="180" y="590" font-size="9">Δy = 8</text>
+      <text x="420" y="520" font-size="9">v = 0.8</text>
+      <text x="520" y="560" font-size="9">t₀ = 0</text>
+      <text x="620" y="600" font-size="9">t₁ = 1.6</text>
+      <text x="720" y="640" font-size="9">t₂ = 3.2</text>
+      <text x="820" y="680" font-size="9">t₃ = 4.8</text>
+      <text x="920" y="720" font-size="9">t₄ = 6.4</text>
+      <text x="1020" y="760" font-size="9">t₅ = 8.0</text>
+      <text x="1180" y="210" font-size="9">Φ = 1.618</text>
+      <text x="1260" y="250" font-size="9">π ≈ 3.14</text>
+      <text x="1320" y="290" font-size="9">e ≈ 2.718</text>
+      <text x="220" y="680" font-size="9">grid lock</text>
+      <text x="340" y="740" font-size="9">smooth step</text>
+    </g>
+    <g fill="var(--blueprint-weak)" font-family="Instrument Sans, sans-serif" letter-spacing="3" opacity="0.55">
+      <text x="1040" y="120" font-size="10">SYSTEM 02</text>
+      <text x="980" y="580" font-size="9">CALIBRATION</text>
+      <text x="260" y="350" font-size="9">MODULE A</text>
+    </g>
+    <g fill="none" stroke="var(--smudge)" stroke-width="2" opacity="0.45">
+      <path d="M90 610 C180 560, 260 560, 340 600" />
+      <path d="M360 600 C440 640, 520 640, 600 600" />
+      <path d="M1040 720 C1120 760, 1240 760, 1320 700" />
+      <path d="M620 240 C700 200, 820 200, 900 240" />
+      <path d="M1000 520 C1080 560, 1180 560, 1260 520" />
+      <path d="M260 460 C320 430, 420 430, 480 470" />
+    </g>
+    <g fill="var(--smudge)" opacity="0.2" filter="url(#smudge)">
+      <rect x="120" y="200" width="220" height="36" rx="18" />
+      <rect x="620" y="420" width="260" height="30" rx="15" />
+      <rect x="980" y="300" width="220" height="28" rx="14" />
+      <rect x="1080" y="820" width="240" height="32" rx="16" />
+      <rect x="220" y="840" width="180" height="28" rx="14" />
+    </g>
+  </svg>
+  <svg class="blueprint-svg blueprint-secondary" aria-hidden="true" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <marker id="arrow-soft" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+        <path d="M0,0 L8,4 L0,8 Z" fill="var(--blueprint-weak)" />
+      </marker>
+      <filter id="smudge-soft">
+        <feGaussianBlur stdDeviation="1" />
+      </filter>
+    </defs>
+    <g fill="none" stroke="var(--blueprint-weak)" stroke-width="1">
+      <rect x="120" y="120" width="320" height="220" rx="28" />
+      <rect x="460" y="160" width="220" height="140" rx="18" />
+      <rect x="740" y="180" width="300" height="180" rx="22" />
+      <circle cx="360" cy="720" r="140" />
+      <circle cx="360" cy="720" r="90" />
+      <circle cx="980" cy="760" r="180" />
+      <circle cx="980" cy="760" r="120" />
+      <line x1="180" y1="230" x2="520" y2="230" />
+      <line x1="360" y1="580" x2="360" y2="860" />
+      <line x1="800" y1="180" x2="800" y2="360" />
+      <line x1="880" y1="640" x2="1080" y2="880" />
+    </g>
+    <g fill="none" stroke="var(--blueprint)" stroke-width="1" opacity="0.65">
+      <path d="M120 520 C240 460, 380 460, 500 520" />
+      <path d="M500 520 C620 580, 760 580, 880 520" />
+      <path d="M880 520 C1000 460, 1140 460, 1260 520" />
+      <path d="M260 420 L520 420" marker-end="url(#arrow-soft)" />
+      <path d="M520 420 L520 620" marker-end="url(#arrow-soft)" />
+      <path d="M1040 300 L1240 300" marker-end="url(#arrow-soft)" />
+      <path d="M1240 300 L1240 500" marker-end="url(#arrow-soft)" />
+    </g>
+    <g fill="none" stroke="var(--blueprint-weak)" stroke-width="1" stroke-dasharray="4 8">
+      <path d="M200 140 L620 360" />
+      <path d="M220 360 L640 140" />
+      <path d="M980 220 L1320 420" />
+      <path d="M980 420 L1320 220" />
+      <path d="M120 820 L520 620" />
+      <path d="M120 620 L520 820" />
+    </g>
+    <g fill="var(--sketch)" opacity="0.28" filter="url(#smudge-soft)">
+      <path d="M720 720 C820 660, 940 660, 1040 720" />
+      <path d="M260 260 C320 220, 420 220, 480 260" />
+    </g>
+    <g fill="var(--sketch)" font-family="Instrument Serif, serif" letter-spacing="1.6" opacity="0.35" filter="url(#smudge-soft)">
+      <text x="140" y="460" font-size="10">aₙ = a₀ · rⁿ</text>
+      <text x="520" y="460" font-size="10">Δ = 0.08</text>
+      <text x="900" y="140" font-size="10">scale: 1 / 8</text>
+      <text x="1120" y="520" font-size="10">n = 24</text>
+      <text x="760" y="900" font-size="10">flow grid</text>
+    </g>
+  </svg>
+  <div class="page">
+    <nav class="nav">
+      <div class="logo">
+        <span class="logo-badge"></span>
+        exhale
+      </div>
+      <div class="nav-links">
+        <a href="#approach">Approach</a>
+        <a href="#modes">Modes</a>
+        <a href="#stories">Stories</a>
+        <a href="#pricing">Pricing</a>
+      </div>
+      <div class="nav-actions">
+        <button class="theme-toggle" type="button" aria-pressed="false">Light</button>
+        <button class="cta-button">Start a session</button>
+      </div>
+    </nav>
+
+    <section class="hero">
+      <div class="hero-copy stagger">
+        <h1><span class="exhale-word accent">Exhale</span> — therapy designed for steady focus.</h1>
+        <div class="flow-axis">steady state</div>
+        <p>Exhale keeps support focused and steady: quiet sessions, clear structure, and calm guidance built for your nervous system.</p>
+        <div class="hero-actions">
+          <button class="cta-button">Start a session</button>
+          <button class="ghost-button">Meet your therapist</button>
+        </div>
+        <div class="hero-stats">
+          <div class="stat">
+            <strong>10 min</strong>
+            average reset time
+          </div>
+          <div class="stat">
+            <strong>73%</strong>
+            report better mood
+          </div>
+          <div class="stat">
+            <strong>On-demand</strong>
+            therapist prompts
+          </div>
+        </div>
+      </div>
+      <div class="hero-visual" aria-hidden="true">
+        <div class="orb">
+          <span class="orb-ring ring-one"></span>
+          <span class="orb-ring ring-two"></span>
+          <span class="orb-dot"></span>
+        </div>
+        <div class="card-stack">
+          <div class="ritual-panel">
+            <div class="ritual-header">
+              Rituals
+              <span class="chip">Today</span>
+            </div>
+            <ul class="ritual-list">
+              <li class="ritual-item done">
+                <span class="label"><span class="dot"></span>Breath reset</span>
+                <span class="time">4 min</span>
+              </li>
+              <li class="ritual-item done">
+                <span class="label"><span class="dot"></span>Shoulder release</span>
+                <span class="time">3 min</span>
+              </li>
+              <li class="ritual-item active">
+                <span class="label"><span class="dot"></span>Evening reset</span>
+                <span class="time">8 min</span>
+              </li>
+              <li class="ritual-item">
+                <span class="label"><span class="dot"></span>Quiet journal</span>
+                <span class="time">5 min</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="approach" class="section reveal">
+      <h2 class="section-title">A calm system with clear edges.</h2>
+      <p class="section-subtitle">Exhale strips out noise. Every session is precise, guided, and designed to move you from overwhelm to steady.</p>
+      <div class="grid">
+        <article class="tile box-reveal box-reveal--double box-reveal--cornerflip">
+          <h3>Signal-aware check-ins</h3>
+          <p>Micro assessments tune each session to your stress patterns and energy rhythms.</p>
+        </article>
+        <article class="tile box-reveal box-reveal--double box-reveal--notch box-reveal--angle">
+          <h3>Guided co-regulation</h3>
+          <p>Therapist-guided audio rituals pair voice, touch, and movement for real relief.</p>
+        </article>
+        <article class="tile box-reveal box-reveal--double box-reveal--ticks">
+          <h3>Personal anchors</h3>
+          <p>Create grounding prompts that light up when your nervous system needs a reset.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section reveal" id="modes">
+      <h2 class="section-title">Modes.</h2>
+      <p class="section-subtitle">Short, crisp sessions for stabilizing, reflecting, and moving forward.</p>
+      <div class="grid">
+        <article class="tile tile-fold mode-card box-reveal box-reveal--grid box-reveal--cornerflip box-reveal--silent">
+          <div class="tile-fold-inner">
+            <h3>Reset</h3>
+            <p>6-minute stabilizers to slow the spiral before it starts.</p>
+          </div>
+        </article>
+        <article class="tile tile-fold mode-card box-reveal box-reveal--grid box-reveal--ticks box-reveal--silent">
+          <div class="tile-fold-inner">
+            <h3>Reflect</h3>
+            <p>Journaling rituals with therapist feedback and insights.</p>
+          </div>
+        </article>
+        <article class="tile tile-fold mode-card box-reveal box-reveal--grid box-reveal--angle box-reveal--silent">
+          <div class="tile-fold-inner">
+            <h3>Reconnect</h3>
+            <p>Warm voice sessions for deeper emotional processing.</p>
+          </div>
+        </article>
+        <article class="tile tile-fold mode-card box-reveal box-reveal--grid box-reveal--offset box-reveal--silent">
+          <div class="tile-fold-inner">
+            <h3>Rewire</h3>
+            <p>Weekly plans for habits, boundaries, and emotional clarity.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section reveal">
+      <h2 class="section-title">A steady rhythm</h2>
+      <div class="flow">
+        <div class="flow-step box-reveal box-reveal--rail box-reveal--rail-top box-reveal--cornerflip">
+          <div class="flow-index">01</div>
+          <div>
+            <h3>Match</h3>
+            <p>Find a therapist who respects your pace within 24 hours.</p>
+          </div>
+        </div>
+        <div class="flow-step box-reveal box-reveal--rail box-reveal--tight">
+          <div class="flow-index">02</div>
+          <div>
+            <h3>Design rituals</h3>
+            <p>Build a small set of grounding cues you can replay anytime.</p>
+          </div>
+        </div>
+        <div class="flow-step box-reveal box-reveal--rail box-reveal--notch">
+          <div class="flow-index">03</div>
+          <div>
+            <h3>Track your line</h3>
+            <p>See your calm trend as a clean weekly snapshot.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="stories" class="section reveal">
+      <div class="testimonial box-reveal box-reveal--halo box-reveal--angle">
+        <blockquote>“The structure is simple and it works. I drop in, reset, and get back to myself.”</blockquote>
+        <span>Jada P — 4 months with Exhale</span>
+      </div>
+    </section>
+
+    <section id="pricing" class="section reveal">
+      <h2 class="section-title">Pricing with room to grow</h2>
+      <p class="section-subtitle">Transparent plans with therapist access, rituals, and progress insights.</p>
+      <div class="pricing">
+        <article class="price-card box-reveal box-reveal--cut box-reveal--ticks">
+          <h4>Starter</h4>
+          <strong>$39 / mo</strong>
+          <ul>
+            <li>Weekly therapist message</li>
+            <li>3 guided rituals</li>
+            <li>Progress reflections</li>
+          </ul>
+        </article>
+        <article class="price-card highlight box-reveal box-reveal--halo box-reveal--offset">
+          <h4>Core</h4>
+          <strong>$79 / mo</strong>
+          <ul>
+            <li>Unlimited rituals</li>
+            <li>Biweekly live sessions</li>
+            <li>Personalized nervous system map</li>
+          </ul>
+        </article>
+        <article class="price-card box-reveal box-reveal--cut box-reveal--cornerflip box-reveal--angle">
+          <h4>Deep Care</h4>
+          <strong>$129 / mo</strong>
+          <ul>
+            <li>Weekly live sessions</li>
+            <li>Voice note access</li>
+            <li>Therapist-led plans</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="section reveal">
+      <div class="cta-panel box-reveal box-reveal--halo box-reveal--cornerflip">
+        <h2>Begin with clarity.</h2>
+        <p>Exhale is designed to help you steady, focus, and feel supported every day. Start a session and meet a therapist who keeps it clear.</p>
+        <div class="hero-actions">
+          <button class="cta-button">Start today</button>
+          <button class="ghost-button">Schedule a tour</button>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div>Exhale © 2026</div>
+      <div>hello@exhale.com · Privacy · Terms</div>
+    </footer>
+  </div>
+
+  <script>
+    const revealEls = document.querySelectorAll(".reveal");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("in-view");
+          }
+        });
+      },
+      { threshold: 0.2 }
+    );
+    revealEls.forEach((el) => observer.observe(el));
+
+    const heroVisual = document.querySelector(".hero-visual");
+    if (heroVisual) {
+      heroVisual.addEventListener("mousemove", (event) => {
+        const rect = heroVisual.getBoundingClientRect();
+        const x = (event.clientX - rect.left) / rect.width - 0.5;
+        const y = (event.clientY - rect.top) / rect.height - 0.5;
+        heroVisual.style.setProperty("--tilt-x", `${x * 5}deg`);
+        heroVisual.style.setProperty("--tilt-y", `${-y * 5}deg`);
+      });
+
+      heroVisual.addEventListener("mouseleave", () => {
+        heroVisual.style.setProperty("--tilt-x", "0deg");
+        heroVisual.style.setProperty("--tilt-y", "0deg");
+      });
+    }
+
+    const themeToggle = document.querySelector(".theme-toggle");
+    const storedTheme = localStorage.getItem("exhale-theme");
+    if (storedTheme === "light") {
+      document.body.setAttribute("data-theme", "light");
+    }
+
+    const updateThemeToggle = () => {
+      if (!themeToggle) return;
+      const isLight = document.body.getAttribute("data-theme") === "light";
+      themeToggle.textContent = isLight ? "Dark" : "Light";
+      themeToggle.setAttribute("aria-pressed", String(isLight));
+    };
+
+    updateThemeToggle();
+
+    if (themeToggle) {
+      themeToggle.addEventListener("click", () => {
+        const isLight = document.body.getAttribute("data-theme") === "light";
+        if (isLight) {
+          document.body.removeAttribute("data-theme");
+          localStorage.setItem("exhale-theme", "dark");
+        } else {
+          document.body.setAttribute("data-theme", "light");
+          localStorage.setItem("exhale-theme", "light");
+        }
+        updateThemeToggle();
+      });
+    }
+  </script>
+</body>
+</html>

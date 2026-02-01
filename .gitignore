@@ -1,0 +1,68 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# Flutter
+**/android/.gradle/
+**/android/app/debug/
+**/android/app/profile/
+**/android/app/release/
+**/ios/Pods/
+**/ios/.symlinks/
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/build/
+**/*.iml
+
+# Environment
+.env
+.env.local
+.env.*.local
+*.local.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage/
+.nyc_output/
+
+# Generated files
+*.generated.dart
+*.g.dart
+*.freezed.dart
+
+# Prisma
+
+
+# OS files
+Thumbs.db
+ehthumbs.db
+
+# Secrets (never commit these!)
+*.pem
+*.key
+secrets/
+credentials/
+
+# Docker volumes (if mounted locally)
+.docker-data/
