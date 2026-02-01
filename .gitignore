@@ -66,3 +66,6 @@ credentials/
 
 # Docker volumes (if mounted locally)
 .docker-data/
+
+# Agent workflows
+.agent/
