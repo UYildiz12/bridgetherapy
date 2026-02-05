@@ -1,17 +1,14 @@
 # Documentation
 
-This folder contains project documentation.
+Project documentation for Exhale.
 
 ## Contents
 
-- [Implementation Plan](./implementation_plan.md) - Technical architecture and roadmap
-- [Intern Onboarding](./intern_onboarding.md) - Getting started guide for new team members
-- [API Reference](./api_reference.md) - Backend API documentation (coming soon)
-- [Security Guidelines](./security.md) - Security best practices (coming soon)
+- [Frontend Pages Specification](./frontend_pages.md) - Complete list of web and mobile pages with implementation order
 
 ## Quick Links
 
 - [Main README](../README.md)
-- [API App](../apps/api/README.md)
-- [Web App](../apps/web/README.md)
-- [Mobile App](../apps/mobile/README.md)
+- [API README](../apps/api/README.md)
+- [Web README](../apps/web/README.md)
+- [Mobile README](../apps/mobile/README.md)

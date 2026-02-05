@@ -1,6 +1,6 @@
 # Exhale
 
-A comprehensive therapy support application with mobile (Flutter), web (Next.js), and backend (NestJS) components.
+A therapy support application with web (Next.js), mobile (Flutter), and backend (NestJS) components. Built for therapists and patients to manage sessions, track mood, journal, and stay connected.
 
 ## Quick Start
 
@@ -13,29 +13,29 @@ A comprehensive therapy support application with mobile (Flutter), web (Next.js)
 ### Local Development
 
 ```bash
-# 1. Clone the repo
-git clone https://github.com/<org>/exhale.git
+# Clone and enter the repo
+git clone https://github.com/UYildiz12/exhale.git
 cd exhale
 
-# 2. Copy environment variables
+# Copy environment variables
 cp .env.example .env
 
-# 3. Start infrastructure (Postgres, Redis, MinIO)
+# Start infrastructure (Postgres, Redis, MinIO)
 docker compose up -d
 
-# 4. Setup and run backend
+# Backend (terminal 1)
 cd apps/api
 npm install
 npx prisma generate
 npx prisma db push
 npm run start:dev
 
-# 5. Setup and run web (new terminal)
+# Web frontend (terminal 2)
 cd apps/web
 npm install
 npm run dev
 
-# 6. Setup and run mobile (new terminal)
+# Mobile app (terminal 3)
 cd apps/mobile
 flutter pub get
 flutter run
@@ -46,14 +46,12 @@ flutter run
 ```
 exhale/
 ├── apps/
-│   ├── api/          # NestJS backend
-│   ├── web/          # Next.js therapist dashboard
-│   └── mobile/       # Flutter patient app
+│   ├── api/          # NestJS backend with Prisma
+│   ├── web/          # Next.js frontend for therapists and patients
+│   └── mobile/       # Flutter mobile app
 ├── packages/
-│   └── shared-types/ # Shared TypeScript types
-├── infrastructure/
-│   └── docker/       # Docker configurations
-├── docs/             # Documentation
+│   └── shared-types/ # Shared TypeScript interfaces
+├── docs/             # Project documentation
 └── .github/          # CI/CD workflows
 ```
 
@@ -62,18 +60,17 @@ exhale/
 | Layer | Technology |
 |-------|------------|
 | Mobile | Flutter, Riverpod, Dio, Drift |
-| Web | Next.js, TypeScript, shadcn/ui |
+| Web | Next.js, TypeScript, shadcn/ui, Tailwind |
 | Backend | NestJS, Prisma, PostgreSQL |
-| Infrastructure | Docker, Redis, S3/MinIO |
+| Infrastructure | Docker, Redis, MinIO |
 
 ## Documentation
 
-- [Implementation Plan](./docs/implementation_plan.md)
-- [Intern Onboarding](./docs/intern_onboarding.md)
-- [API Documentation](./apps/api/README.md)
-- [Mobile App Guide](./apps/mobile/README.md)
-- [Web Dashboard Guide](./apps/web/README.md)
+- [Frontend Pages Specification](./docs/frontend_pages.md)
+- [API README](./apps/api/README.md)
+- [Web README](./apps/web/README.md)
+- [Mobile README](./apps/mobile/README.md)
 
 ## License
 
-Private - All rights reserved.
+Private. All rights reserved.
