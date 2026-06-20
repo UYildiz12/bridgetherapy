@@ -1,6 +1,6 @@
 # Exhale
 
-A therapy support application with web (Next.js), mobile (Flutter), and backend (NestJS) components. Built for therapists and patients to manage sessions, track mood, journal, and stay connected.
+A therapy support application with a web app (Next.js, including the API via Route Handlers) and a mobile app (Flutter), backed by Supabase. Built for therapists and patients to manage sessions, track mood, journal, and stay connected.
 
 ## Quick Start
 
