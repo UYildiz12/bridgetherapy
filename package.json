@@ -1,0 +1,16 @@
+{
+  "name": "exhale",
+  "private": true,
+  "packageManager": "pnpm@10.14.0",
+  "scripts": {
+    "dev": "pnpm --filter web dev",
+    "build": "pnpm --filter web build",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present test",
+    "db:generate": "pnpm --filter @exhale/db generate",
+    "db:migrate": "pnpm --filter @exhale/db migrate"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
+}
