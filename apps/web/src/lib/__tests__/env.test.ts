@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
 const VALID = {
   NEXT_PUBLIC_SUPABASE_URL: "https://x.supabase.co",
@@ -10,7 +10,7 @@ const VALID = {
 
 describe("serverEnv", () => {
   const original = { ...process.env };
-  beforeEach(() => { Object.assign(process.env, VALID); });
+  beforeEach(() => { vi.resetModules(); Object.assign(process.env, VALID); });
   afterEach(() => { process.env = { ...original }; });
 
   it("parses a valid environment", async () => {
