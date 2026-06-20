@@ -10,9 +10,9 @@ export interface AuthUser {
 export async function getAuthUser(req: Request): Promise<AuthUser | null> {
   const header = req.headers.get("authorization");
 
-  // Mobile / API clients: bearer token
-  if (header?.startsWith("Bearer ")) {
-    const token = header.slice(7);
+  // Mobile / API clients: bearer token (scheme is case-insensitive per RFC 7235)
+  if (header?.toLowerCase().startsWith("bearer ")) {
+    const token = header.slice(header.indexOf(" ") + 1).trim();
     const { data, error } = await supabaseAdmin().auth.getUser(token);
     if (error || !data.user?.email) return null;
     return { authId: data.user.id, email: data.user.email };

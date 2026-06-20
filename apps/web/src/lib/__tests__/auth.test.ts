@@ -25,4 +25,12 @@ describe("getAuthUser", () => {
     expect(await getAuthUser(req)).toEqual({ authId: "uid-1", email: "a@b.co" });
     expect(getUser).toHaveBeenCalledWith("tok");
   });
+
+  it("accepts a lowercase bearer scheme and extracts the token", async () => {
+    getUser.mockResolvedValue({ data: { user: { id: "uid-2", email: "c@d.co" } }, error: null });
+    const { getAuthUser } = await import("../auth");
+    const req = new Request("http://t/api/me", { headers: { authorization: "bearer tok2" } });
+    expect(await getAuthUser(req)).toEqual({ authId: "uid-2", email: "c@d.co" });
+    expect(getUser).toHaveBeenCalledWith("tok2");
+  });
 });
