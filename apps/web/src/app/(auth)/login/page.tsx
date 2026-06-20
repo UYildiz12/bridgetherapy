@@ -16,6 +16,7 @@ export default function LoginPage() {
     const supabase = createSupabaseBrowserClient();
     const { error: signErr } = await supabase.auth.signInWithPassword({ email, password });
     if (signErr) { setError(signErr.message); setLoading(false); return; }
+    router.refresh(); // ensure server components see the new session before navigating
     router.push("/app");
   }
 

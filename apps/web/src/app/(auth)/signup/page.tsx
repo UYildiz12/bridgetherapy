@@ -20,6 +20,7 @@ export default function SignupPage() {
     if (!token) { setError("Check your email to confirm, then log in."); setLoading(false); return; }
     try {
       await provisionUser(token, { firstName: form.firstName, lastName: form.lastName, role: form.role });
+      router.refresh(); // ensure server components see the new session before navigating
       router.push("/app");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Provisioning failed");
