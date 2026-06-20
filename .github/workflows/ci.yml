@@ -2,78 +2,36 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [master, main, architecture-redesign]
   pull_request:
-    branches: [main, develop]
 
 jobs:
-  # ==========================================
-  # Web Dashboard (Next.js) CI
-  # ==========================================
-  web-lint-build:
-    name: Web - Lint & Build
+  web:
+    name: Web + API — typecheck & test
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: apps/web
-
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@v4
         with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: apps/web/package-lock.json
+          version: 10
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Type check
-        run: npm run build
-        env:
-          NEXT_PUBLIC_API_URL: http://localhost:3001
-
-  # ==========================================
-  # Mobile App (Flutter) CI
-  # ==========================================
-  mobile-analyze-test:
-    name: Mobile - Analyze & Test
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: apps/mobile
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+      - uses: actions/setup-node@v4
         with:
-          flutter-version: '3.19.0'
-          channel: 'stable'
-          cache: true
+          node-version: "20"
+          cache: "pnpm"
 
-      - name: Get dependencies
-        run: flutter pub get
+      - name: Install
+        run: pnpm install --frozen-lockfile
 
-      - name: Analyze
-        run: flutter analyze
+      - name: Generate Prisma client
+        run: pnpm --filter @exhale/db generate
 
-      - name: Run tests
-        run: flutter test
+      - name: Validate Prisma schema
+        run: pnpm --filter @exhale/db validate
 
-  # ==========================================
-  # All checks passed
-  # ==========================================
-  ci-success:
-    name: CI Success
-    needs: [web-lint-build, mobile-analyze-test]
-    runs-on: ubuntu-latest
-    steps:
-      - name: All checks passed
-        run: echo "All CI checks passed successfully!"
+      - name: Typecheck
+        run: pnpm --filter web typecheck
+
+      - name: Test
+        run: pnpm --filter web test
