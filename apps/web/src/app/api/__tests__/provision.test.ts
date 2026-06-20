@@ -35,5 +35,9 @@ describe("POST /api/auth/provision", () => {
     const res = await POST(post({ firstName: "A", lastName: "B", role: "PATIENT" }));
     expect(res.status).toBe(201);
     expect(upsert).toHaveBeenCalledOnce();
+
+    const callArg = upsert.mock.calls[0][0];
+    expect(callArg.select).toBeDefined();
+    expect(callArg.select.passwordHash).toBeFalsy();
   });
 });

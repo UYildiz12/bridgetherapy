@@ -1,6 +1,7 @@
 import { getAuthUser } from "@/lib/auth";
 import { prisma } from "@exhale/db";
 import { json } from "@/lib/http";
+import { publicUserSelect } from "@/lib/user-select";
 
 export async function GET(req: Request) {
   const auth = await getAuthUser(req);
@@ -8,7 +9,7 @@ export async function GET(req: Request) {
 
   const user = await prisma.user.findUnique({
     where: { id: auth.authId },
-    include: { therapistProfile: true, patientProfile: true },
+    select: publicUserSelect,
   });
   if (!user) return json({ error: "Not provisioned" }, 404);
 

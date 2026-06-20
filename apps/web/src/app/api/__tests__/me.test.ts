@@ -31,5 +31,10 @@ describe("GET /api/me", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.data.id).toBe("uid-1");
+
+    const callArg = findUnique.mock.calls[0][0];
+    expect(callArg.select).toBeDefined();
+    expect(callArg.select.passwordHash).toBeFalsy();
+    expect(callArg.select.id).toBe(true);
   });
 });

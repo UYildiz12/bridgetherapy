@@ -4,6 +4,7 @@ import { prisma } from "@exhale/db";
 import { parseBody } from "@/lib/validation";
 import { writeAuditLog } from "@/lib/audit";
 import { json } from "@/lib/http";
+import { publicUserSelect } from "@/lib/user-select";
 
 const ProvisionBody = z.object({
   firstName: z.string().min(1),
@@ -32,6 +33,7 @@ export async function POST(req: Request) {
         ? { therapistProfile: { create: {} } }
         : { patientProfile: { create: {} } }),
     },
+    select: publicUserSelect,
   });
 
   await writeAuditLog({
