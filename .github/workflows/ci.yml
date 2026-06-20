@@ -9,6 +9,11 @@ jobs:
   web:
     name: Web + API — typecheck & test
     runs-on: ubuntu-latest
+    # Placeholder DB URLs so `prisma generate`/`validate` can resolve the datasource.
+    # CI never connects to a database — tests mock Prisma and Supabase.
+    env:
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+      DIRECT_URL: postgresql://ci:ci@localhost:5432/ci
     steps:
       - uses: actions/checkout@v4
 
