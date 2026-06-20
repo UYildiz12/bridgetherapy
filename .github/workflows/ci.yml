@@ -8,70 +8,6 @@ on:
 
 jobs:
   # ==========================================
-  # Backend (NestJS) CI
-  # ==========================================
-  api-lint-test:
-    name: API - Lint & Test
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: apps/api
-
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: test_user
-          POSTGRES_PASSWORD: test_password
-          POSTGRES_DB: test_db
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: apps/api/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Generate Prisma client
-        run: npx prisma generate
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Type check
-        run: npm run build --dry-run || true
-
-      - name: Run tests
-        run: npm run test
-        env:
-          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
-          REDIS_URL: redis://localhost:6379
-          JWT_SECRET: test-secret-key
-
-  # ==========================================
   # Web Dashboard (Next.js) CI
   # ==========================================
   web-lint-build:
@@ -136,7 +72,7 @@ jobs:
   # ==========================================
   ci-success:
     name: CI Success
-    needs: [api-lint-test, web-lint-build, mobile-analyze-test]
+    needs: [web-lint-build, mobile-analyze-test]
     runs-on: ubuntu-latest
     steps:
       - name: All checks passed
