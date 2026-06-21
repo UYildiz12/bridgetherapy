@@ -1,6 +1,6 @@
 # Exhale Feature Inventory
 
-This repo is currently a Next.js App Router application with Route Handler APIs, Prisma, Supabase Auth/Postgres/Storage integration, and PWA support. Native mobile, billing, and HIPAA/compliance deliverables are intentionally out of scope for the current branch.
+This repo is currently a Next.js App Router application with Route Handler APIs, Prisma, Supabase Auth/Postgres/Storage integration, PWA support, and a lightweight Expo/React Native mobile client against the same APIs. Billing and HIPAA/compliance deliverables are intentionally out of scope for the current branch.
 
 ## Already Implemented
 
@@ -27,15 +27,14 @@ This repo is currently a Next.js App Router application with Route Handler APIs,
 | Settings | Role-aware account, profile-link, notification preference, and privacy-boundary settings page. |
 | Reports | Patient progress metrics, therapist active-patient outcome summaries, and patient CSV export rows. |
 | Push notifications | Push-token registration/removal API, client helper, and cron reminder workflow for due homework and upcoming sessions through a pluggable webhook. |
+| Mobile app | Expo/React Native workspace with bearer-token API client and native shell for account sync, mood check-ins, reflections, homework, messages, reports, and wellness guidance. |
 | AI summaries | Server-side Gemini Interactions API wrapper using `AI_key`, `gemini-3.1-flash-lite`, `store: false`, and a therapist session-summary route. |
 | Database | Prisma schema and migrations for users, profiles, connections, mood, notes, homework, sessions, summaries, media, push tokens, and audit logs. |
 | Quality gates | Unit/API/component tests, lint, typecheck, production build, dependency audit, and CI workflow coverage. |
 
 ## Remaining Product Work
 
-| Area | Needed |
-| --- | --- |
-| Mobile app | Expo/React Native client, planned later against the same APIs. |
+No non-billing, non-HIPAA product areas are currently listed as remaining in this inventory.
 
 ## Explicitly Excluded
 
