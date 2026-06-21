@@ -49,7 +49,7 @@ function SignupForm() {
     }
     const token = data.session?.access_token;
     if (!token) {
-      setNote("Almost there — check your email to confirm, then log in. We'll finish setting up your account automatically.");
+      setNote("Almost there. Check your email to confirm, then log in. We'll finish setting up your account automatically.");
       setLoading(false);
       return;
     }

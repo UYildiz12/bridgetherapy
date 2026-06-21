@@ -36,113 +36,81 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/* The authenticated app shares the landing's "blueprint" palette: warm ink on deep
+   paper, hairline lines, a single white accent. (The app runs in dark; light values
+   are kept coherent for completeness.) */
 @layer theme {
   :root {
-    /* Base Colors - Warm, Calming Neutrals */
-    --background: 210 40% 98%;
-    /* Softest cool gray-white */
-    --foreground: 222 47% 11%;
-    /* Deep navy-charcoal text */
-
-    /* Card / Surface */
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-
-    /* Primary - Trustworthy Indigo */
-    --primary: 221 83% 53%;
-    /* Vibrant but professional blue */
-    --primary-foreground: 210 40% 98%;
-
-    /* Secondary - Grounding Warmth */
-    --secondary: 24 5% 94%;
-    /* Subtle warm gray */
-    --secondary-foreground: 222 47% 11%;
-
-    /* Muted - For de-emphasized elements */
-    --muted: 217 19% 95%;
-    --muted-foreground: 215 16% 47%;
-
-    /* Accent - Soft interactive states */
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    /* Destructive - Gentle Warning */
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    /* Borders & Inputs */
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221 83% 53%;
-
-    /* Charts (Matching Primary/Secondary Vibe) */
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-
-    /* Sidebar (Matches Card/Background) */
-    --sidebar: 0 0% 100%;
-    --sidebar-foreground: 222 47% 11%;
-    --sidebar-primary: 221 83% 53%;
-    --sidebar-primary-foreground: 210 40% 98%;
-    --sidebar-accent: 210 40% 96.1%;
-    --sidebar-accent-foreground: 222.2 47.4% 11.2%;
-    --sidebar-border: 214.3 31.8% 91.4%;
-    --sidebar-ring: 221 83% 53%;
+    --background: #f6f5f2;
+    --foreground: #0b0c10;
+    --card: #ffffff;
+    --card-foreground: #0b0c10;
+    --popover: #ffffff;
+    --popover-foreground: #0b0c10;
+    --primary: #0b0c10;
+    --primary-foreground: #f6f5f2;
+    --secondary: #f1efe9;
+    --secondary-foreground: #0b0c10;
+    --muted: #f1efe9;
+    --muted-foreground: rgba(11, 12, 16, 0.6);
+    --accent: rgba(11, 12, 16, 0.05);
+    --accent-foreground: #0b0c10;
+    --destructive: #c4453b;
+    --destructive-foreground: #ffffff;
+    --border: rgba(11, 12, 16, 0.12);
+    --input: rgba(11, 12, 16, 0.14);
+    --ring: rgba(11, 12, 16, 0.4);
+    --chart-1: #0b0c10;
+    --chart-2: rgba(11, 12, 16, 0.7);
+    --chart-3: rgba(11, 12, 16, 0.5);
+    --chart-4: rgba(11, 12, 16, 0.35);
+    --chart-5: rgba(11, 12, 16, 0.2);
+    --sidebar: #ffffff;
+    --sidebar-foreground: #0b0c10;
+    --sidebar-primary: #0b0c10;
+    --sidebar-primary-foreground: #f6f5f2;
+    --sidebar-accent: #f1efe9;
+    --sidebar-accent-foreground: #0b0c10;
+    --sidebar-border: rgba(11, 12, 16, 0.12);
+    --sidebar-ring: rgba(11, 12, 16, 0.4);
   }
 
   .dark {
-    /* Dark Mode - Deep, restful slate */
-    --background: 222 47% 7%;
-    /* Very deep blue-black */
-    --foreground: 210 40% 98%;
-
-    --card: 222 47% 9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 217 91% 60%;
-    --primary-foreground: 222 47.4% 11.2%;
-
-    --secondary: 217 19% 15%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217 19% 15%;
-    --muted-foreground: 215 20% 65%;
-
-    --accent: 217 19% 15%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217 19% 15%;
-    --input: 217 19% 15%;
-    --ring: 224 76% 48%;
-
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-
-    --sidebar: 222 47% 9%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 217 91% 60%;
-    --sidebar-primary-foreground: 222 47.4% 11.2%;
-    --sidebar-accent: 217 19% 15%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217 19% 15%;
-    --sidebar-ring: 224 76% 48%;
+    --background: #0b0c10;
+    --foreground: #f1f0eb;
+    --card: #121318;
+    --card-foreground: #f1f0eb;
+    --popover: #171820;
+    --popover-foreground: #f1f0eb;
+    --primary: #ffffff;
+    --primary-foreground: #0b0c10;
+    --secondary: #171820;
+    --secondary-foreground: #f1f0eb;
+    --muted: #171820;
+    --muted-foreground: rgba(245, 244, 239, 0.62);
+    --accent: rgba(255, 255, 255, 0.06);
+    --accent-foreground: #f1f0eb;
+    --destructive: #e5564b;
+    --destructive-foreground: #0b0c10;
+    --border: rgba(245, 244, 239, 0.14);
+    --input: rgba(245, 244, 239, 0.16);
+    --ring: rgba(245, 244, 239, 0.45);
+    --chart-1: #ffffff;
+    --chart-2: rgba(245, 244, 239, 0.7);
+    --chart-3: rgba(245, 244, 239, 0.5);
+    --chart-4: rgba(245, 244, 239, 0.35);
+    --chart-5: rgba(245, 244, 239, 0.2);
+    --sidebar: #121318;
+    --sidebar-foreground: #f1f0eb;
+    --sidebar-primary: #ffffff;
+    --sidebar-primary-foreground: #0b0c10;
+    --sidebar-accent: rgba(255, 255, 255, 0.06);
+    --sidebar-accent-foreground: #f1f0eb;
+    --sidebar-border: rgba(245, 244, 239, 0.14);
+    --sidebar-ring: rgba(245, 244, 239, 0.45);
   }
 }
 
-/* Base Refinements */
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -150,6 +118,60 @@
 
   body {
     @apply bg-background text-foreground antialiased;
+    font-family: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* The authenticated app surface: a faint blueprint grid + serif display headings,
+   so it reads as the same product as the landing rather than a generic dashboard. */
+.app-shell {
+  position: relative;
+  background:
+    radial-gradient(900px 520px at 82% -12%, #0e1016 0%, transparent 55%),
+    var(--background);
+}
+
+/* Fixed blueprint grid: pointer-events-none and not on a scrolling layer, so it
+   never repaints on scroll. Matches the landing's technique. */
+.app-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(90deg, rgba(245, 244, 239, 0.02) 0 1px, transparent 1px 44px),
+    repeating-linear-gradient(0deg, rgba(245, 244, 239, 0.02) 0 1px, transparent 1px 44px);
+}
+
+.app-shell > * {
+  position: relative;
+  z-index: 1;
+}
+
+.app-shell h1,
+.app-shell h2 {
+  font-family: var(--font-instrument-serif), serif;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+/* App surface motion: a calm page-level rise on navigation. Reduced-motion safe
+   (the keyframe only exists under no-preference). */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes app-rise {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .app-rise {
+    animation: app-rise 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 }

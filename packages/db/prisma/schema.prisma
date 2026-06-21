@@ -52,6 +52,11 @@ model TherapistProfile {
   bio           String?
   approvedAt    DateTime? // null = pending admin approval; set = approved & active
 
+  // Directory / matching
+  specialties       String[] @default([])
+  availability      String[] @default([])
+  acceptingPatients Boolean  @default(true)
+
   // Relationships
   patients      PatientTherapist[]
   createdHomework Homework[]
@@ -64,6 +69,12 @@ model PatientProfile {
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   dateOfBirth   DateTime?
   emergencyContact String?
+
+  // Intake for therapist matching
+  concerns          String[] @default([])
+  availability      String[] @default([])
+  goals             String?
+  intakeCompletedAt DateTime?
 
   // Relationships
   therapists    PatientTherapist[]
@@ -82,6 +93,8 @@ model PatientTherapist {
   startDate   DateTime @default(now())
   endDate     DateTime?
   isActive    Boolean  @default(true)
+  status      ConnectionStatus @default(ACTIVE)
+  requestNote String?
 
   patient     PatientProfile   @relation(fields: [patientId], references: [id], onDelete: Cascade)
   therapist   TherapistProfile @relation(fields: [therapistId], references: [id], onDelete: Cascade)
@@ -89,6 +102,13 @@ model PatientTherapist {
   @@unique([patientId, therapistId])
   @@index([patientId])
   @@index([therapistId])
+}
+
+enum ConnectionStatus {
+  PENDING
+  ACTIVE
+  DECLINED
+  ENDED
 }
 
 // ==========================================

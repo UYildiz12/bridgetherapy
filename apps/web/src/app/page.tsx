@@ -290,7 +290,10 @@ function PhoneScreen({ role, step }: { role: Role; step: number }) {
 }
 
 export default function Home() {
-  const [isLight, setIsLight] = useState(false);
+  const [isLight, setIsLight] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.localStorage.getItem("exhale-theme") === "light";
+  });
   const [role, setRole] = useState<Role>("patient");
   const heroVisualRef = useRef<HTMLDivElement>(null);
 
@@ -302,10 +305,11 @@ export default function Home() {
 
   const signupHref = `/signup?role=${role}`;
 
-  useEffect(() => {
-    setRituals(content[role].hero.rituals);
+  const chooseRole = (nextRole: Role) => {
+    setRole(nextRole);
+    setRituals(content[nextRole].hero.rituals);
     setActiveStep(0);
-  }, [role]);
+  };
 
   // Sync the phone screen to whichever step is nearest the viewport center.
   useEffect(() => {
@@ -328,15 +332,10 @@ export default function Home() {
     setRituals((prev) => prev.map((r, i) => (i === index ? { ...r, done: !r.done } : r)));
   };
 
-  useEffect(() => {
-    const storedTheme = localStorage.getItem("exhale-theme");
-    if (storedTheme === "light") setIsLight(true);
-  }, []);
-
   const toggleTheme = () => {
     const newTheme = !isLight;
     setIsLight(newTheme);
-    localStorage.setItem("exhale-theme", newTheme ? "light" : "dark");
+    window.localStorage.setItem("exhale-theme", newTheme ? "light" : "dark");
   };
 
   // Scroll reveal: re-observe when role changes so new copy animates in.
@@ -390,20 +389,16 @@ export default function Home() {
               {t.badge}
             </span>
           </div>
-          <div className="nav-links">
-            <a href="#features">Features</a>
-            <a href="#how">How it works</a>
-          </div>
           <div className="nav-actions">
             <div className="flex bg-white/5 border border-white/10 rounded-full p-1 mr-1">
               <button
-                onClick={() => setRole("patient")}
+                onClick={() => chooseRole("patient")}
                 className={`px-3 py-1 text-[10px] uppercase tracking-wider rounded-full transition-all ${role === "patient" ? "bg-white text-black" : "text-gray-400 hover:text-white"}`}
               >
                 Patient
               </button>
               <button
-                onClick={() => setRole("therapist")}
+                onClick={() => chooseRole("therapist")}
                 className={`px-3 py-1 text-[10px] uppercase tracking-wider rounded-full transition-all ${role === "therapist" ? "bg-white text-black" : "text-gray-400 hover:text-white"}`}
               >
                 Therapist
@@ -414,9 +409,6 @@ export default function Home() {
             </button>
             <Link href="/login" className="nav-login no-underline">
               Log in
-            </Link>
-            <Link href={signupHref} className="cta-button no-underline flex items-center">
-              Get Started
             </Link>
           </div>
         </nav>

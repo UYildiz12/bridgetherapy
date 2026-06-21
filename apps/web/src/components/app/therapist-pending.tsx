@@ -10,13 +10,13 @@ export function TherapistPending({ firstName }: { firstName: string }) {
     <div className="mx-auto max-w-xl">
       <Card>
         <CardHeader>
-          <CardTitle>Thanks, {firstName} — your therapist account is under review</CardTitle>
+          <CardTitle>Thanks, {firstName}. Your therapist account is under review</CardTitle>
           <CardDescription>
             Our team verifies every therapist before granting access to patient features.
           </CardDescription>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground">
-          You can stay signed in — we&apos;ll unlock the full therapist workspace as soon as your
+          You can stay signed in. We&apos;ll unlock the full therapist workspace as soon as your
           account is approved. This usually doesn&apos;t take long.
         </CardContent>
       </Card>

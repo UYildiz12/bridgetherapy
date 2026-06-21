@@ -12,14 +12,17 @@ export function IosInstallHint() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    const ua = window.navigator.userAgent;
-    const isIos = /iphone|ipad|ipod/i.test(ua);
-    const isSafari = isIos && /safari/i.test(ua) && !/crios|fxios|edgios/i.test(ua);
-    const standalone =
-      (window.navigator as Navigator & { standalone?: boolean }).standalone === true ||
-      window.matchMedia("(display-mode: standalone)").matches;
-    const dismissed = window.localStorage.getItem(DISMISS_KEY) === "1";
-    if (isSafari && !standalone && !dismissed) setShow(true);
+    const id = window.setTimeout(() => {
+      const ua = window.navigator.userAgent;
+      const isIos = /iphone|ipad|ipod/i.test(ua);
+      const isSafari = isIos && /safari/i.test(ua) && !/crios|fxios|edgios/i.test(ua);
+      const standalone =
+        (window.navigator as Navigator & { standalone?: boolean }).standalone === true ||
+        window.matchMedia("(display-mode: standalone)").matches;
+      const dismissed = window.localStorage.getItem(DISMISS_KEY) === "1";
+      if (isSafari && !standalone && !dismissed) setShow(true);
+    }, 0);
+    return () => window.clearTimeout(id);
   }, []);
 
   if (!show) return null;

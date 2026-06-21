@@ -20,13 +20,13 @@ describe("MoodPage", () => {
 
   it("shows the empty state when there is no history", async () => {
     render(<MoodPage />);
-    await waitFor(() => screen.getByText(/no entries yet/i));
+    await waitFor(() => screen.getByText(/no check-ins yet/i));
   });
 
   it("submits the selected score and shows the new entry", async () => {
     createMoodEntry.mockResolvedValue({ id: "m1", moodScore: 7, tags: [], createdAt: "2026-06-21T00:00:00Z" });
     render(<MoodPage />);
-    await waitFor(() => screen.getByText(/no entries yet/i));
+    await waitFor(() => screen.getByText(/no check-ins yet/i));
 
     fireEvent.click(screen.getByRole("button", { name: "7" }));
     fireEvent.click(screen.getByRole("button", { name: /log mood/i }));
@@ -39,7 +39,7 @@ describe("MoodPage", () => {
 
   it("disables the submit button until a score is chosen", async () => {
     render(<MoodPage />);
-    await waitFor(() => screen.getByText(/no entries yet/i));
+    await waitFor(() => screen.getByText(/no check-ins yet/i));
     const submit = screen.getByRole("button", { name: /log mood/i }) as HTMLButtonElement;
     expect(submit.disabled).toBe(true);
   });

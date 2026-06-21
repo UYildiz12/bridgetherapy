@@ -1,0 +1,161 @@
+"use client";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Sparkles, Search } from "lucide-react";
+import {
+  fetchTherapists,
+  fetchMyConnection,
+  requestConnection,
+  type TherapistCard,
+  type MyConnection,
+} from "@/lib/matching/client";
+import { concernLabel } from "@/lib/matching/taxonomy";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/app/empty-state";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+
+function initials(name: string) {
+  return name.split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+}
+
+export default function FindPage() {
+  const [cards, setCards] = useState<TherapistCard[] | null>(null);
+  const [conn, setConn] = useState<MyConnection | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([fetchTherapists(), fetchMyConnection()])
+      .then(([t, c]) => {
+        if (cancelled) return;
+        setCards(t);
+        setConn(c);
+      })
+      .catch(() => {
+        if (!cancelled) setError("Couldn't load therapists.");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function load() {
+    const [t, c] = await Promise.all([fetchTherapists(), fetchMyConnection()]);
+    setCards(t);
+    setConn(c);
+  }
+
+  async function request(id: string) {
+    setBusyId(id);
+    setError(null);
+    try {
+      await requestConnection(id);
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Couldn't send the request.");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  const hasActive = conn?.status === "active";
+
+  return (
+    <div className="grid gap-6">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold">Find your therapist</h1>
+          <p className="text-sm text-muted-foreground">Matched to your intake. Send a request to connect.</p>
+        </div>
+        <Button asChild variant="outline" size="sm">
+          <Link href="/intake">Edit intake</Link>
+        </Button>
+      </div>
+
+      {conn?.status === "active" && (
+        <Card className="border-emerald-500/30">
+          <CardContent className="pt-6 text-sm">
+            You are connected with <span className="font-medium">{conn.therapistName}</span>.
+          </CardContent>
+        </Card>
+      )}
+      {conn?.status === "pending" && (
+        <Card className="border-primary/30">
+          <CardContent className="pt-6 text-sm">
+            Your request to <span className="font-medium">{conn.therapistName}</span> is pending their reply.
+          </CardContent>
+        </Card>
+      )}
+
+      {error && <p className="text-sm text-destructive">{error}</p>}
+      {cards === null && !error && <Skeleton className="h-40 w-full rounded-xl" />}
+      {cards && cards.length === 0 && (
+        <EmptyState
+          icon={<Search size={18} strokeWidth={1.75} />}
+          title="No therapists available yet"
+          hint="As therapists join and open their books, your matches will appear here."
+        />
+      )}
+      {cards && cards.length > 0 && (
+        <div className="grid gap-3">
+          {cards.map((t) => (
+            <Card key={t.therapistId}>
+              <CardHeader>
+                <div className="flex items-start gap-3">
+                  <Avatar>
+                    <AvatarFallback className="bg-foreground/10 text-foreground">
+                      {initials(t.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="grid gap-0.5">
+                    <CardTitle className="text-base">{t.name}</CardTitle>
+                    {t.specialty && <span className="text-sm text-muted-foreground">{t.specialty}</span>}
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="grid gap-3">
+                {t.specialties.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {t.specialties.map((s) => (
+                      <span
+                        key={s}
+                        className="rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground"
+                      >
+                        {concernLabel(s)}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {t.bio && <p className="text-sm text-muted-foreground">{t.bio}</p>}
+                {t.reason && (
+                  <p className="flex items-start gap-1.5 text-sm text-foreground/90">
+                    <Sparkles size={14} strokeWidth={2} className="mt-0.5 shrink-0 text-primary" />
+                    {t.reason}
+                  </p>
+                )}
+                <div>
+                  {t.connection === "active" ? (
+                    <span className="text-sm text-emerald-400">Connected</span>
+                  ) : t.connection === "pending" ? (
+                    <span className="text-sm text-muted-foreground">Request pending</span>
+                  ) : (
+                    <Button
+                      size="sm"
+                      onClick={() => request(t.therapistId)}
+                      disabled={busyId === t.therapistId || hasActive}
+                    >
+                      {busyId === t.therapistId ? "Sending…" : "Request to connect"}
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

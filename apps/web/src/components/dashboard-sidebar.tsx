@@ -9,7 +9,6 @@ import {
     Users,
     Video,
     LogOut,
-    User,
     Plus
 } from "lucide-react"
 

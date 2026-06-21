@@ -29,7 +29,7 @@ export default async function AppLayout({
     });
     if (!profile?.approvedAt) {
       return (
-        <AppShell firstName={user.firstName} role={user.role}>
+        <AppShell firstName={user.firstName} lastName={user.lastName} email={user.email} role={user.role}>
           <TherapistPending firstName={user.firstName} />
         </AppShell>
       );
@@ -37,7 +37,7 @@ export default async function AppLayout({
   }
 
   return (
-    <AppShell firstName={user.firstName} role={user.role}>
+    <AppShell firstName={user.firstName} lastName={user.lastName} email={user.email} role={user.role}>
       {children}
     </AppShell>
   );

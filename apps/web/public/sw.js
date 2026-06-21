@@ -4,8 +4,6 @@
 // responses yet — caching auth/API responses naively risks serving stale or
 // cross-user data. Real offline caching (Workbox/Serwist) is a later enhancement.
 
-const VERSION = "exhale-sw-v1";
-
 self.addEventListener("install", () => {
   self.skipWaiting();
 });

@@ -7,18 +7,21 @@ on:
 
 jobs:
   web:
-    name: Web + API — typecheck & test
+    name: Web + API checks
     runs-on: ubuntu-latest
-    # Placeholder DB URLs so `prisma generate`/`validate` can resolve the datasource.
-    # CI never connects to a database — tests mock Prisma and Supabase.
+    # Placeholder values let Prisma, Next.js, and env validation load without
+    # connecting to external services. Tests mock Supabase and Prisma calls.
     env:
       DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
       DIRECT_URL: postgresql://ci:ci@localhost:5432/ci
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-anon-key
+      SUPABASE_SERVICE_ROLE_KEY: ci-service-role-key
+      AI_key: ci-google-ai-key
     steps:
       - uses: actions/checkout@v4
 
-      # Version comes from package.json "packageManager" (pnpm@10.x) — do not
-      # also set `version` here, or action-setup errors on the duplicate.
+      # Version comes from package.json "packageManager" (pnpm@10.x).
       - uses: pnpm/action-setup@v4
 
       - uses: actions/setup-node@v4
@@ -35,8 +38,17 @@ jobs:
       - name: Validate Prisma schema
         run: pnpm --filter @exhale/db validate
 
+      - name: Lint
+        run: pnpm --filter web lint
+
       - name: Typecheck
         run: pnpm --filter web typecheck
 
       - name: Test
         run: pnpm --filter web test
+
+      - name: Build
+        run: pnpm --filter web build
+
+      - name: Audit dependencies
+        run: pnpm audit --audit-level low

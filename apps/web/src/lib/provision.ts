@@ -2,11 +2,13 @@ import "server-only";
 import { prisma } from "@exhale/db";
 import { writeAuditLog } from "@/lib/audit";
 
-const PROVISIONED_SELECT = { id: true, firstName: true, role: true } as const;
+const PROVISIONED_SELECT = { id: true, firstName: true, lastName: true, email: true, role: true } as const;
 
 export interface ProvisionedUser {
   id: string;
   firstName: string;
+  lastName: string;
+  email: string;
   role: string;
 }
 
