@@ -223,7 +223,6 @@ export default function Home() {
               <div className="ritual-panel">
                 <div className="ritual-header">
                   {t.hero.panelHeader}
-                  <span className="chip">Today</span>
                 </div>
                 <ul className="ritual-list">
                   {rituals.map((r, i) => (
@@ -247,26 +246,13 @@ export default function Home() {
 
         <section id="features" className="section reveal">
           <h2 className="section-title">{t.valuesTitle}</h2>
-          <div className="value-bento" key={role}>
-            <article className="value-cell value-cell--lead box-reveal box-reveal--grid">
-              <div className="value-pattern lines" aria-hidden="true"></div>
-              <div className="value-body">
-                <h3>{t.values[0].title}</h3>
-                <p>{t.values[0].desc}</p>
+          <div className="value-list" key={role}>
+            {t.values.map((v, i) => (
+              <div className="value-row" key={`${role}-${i}`}>
+                <h3>{v.title}</h3>
+                <p>{v.desc}</p>
               </div>
-            </article>
-            <article className="value-cell box-reveal box-reveal--ticks">
-              <div className="value-body">
-                <h3>{t.values[1].title}</h3>
-                <p>{t.values[1].desc}</p>
-              </div>
-            </article>
-            <article className="value-cell box-reveal box-reveal--angle">
-              <div className="value-body">
-                <h3>{t.values[2].title}</h3>
-                <p>{t.values[2].desc}</p>
-              </div>
-            </article>
+            ))}
           </div>
         </section>
 
@@ -274,10 +260,7 @@ export default function Home() {
           <h2 className="section-title">How it works</h2>
           <div className="process-flow">
             {t.howItWorks.map((s, i) => (
-              <div
-                className={`process-step box-reveal box-reveal--silent ${i === 1 ? "delay-100" : i === 2 ? "delay-200" : ""}`}
-                key={`${role}-${i}`}
-              >
+              <div className="process-step" key={`${role}-${i}`}>
                 <div className="process-number">0{i + 1}</div>
                 <div>
                   <h3>{s.title}</h3>
@@ -289,7 +272,7 @@ export default function Home() {
         </section>
 
         <section className="section reveal">
-          <div className="cta-panel box-reveal box-reveal--halo box-reveal--cornerflip">
+          <div className="cta-panel">
             <h2>{t.cta.title}</h2>
             <p>{t.cta.desc}</p>
             <div className="hero-actions">
