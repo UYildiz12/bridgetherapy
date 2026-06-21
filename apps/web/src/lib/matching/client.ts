@@ -1,7 +1,10 @@
+import type { CbtIntake } from "@/lib/intake/schema";
+
 export interface Intake {
   concerns: string[];
   availability: string[];
   goals: string;
+  cbtIntake: CbtIntake;
   completed: boolean;
 }
 
@@ -68,7 +71,7 @@ async function send<T>(url: string, method: "POST" | "PUT", body: unknown): Prom
 
 // ---- Patient ----
 export const fetchIntake = () => getJson<Intake>("/api/intake");
-export const saveIntake = (body: { concerns: string[]; availability: string[]; goals: string }) =>
+export const saveIntake = (body: { concerns: string[]; availability: string[]; goals: string; cbtIntake: CbtIntake }) =>
   send<Intake>("/api/intake", "PUT", body);
 export const fetchTherapists = () => getJson<TherapistCard[]>("/api/therapists");
 export const fetchMyConnection = () => getJson<MyConnection>("/api/connections");

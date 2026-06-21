@@ -74,6 +74,7 @@ model PatientProfile {
   concerns          String[] @default([])
   availability      String[] @default([])
   goals             String?
+  cbtIntake         Json?
   intakeCompletedAt DateTime?
 
   // Relationships

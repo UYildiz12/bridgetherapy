@@ -4,11 +4,14 @@ import { requirePatient } from "@/lib/patient";
 import { parseBody } from "@/lib/validation";
 import { json, withErrorHandling } from "@/lib/http";
 import { CONCERN_IDS, AVAILABILITY_IDS } from "@/lib/matching/taxonomy";
+import { normalizeCbtIntake, type CbtIntake } from "@/lib/intake/schema";
+import type { Prisma } from "@exhale/db";
 
 const SaveIntake = z.object({
   concerns: z.array(z.string()).max(20),
   availability: z.array(z.string()).max(10),
   goals: z.string().max(2000),
+  cbtIntake: z.unknown().optional(),
 });
 
 const onlyKnown = (ids: string[], allowed: string[]) => ids.filter((x) => allowed.includes(x));
@@ -17,12 +20,14 @@ function toIntake(p: {
   concerns: string[];
   availability: string[];
   goals: string | null;
+  cbtIntake: unknown;
   intakeCompletedAt: Date | null;
 }) {
   return {
     concerns: p.concerns,
     availability: p.availability,
     goals: p.goals ?? "",
+    cbtIntake: normalizeCbtIntake(p.cbtIntake),
     completed: Boolean(p.intakeCompletedAt),
   };
 }
@@ -31,8 +36,11 @@ const intakeSelect = {
   concerns: true,
   availability: true,
   goals: true,
+  cbtIntake: true,
   intakeCompletedAt: true,
 } as const;
+
+const asJson = (value: CbtIntake) => value as unknown as Prisma.InputJsonValue;
 
 export const GET = withErrorHandling(async (req: Request) => {
   const p = await requirePatient(req);
@@ -59,6 +67,7 @@ export const PUT = withErrorHandling(async (req: Request) => {
       concerns: onlyKnown(parsed.data.concerns, CONCERN_IDS),
       availability: onlyKnown(parsed.data.availability, AVAILABILITY_IDS),
       goals: parsed.data.goals.trim() || null,
+      cbtIntake: asJson(normalizeCbtIntake(parsed.data.cbtIntake)),
       intakeCompletedAt: new Date(),
     },
     select: intakeSelect,

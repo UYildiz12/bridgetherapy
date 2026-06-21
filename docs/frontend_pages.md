@@ -12,7 +12,7 @@ This repo is currently a Next.js App Router application with Route Handler APIs,
 | Therapist approval | Admin script and approval gate; therapist-only APIs require `approvedAt`. |
 | Patient dashboard | Authenticated home dashboard with links into core patient flows. |
 | Mood tracking | Patient mood entry API, client helper, check-in UI, history list, chart display, validation tests. |
-| Intake | Patient concerns, goals, and availability capture for matching. |
+| Intake | CBT-informed onboarding with focus areas, availability, current problems, recent situations, thoughts, emotions, body sensations, behaviors, screening-style frequency prompts, safety/support context, strengths, and therapist preferences. |
 | Therapist matching | Directory API, patient connection requests, therapist request review APIs, specialty/availability scoring with exact and related concern matches. |
 | Therapist profile | Therapist specialties, availability, bio, accepting-patients profile route and UI. |
 | Patient invitations | Therapist can invite registered patients by email; invitations stay pending until patient consent. |
@@ -20,6 +20,7 @@ This repo is currently a Next.js App Router application with Route Handler APIs,
 | Homework assignment | Therapist assigns sets only to active linked patients; patient can complete and submit assignments. |
 | Homework review | Therapist can review submitted assignments and inspect item responses. |
 | Media attachments | Patient media upload/download routes with owner checks for homework voice and drawing responses. |
+| Patient notes | Patients can leave questions or session topics; approved therapists can review and resolve notes for active linked patients. |
 | AI summaries | Server-side Gemini Interactions API wrapper using `AI_key`, `gemini-3.1-flash-lite`, `store: false`, and a therapist session-summary route. |
 | Database | Prisma schema and migrations for users, profiles, connections, mood, journal, homework, sessions, summaries, media, push tokens, and audit logs. |
 | Quality gates | Unit/API/component tests, lint, typecheck, production build, dependency audit, and CI workflow coverage. |
@@ -30,7 +31,6 @@ This repo is currently a Next.js App Router application with Route Handler APIs,
 | --- | --- |
 | Sessions UI | Calendar/list pages, note editor, and therapist UI trigger for AI-generated summaries. |
 | Journal | Patient encrypted journal UI/API and AI follow-up prompt flow. |
-| Patient notes | Patient-to-therapist question/note flow and resolution UI. |
 | Messaging | Conversation list/thread APIs and UI for patient-therapist messaging. |
 | Wellness tools | Breathwork, meditation, and crisis support screens. |
 | Settings | Account/profile/notification/privacy settings pages for both roles. |

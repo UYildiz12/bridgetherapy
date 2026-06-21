@@ -174,4 +174,86 @@ describe("/api/intake PUT (validation)", () => {
       expect.objectContaining({ data: expect.objectContaining({ concerns: ["anxiety"] }) }),
     );
   });
+
+  it("saves structured CBT onboarding fields after normalization", async () => {
+    requirePatient.mockResolvedValue({ ok: true, patientId: "pp1" });
+    ppUpdate.mockResolvedValue({
+      concerns: ["anxiety"],
+      availability: ["evenings"],
+      goals: "sleep better",
+      cbtIntake: {
+        primaryProblems: ["Panic before meetings"],
+        recentSituation: "Yesterday at work",
+        automaticThoughts: "I will fail",
+        emotions: ["fear"],
+        bodySensations: ["tight_chest"],
+        behaviors: ["avoidance"],
+        strengths: ["walking"],
+        screening: {
+          lowMood: 1,
+          worry: 2,
+          panic: 3,
+          sleep: 1,
+          avoidance: 2,
+          concentration: 1,
+          functionalImpact: "very",
+        },
+        safety: {
+          selfHarmThoughts: "none",
+          urgentSupportRequested: false,
+          notes: "",
+        },
+        preferences: { therapistStyle: ["structured"], homeworkComfort: "high" },
+      },
+      intakeCompletedAt: new Date(),
+    });
+
+    const { PUT } = await import("../intake/route");
+    const res = await PUT(
+      new Request("http://t/api/intake", {
+        method: "PUT",
+        body: JSON.stringify({
+          concerns: ["anxiety"],
+          availability: ["evenings"],
+          goals: "sleep better",
+          cbtIntake: {
+            primaryProblems: ["  Panic before meetings  ", ""],
+            recentSituation: " Yesterday at work ",
+            automaticThoughts: " I will fail ",
+            emotions: ["fear", "unknown"],
+            bodySensations: ["tight_chest"],
+            behaviors: ["avoidance"],
+            strengths: [" walking "],
+            screening: {
+              lowMood: 1,
+              worry: 2,
+              panic: 3,
+              sleep: 1,
+              avoidance: 2,
+              concentration: 1,
+              functionalImpact: "very",
+            },
+            safety: { selfHarmThoughts: "none", urgentSupportRequested: false, notes: "" },
+            preferences: { therapistStyle: ["structured", "bogus"], homeworkComfort: "high" },
+          },
+        }),
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    expect(ppUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          cbtIntake: expect.objectContaining({
+            primaryProblems: ["Panic before meetings"],
+            recentSituation: "Yesterday at work",
+            automaticThoughts: "I will fail",
+            emotions: ["fear"],
+            preferences: { therapistStyle: ["structured"], homeworkComfort: "high" },
+          }),
+        }),
+      }),
+    );
+    expect((await res.json()).data.cbtIntake.primaryProblems).toEqual(["Panic before meetings"]);
+  });
 });
