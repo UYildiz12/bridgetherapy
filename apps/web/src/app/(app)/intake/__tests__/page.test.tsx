@@ -35,8 +35,12 @@ describe("IntakePage", () => {
 
     await waitFor(() => screen.getByText(/step 1 of/i));
 
+    expect(screen.getByText(/answer in chapters/i)).toBeDefined();
     expect(screen.getByRole("heading", { name: /start with what brings you here/i })).toBeDefined();
     expect(screen.getByRole("img", { name: /therapy match blueprint/i })).toBeDefined();
+    expect(screen.getByText(/generated blueprint artwork/i)).toBeDefined();
+    expect(screen.getByText("Focus areas")).toBeDefined();
+    expect(screen.getByText("CBT loop")).toBeDefined();
     const continueButton = screen.getByRole("button", { name: /continue/i }) as HTMLButtonElement;
     expect(continueButton.disabled).toBe(true);
   });

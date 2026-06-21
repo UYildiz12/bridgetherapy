@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check, ClipboardList, HeartPulse, Route } from "lucide-react";
@@ -29,6 +30,13 @@ const SCREENING_PROMPTS: { key: keyof CbtIntake["screening"]; label: string }[] 
 ];
 
 const emptyCbtIntake = normalizeCbtIntake(undefined);
+
+const MATCHING_LENSES = [
+  "Focus areas",
+  "Availability",
+  "CBT loop",
+  "Therapist style",
+] as const;
 
 const STEPS = [
   {
@@ -128,45 +136,68 @@ function BlueprintVisual({
   concerns: string[];
   availability: string[];
 }) {
+  const lensValues = [
+    previewList(concerns, concernLabel),
+    previewList(availability, availabilityLabel),
+    step >= 2 ? "Situation, thoughts, signals" : "Coming in chapter 3",
+    step >= 6 ? "Preference signals" : "Captured near the end",
+  ];
+
   return (
-    <figure
-      role="img"
-      aria-label="Therapy match blueprint"
-      className="relative overflow-hidden border border-border bg-[linear-gradient(rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.045)_1px,transparent_1px)] bg-[size:24px_24px] p-5"
-    >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.07),transparent_30%),radial-gradient(circle_at_90%_80%,rgba(255,255,255,0.045),transparent_32%)]" />
-      <div className="relative grid gap-5">
-        <div className="flex items-center justify-between gap-4 border-b border-border pb-4">
+    <figure className="relative min-h-[28rem] overflow-hidden border border-border bg-[#071015] text-white shadow-[0_24px_80px_rgba(0,0,0,0.18)]">
+      <Image
+        src="/images/intake-blueprint.png"
+        alt="Therapy match blueprint"
+        fill
+        priority
+        sizes="(min-width: 1024px) 31rem, 100vw"
+        className="object-cover opacity-70"
+      />
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,12,18,0.95),rgba(5,12,18,0.42)_58%,rgba(5,12,18,0.7))]" />
+      <div className="absolute inset-x-0 top-0 h-px bg-cyan-100/45" />
+      <div className="relative flex min-h-[28rem] flex-col justify-between gap-8 p-5 sm:p-6">
+        <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs text-muted-foreground">Matching blueprint</p>
-            <p className="mt-1 text-lg font-semibold tracking-tight">{STEPS[step].short}</p>
+            <p className="text-xs text-cyan-100/75">Generated blueprint artwork</p>
+            <p className="mt-3 max-w-64 text-2xl font-semibold leading-tight tracking-tight">
+              Your match takes shape as you answer.
+            </p>
           </div>
-          <div className="flex size-12 items-center justify-center border border-foreground/40 text-foreground">
+          <div className="flex size-12 shrink-0 items-center justify-center border border-cyan-100/45 bg-cyan-100/10 text-cyan-50">
             <Route className="size-5" aria-hidden="true" />
           </div>
         </div>
-        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-          <div className="min-h-28 border border-border/80 bg-background/45 p-4">
-            <p className="text-xs text-muted-foreground">You</p>
-            <p className="mt-4 text-sm leading-6">{previewList(concerns, concernLabel)}</p>
-          </div>
-          <div className="h-px w-10 bg-foreground/40" />
-          <div className="min-h-28 border border-border/80 bg-background/45 p-4">
-            <p className="text-xs text-muted-foreground">Therapist fit</p>
-            <p className="mt-4 text-sm leading-6">{previewList(availability, availabilityLabel)}</p>
-          </div>
-        </div>
-        <div className="grid grid-cols-4 gap-2" aria-hidden="true">
-          {STEPS.map((item, index) => (
+
+        <div className="grid gap-2">
+          {MATCHING_LENSES.map((label, index) => (
             <div
-              key={item.short}
-              className={`h-1.5 ${index <= step ? "bg-foreground" : "bg-foreground/10"}`}
-            />
+              key={label}
+              className={`grid gap-2 border-l px-3 py-2 backdrop-blur-sm sm:grid-cols-[8rem_1fr] ${
+                index <= Math.min(step, MATCHING_LENSES.length - 1)
+                  ? "border-cyan-100/70 bg-cyan-100/10"
+                  : "border-white/18 bg-white/[0.035]"
+              }`}
+            >
+              <p className="text-sm font-medium text-cyan-50">{label}</p>
+              <p className="text-sm leading-6 text-cyan-50/72">{lensValues[index]}</p>
+            </div>
           ))}
         </div>
-        <p className="text-xs leading-5 text-muted-foreground">
-          Built from matching inputs, CBT scan details, and therapist preference signals.
-        </p>
+
+        <div className="grid gap-3">
+          <div className="flex items-center justify-between text-xs text-cyan-50/70">
+            <span>Matching blueprint</span>
+            <span>{STEPS[step].short}</span>
+          </div>
+          <div className="grid grid-cols-4 gap-2" aria-hidden="true">
+            {STEPS.map((item, index) => (
+              <div
+                key={item.short}
+                className={`h-1.5 ${index <= step ? "bg-cyan-100" : "bg-cyan-100/18"}`}
+              />
+            ))}
+          </div>
+        </div>
       </div>
     </figure>
   );
@@ -260,17 +291,27 @@ export default function IntakePage() {
 
   return (
     <div className="w-full max-w-full overflow-x-hidden">
-      <section className="border-y border-border py-8 md:py-10">
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
+      <section className="relative overflow-hidden border-y border-border py-8 md:py-10">
+        <div
+          className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(40,85,105,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(40,85,105,0.08)_1px,transparent_1px)] bg-[size:32px_32px]"
+          aria-hidden="true"
+        />
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(24rem,31rem)]">
           <div>
-            <div className="mb-6 flex items-center gap-3 text-sm text-muted-foreground">
-              <ClipboardList className="size-4" aria-hidden="true" />
-              Step {step + 1} of {STEPS.length}
+            <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
+              <span className="inline-flex items-center gap-2">
+                <ClipboardList className="size-4" aria-hidden="true" />
+                Answer in chapters
+              </span>
+              <span>Step {step + 1} of {STEPS.length}</span>
             </div>
             <h1 className="max-w-4xl text-[clamp(2.35rem,6vw,4.75rem)] font-semibold leading-[0.98] tracking-tight">
               {STEPS[step].title}
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground">{STEPS[step].intro}</p>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+              A chaptered intake that feels like a conversation, while still giving matching enough signal to work.
+            </p>
             <div className="mt-8 h-1.5 w-full max-w-2xl bg-foreground/10" aria-hidden="true">
               <div className="h-full bg-primary transition-all" style={{ width: `${progress}%` }} />
             </div>
@@ -554,7 +595,7 @@ export default function IntakePage() {
             {isLastStep ? (
               <Button type="button" className="gap-2 sm:w-auto" onClick={save} disabled={saving || concerns.length === 0}>
                 <Check className="size-4" aria-hidden="true" />
-                {saving ? "Saving…" : "Find matching therapists"}
+                {saving ? "Saving..." : "Find matching therapists"}
               </Button>
             ) : (
               <Button type="button" className="gap-2 sm:w-auto" onClick={continueFlow} disabled={!canContinue || saving}>

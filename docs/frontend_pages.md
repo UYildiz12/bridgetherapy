@@ -12,7 +12,7 @@ This repo is currently a Next.js App Router application with Route Handler APIs,
 | Therapist approval | Admin script and approval gate; therapist-only APIs require `approvedAt`. |
 | Patient dashboard | Authenticated home dashboard with links into core patient flows. |
 | Mood tracking | Patient mood entry API, client helper, fractional check-in UI, history list, chart display, validation tests. |
-| Intake | Guided, step-by-step CBT-informed onboarding with focus areas, availability, current problems, recent situations, thoughts, emotions, body sensations, behaviors, screening-style frequency prompts, safety/support context, strengths, therapist preferences, and a blueprint-style matching visual. |
+| Intake | Guided, step-by-step CBT-informed onboarding with focus areas, availability, current problems, recent situations, thoughts, emotions, body sensations, behaviors, screening-style frequency prompts, safety/support context, strengths, therapist preferences, and generated blueprint-style matching artwork. |
 | Therapist matching | Directory API, patient connection requests, therapist request review APIs, specialty/availability scoring with exact and related concern matches. |
 | Therapist profile | Therapist specialties, availability, bio, accepting-patients profile route and UI. |
 | Patient invitations | Therapist can invite registered patients by email; invitations stay pending until patient consent. |
