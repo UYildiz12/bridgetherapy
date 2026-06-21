@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
-import { Check } from "lucide-react";
+import { Check, Sparkles } from "lucide-react";
 import { BlueprintSvg } from "@/components/landing/blueprint-svg";
 import { BlueprintSecondarySvg } from "@/components/landing/blueprint-secondary-svg";
 
@@ -44,9 +44,9 @@ const content = {
       { title: "Stay connected", desc: "Share what matters with your therapist between sessions, securely." },
     ] as ValueProp[],
     howItWorks: [
-      { title: "Match", desc: "Tell us what you're looking for and choose from therapists matched to you." },
-      { title: "Engage", desc: "Work a personalized plan: daily check-ins, journaling, and CBT homework." },
-      { title: "Grow", desc: "Watch your trends and mark progress alongside your therapist." },
+      { title: "Match", desc: "Tell us what you need and choose from CBT therapists matched to you." },
+      { title: "Engage", desc: "Work through CBT homework sets and daily check-ins your therapist assigns." },
+      { title: "Grow", desc: "Track your trends, with gentle nudges from Lumen, your AI companion." },
     ],
     cta: {
       title: "Begin with clarity.",
@@ -77,8 +77,8 @@ const content = {
     ] as ValueProp[],
     howItWorks: [
       { title: "Onboard", desc: "Import existing clients or open slots for new matches." },
-      { title: "Automate", desc: "Set your availability and let scheduling and reminders run themselves." },
-      { title: "Focus", desc: "Use session insights and drafted notes to do better work with less effort." },
+      { title: "Build", desc: "Build flexible CBT homework sets from worksheets, readings, or anything." },
+      { title: "Focus", desc: "AI-drafted notes and suggested homework after every session." },
     ],
     cta: {
       title: "Upgrade your practice.",
@@ -90,16 +90,16 @@ const content = {
 // Blueprint vignettes shown on the phone, one per step, swapped as the active step changes.
 const phoneScreens: Record<Role, React.ReactNode[]> = {
   patient: [
-    // Match: tell us what you want -> several matched therapists
+    // Match: CBT-first matching from your needs
     <>
-      <div className="ps-head">Find your therapist</div>
+      <div className="ps-head">Find your CBT therapist</div>
       <div className="ps-prefs">
-        <span className="on">Anxiety</span>
         <span className="on">CBT</span>
-        <span>Evenings</span>
-        <span>Spanish</span>
+        <span className="on">Anxiety</span>
+        <span className="on">Evenings</span>
+        <span>Sleep</span>
       </div>
-      <div className="ps-sub">3 therapists fit what you&apos;re looking for</div>
+      <div className="ps-sub">3 CBT therapists fit your needs</div>
       <ul className="ps-matches">
         <li>
           <span className="ps-avatar sm" />
@@ -113,7 +113,7 @@ const phoneScreens: Record<Role, React.ReactNode[]> = {
           <span className="ps-avatar sm" />
           <div className="ps-mt">
             <div className="ps-name">Daniel Reyes</div>
-            <div className="ps-role">CBT · Sleep</div>
+            <div className="ps-role">CBT-I · Sleep</div>
           </div>
           <span className="ps-pct">92%</span>
         </li>
@@ -121,21 +121,21 @@ const phoneScreens: Record<Role, React.ReactNode[]> = {
           <span className="ps-avatar sm" />
           <div className="ps-mt">
             <div className="ps-name">Priya Nair</div>
-            <div className="ps-role">ACT · Stress</div>
+            <div className="ps-role">CBT · Stress</div>
           </div>
           <span className="ps-pct">88%</span>
         </li>
       </ul>
     </>,
-    // Engage: personalized CBT plan with real check-states + actions
+    // Engage: doing an assigned CBT homework set
     <>
-      <div className="ps-head">Your plan today</div>
-      <div className="ps-mood">
-        <span className="ps-mood-label">Mood</span>
-        <strong>
-          7<small>/10</small>
-        </strong>
-        <span className="ps-tag">Logged</span>
+      <div className="ps-head">This week&apos;s homework</div>
+      <div className="ps-set">
+        <div className="ps-set-name">Cognitive restructuring</div>
+        <div className="ps-set-meta">From Dr. Okafor · 2 of 3 done</div>
+        <div className="ps-progress">
+          <span style={{ width: "66%" }} />
+        </div>
       </div>
       <ul className="ps-tasks">
         <li className="done">
@@ -156,84 +156,112 @@ const phoneScreens: Record<Role, React.ReactNode[]> = {
         </li>
       </ul>
       <div className="ps-actions">
-        <span className="ps-btn">Modify plan</span>
-        <span className="ps-btn primary">Add entry</span>
+        <span className="ps-btn">Add note</span>
+        <span className="ps-btn primary">Open set</span>
       </div>
     </>,
-    // Grow: trend + real stats
+    // Grow: progress + the Lumen AI companion nudge
     <>
       <div className="ps-head">Your progress</div>
-      <div className="ps-bars">
+      <div className="ps-bars sm">
         {[4, 6, 5, 7, 6, 8, 7].map((h, n) => (
-          <span key={n} style={{ height: `${h * 11}px` }} />
+          <span key={n} style={{ height: `${h * 8}px` }} />
         ))}
       </div>
-      <div className="ps-stats">
-        <div>
-          <strong>+18%</strong>
-          <span>mood · 30d</span>
+      <div className="ps-bot">
+        <div className="ps-bot-head">
+          <Sparkles size={13} strokeWidth={2} />
+          Lumen
         </div>
-        <div>
-          <strong>12</strong>
-          <span>day streak</span>
-        </div>
+        <p className="ps-bot-msg">
+          Last session, Dr. Okafor suggested noting your thoughts when you head out. Want to try a
+          quick thought record today?
+        </p>
+        <span className="ps-btn primary ps-bot-cta">Start now</span>
       </div>
     </>,
   ],
   therapist: [
+    // Onboard: a real client roster with status
     <>
       <div className="ps-head">Your clients</div>
-      <ul className="ps-tasks">
-        <li className="done">
-          <span className="ps-box">
-            <Check size={11} strokeWidth={3} />
-          </span>
-          Jada P.<span className="ps-meta">Active</span>
-        </li>
-        <li className="done">
-          <span className="ps-box">
-            <Check size={11} strokeWidth={3} />
-          </span>
-          Marcus T.<span className="ps-meta">Active</span>
+      <ul className="ps-matches">
+        <li>
+          <span className="ps-avatar sm" />
+          <div className="ps-mt">
+            <div className="ps-name">Jada P.</div>
+            <div className="ps-role">Cognitive restructuring · Wk 2</div>
+          </div>
+          <span className="ps-pct">On track</span>
         </li>
         <li>
-          <span className="ps-box" />
-          New intake<span className="ps-meta">Pending</span>
+          <span className="ps-avatar sm" />
+          <div className="ps-mt">
+            <div className="ps-name">Marcus T.</div>
+            <div className="ps-role">Behavioral activation</div>
+          </div>
+          <span className="ps-pct">2 due</span>
+        </li>
+        <li>
+          <span className="ps-avatar sm" />
+          <div className="ps-mt">
+            <div className="ps-name">New intake</div>
+            <div className="ps-role">Awaiting review</div>
+          </div>
+          <span className="ps-pct">New</span>
         </li>
       </ul>
       <div className="ps-actions">
         <span className="ps-btn primary">Add client</span>
       </div>
     </>,
+    // Build: a flexible homework-set builder (items can be anything)
     <>
-      <div className="ps-head">This week</div>
-      <div className="ps-slots">
-        <span className="filled">Mon 10:00</span>
-        <span>Mon 14:00</span>
-        <span className="filled">Tue 09:00</span>
-        <span>Wed 11:00</span>
+      <div className="ps-head">New homework set</div>
+      <div className="ps-field">
+        Cognitive restructuring
+        <span className="ps-caret" />
       </div>
-      <div className="ps-sub">Auto-scheduled with breaks between sessions</div>
+      <ul className="ps-builder">
+        <li>
+          <span className="ps-itype">Worksheet</span>Thought record
+        </li>
+        <li>
+          <span className="ps-itype">Reading</span>Cognitive distortions
+        </li>
+        <li>
+          <span className="ps-itype">Voice</span>Daily reflection
+        </li>
+        <li className="add">
+          <span className="ps-box plus">+</span>Add any item
+        </li>
+      </ul>
+      <div className="ps-actions">
+        <span className="ps-btn">Save draft</span>
+        <span className="ps-btn primary">Assign</span>
+      </div>
     </>,
+    // Focus: drafted notes + suggested homework
     <>
       <div className="ps-head">Session summary</div>
-      <div className="ps-note">Drafted notes ready to review. Two CBT assignments suggested.</div>
+      <div className="ps-note">Drafted notes ready. Suggested: assign a thought-record set this week.</div>
       <ul className="ps-tasks">
         <li className="done">
           <span className="ps-box">
             <Check size={11} strokeWidth={3} />
           </span>
-          SOAP note
+          SOAP note drafted
         </li>
         <li className="done">
           <span className="ps-box">
             <Check size={11} strokeWidth={3} />
           </span>
-          Assign homework
+          Homework suggested
         </li>
       </ul>
       <div className="ps-actions">
-        <span className="ps-btn">Review</span>
+        <span className="ps-btn">Edit</span>
+        <span className="ps-btn primary">Review &amp; send</span>
       </div>
     </>,
   ],
