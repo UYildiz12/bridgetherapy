@@ -14,7 +14,7 @@ async function load() {
 }
 
 describe("requireApprovedTherapist", () => {
-  beforeEach(() => { getAuthUser.mockReset(); findUnique.mockReset(); });
+  beforeEach(() => { vi.resetModules(); getAuthUser.mockReset(); findUnique.mockReset(); });
 
   it("401 when unauthenticated", async () => {
     getAuthUser.mockResolvedValue(null);
@@ -36,6 +36,15 @@ describe("requireApprovedTherapist", () => {
   it("403 when the user is not a therapist", async () => {
     getAuthUser.mockResolvedValue({ authId: "uid-1", email: "a@b.co" });
     findUnique.mockResolvedValue({ id: "uid-1", email: "a@b.co", role: "PATIENT", therapistProfile: null });
+    const guard = await load();
+    const result = await guard(req());
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.response.status).toBe(403);
+  });
+
+  it("403 when role is THERAPIST but therapistProfile is absent", async () => {
+    getAuthUser.mockResolvedValue({ authId: "uid-1", email: "a@b.co" });
+    findUnique.mockResolvedValue({ id: "uid-1", email: "a@b.co", role: "THERAPIST", therapistProfile: null });
     const guard = await load();
     const result = await guard(req());
     expect(result.ok).toBe(false);

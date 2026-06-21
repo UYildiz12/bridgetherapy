@@ -1,6 +1,6 @@
 import "server-only";
-import { getAuthUser } from "./auth";
-import { json } from "./http";
+import { getAuthUser } from "@/lib/auth";
+import { json } from "@/lib/http";
 import { prisma } from "@exhale/db";
 import type { Prisma } from "@exhale/db";
 
