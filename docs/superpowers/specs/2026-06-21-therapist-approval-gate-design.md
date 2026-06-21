@@ -51,7 +51,7 @@ Minimal change. Still accepts `role: "PATIENT" | "THERAPIST"` (ADMIN remains rej
 The actual gate. `requireApprovedTherapist(req)`:
 
 1. `getAuthUser(req)` → 401 if unauthenticated.
-2. Load the DB user (with `therapistProfile`).
+2. Load the DB user (with `therapistProfile`) → 404 if no user row (authenticated but not provisioned).
 3. 403 if `role !== "THERAPIST"`.
 4. 403 if `therapistProfile?.approvedAt` is null (pending).
 5. Return the user on success.
