@@ -50,6 +50,9 @@ export async function approveTherapist(email: string): Promise<ApproveResult> {
     data: { approvedAt: new Date() },
   });
 
+  // Awaited (unlike provision.ts's fire-and-forget audit): the db:approve CLI
+  // process exits immediately after this resolves, so the write must flush
+  // before exit. The approval itself is already idempotent.
   await writeAuditLog({
     userId: user.id,
     action: "APPROVE_THERAPIST",
