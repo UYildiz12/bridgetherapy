@@ -1,8 +1,10 @@
 # Exhale — Architecture Redesign Design
 
-**Date:** 2026-06-20
-**Status:** Approved (pending final spec review)
-**Goal:** Re-architect Exhale to prioritize **stability** and **easy deployment**, targeting a **usable MVP for real people** (real therapists/patients), delivered on **both web and native mobile**.
+**Date:** 2026-06-20 (revised 2026-06-21)
+**Status:** Approved; Phase 0 implemented.
+**Goal:** Re-architect Exhale to prioritize **stability** and **easy deployment**, targeting a **usable MVP for real people** (real therapists/patients), delivered on **web + an installable PWA**.
+
+> **Revision (2026-06-21) — mobile strategy changed.** The original plan paired the Next.js web app with a separate **Flutter** mobile app. That meant building every screen twice in two languages (TSX + Dart) with no shared types — the most expensive way to get "app + web." **Decision: drop Flutter.** v1 ships the Next.js app as an **installable PWA** (one codebase = web + phone app). Real native iOS/Android, when needed (App Store presence, HealthKit, robust iOS push), comes later via **Expo / React Native**, which reuses the same TypeScript + Supabase stack so the switch is a UI re-skin, not a rewrite. Sections below are updated to reflect this.
 
 ---
 
@@ -24,7 +26,7 @@ The current shape (3 deployables + 2 app stores + 3 stateful services) is the op
 | Question | Decision |
 |---|---|
 | Near-term goal | **Usable MVP for real people** — tight feature set, real auth, safe hosting |
-| Platforms | **Web + native mobile both at launch** |
+| Platforms | **Web + installable PWA at launch**; native iOS/Android via **Expo deferred** (revised 2026-06-21 — Flutter dropped) |
 | Hosting / ops | **Supabase + Vercel** (least to operate) |
 | Heavy features for v1 | Media uploads, realtime messaging, video sessions, push notifications (all four requested) |
 | Architecture shape | **Approach B — Supabase + a unified Next.js API** |
@@ -33,28 +35,31 @@ The current shape (3 deployables + 2 app stores + 3 stateful services) is the op
 
 ## 2. Target Architecture (Approach B)
 
-One trusted backend; both clients are thin.
+One trusted backend. For v1 there is a **single client** — the Next.js app, which is both the website and an **installable PWA**. A future Expo (React Native) client would attach the same way (same `/api`, same Supabase auth/realtime).
 
 ```
-   ┌──────────────┐         ┌──────────────────────────────┐
-   │  Flutter app │──HTTPS──▶│  Next.js on Vercel            │
-   └──────┬───────┘         │  • web UI (App Router)        │
-          │                 │  • /api = the ONE backend     │──Prisma──▶ Supabase Postgres
-          │ realtime        │  • Vercel Cron (reminders)    │
-          │ (read stream)   └───────┬───────────┬──────────┘
-          │                         │           │
-          ▼                    provider       Supabase Auth / Storage
-     Supabase Realtime         secrets         (identity, files)
-     (Message table, RLS)    (Daily, FCM)
+   ┌───────────────────────┐     ┌──────────────────────────────┐
+   │  Next.js app on Vercel │     │  (same Next.js deployment)    │
+   │  • web UI (App Router) │────▶│  • /api = the ONE backend     │──Prisma──▶ Supabase Postgres
+   │  • installable PWA     │     │  • Vercel Cron (reminders)    │
+   │    (manifest + SW)     │     └───────┬───────────┬──────────┘
+   └───────────┬───────────┘             │           │
+               │ realtime read stream    │           │
+               ▼                    provider       Supabase Auth / Storage
+        Supabase Realtime          secrets         (identity, files)
+        (Message table, RLS)     (Daily, FCM)
+   ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐
+     future: Expo native app  ─ ─ ▶ same /api + Supabase
+   └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
 ```
 
 **Components**
 
-- **Next.js on Vercel** — serves the web UI *and* the single backend-for-frontend (`/api` Route Handlers) *and* scheduled jobs (Vercel Cron). Holds all server-side secrets (DB service access, Daily/Twilio, FCM). All business logic and authorization live here, in typed TypeScript.
-- **Flutter mobile** — talks to the same Next.js `/api` over HTTPS. Uses the Supabase SDK only for (a) the auth session and (b) the realtime message read-stream.
+- **Next.js on Vercel** — serves the web UI *and* the single backend-for-frontend (`/api` Route Handlers) *and* scheduled jobs (Vercel Cron). Shipped as an installable PWA (manifest + service worker). Holds all server-side secrets (DB service access, Daily/Twilio, FCM). All business logic and authorization live here, in typed TypeScript.
+- **Future Expo client (deferred)** — when native is needed, an Expo/React-Native app talks to the same `/api` over HTTPS (the `getAuthUser` Bearer-token path already supports this) and uses `@supabase/supabase-js` for the auth session + realtime read-stream. Reuses types and logic; only the UI layer is rebuilt in native primitives.
 - **Supabase (managed)** — Postgres (system of record), Auth (identity), Storage (file bytes), Realtime (live message delivery).
 
-**Deploy surfaces:** Vercel + Supabase + app stores. No servers to operate; no Redis; no MinIO.
+**Deploy surfaces:** Vercel + Supabase. **No app stores for v1** (the PWA installs from the browser); no servers to operate; no Redis; no MinIO.
 
 ---
 
@@ -63,12 +68,13 @@ One trusted backend; both clients are thin.
 | Current artifact | Fate | Notes |
 |---|---|---|
 | Prisma schema | **Keep** | Move to `packages/db`; point at Supabase Postgres. |
-| `packages/shared-types` | **Keep + expand** | Typed contract shared by web + mobile + API. |
+| `packages/shared-types` | **Keep + expand** | Typed contract shared by web + API (and a future Expo client). |
 | Next.js web (landing + shadcn UI) | **Keep** | Build out pages + `/api` route handlers. |
 | NestJS API (`apps/api`) | **Retire** | Logic moves into Next.js `/api`. Salvage business rules + schema only. |
 | Custom JWT auth | **Retire** | Replaced by Supabase Auth. Removes the unwired, buggy auth code. |
 | Redis, MinIO, docker-compose (prod) | **Retire** | Supabase replaces them. Optional slim local setup only. |
-| Flutter app (counter demo) | **Rebuild** | Real client with Riverpod + Dio (as README always intended). |
+| Flutter app (counter demo) | **Retire (removed)** | Deleted `apps/mobile` + a duplicate `apps/mobile_app`. A PWA replaces it for v1; native via Expo later. |
+| **PWA support** (new) | **Add** | `manifest.ts`, app icons, service worker + registration, iOS install hint, Apple/theme metadata. Makes the Next.js app installable. |
 
 ---
 
@@ -112,8 +118,8 @@ Handling real patient mental-health data implies HIPAA-style obligations (BAAs, 
 
 The architecture supports all four heavy features, but they ship in order so a real, stable product reaches users early:
 
-- **Phase 0 — Foundations:** Supabase project; schema migrated (with pooled + direct connections); Supabase Auth wired into web + mobile; API skeleton (JWT verification + zod + audit middleware); retire NestJS/Redis/MinIO; CI + Vercel preview deploys.
-- **Phase 1 — Core loop → first real-user release:** accounts/roles/patient–therapist linking → mood tracking → journal (E2E) → homework → session scheduling. Web first, then mobile parity.
+- **Phase 0 — Foundations:** Supabase project; schema migrated (with pooled + direct connections); Supabase Auth wired into the web app; API skeleton (JWT verification + zod + audit middleware); retire NestJS/Redis/MinIO; PWA support; CI + Vercel preview deploys. *(Done.)*
+- **Phase 1 — Core loop → first real-user release:** accounts/roles/patient–therapist linking → mood tracking → journal (E2E) → homework → session scheduling. Built once in the Next.js app (web + PWA). **Build switch-friendly for a future Expo move:** data/logic in hooks, thin presentational components, Tailwind classes (→ NativeWind later).
 - **Phase 2 — Media:** unlocks voice-note / drawing homework + avatars.
 - **Phase 3 — Messaging:** realtime chat.
 - **Phase 4 — Push:** reminders + message pings.
@@ -125,7 +131,7 @@ Each phase is independently shippable and testable.
 
 ## 8. "Stable" Definition & Testing
 
-**Stable means:** one source of truth (the API) · managed services we don't operate · typed contracts (shared-types + zod) so web/mobile/DB can't drift · tested authorization + RLS · CI running typecheck / tests / migration-check per PR · a Vercel preview deploy per PR.
+**Stable means:** one source of truth (the API) · managed services we don't operate · typed contracts (shared-types + zod) so client/DB can't drift · tested authorization + RLS · CI running typecheck / tests / migration-check per PR · a Vercel preview deploy per PR.
 
 **Test focus** concentrates where a health app actually breaks: authorization rules (who can read/write what), RLS policies on messaging, and the API contract.
 
@@ -134,7 +140,8 @@ Each phase is independently shippable and testable.
 ## 9. Tradeoffs Accepted with Approach B
 
 - More API code than the Supabase-native (BaaS-direct) option.
-- Mobile depends on Vercel serverless (cold starts) — mitigated by the realtime read path and keeping handlers light.
+- A future Expo client will depend on Vercel serverless `/api` (cold starts) — mitigated by the realtime read path and keeping handlers light. (Not a concern for the PWA, which is the same deployment.)
+- PWA limits on iOS (manual "Add to Home Screen", weaker push/hardware) — accepted for v1; the Expo path exists for when those matter.
 - Two access paths exist by design (API for writes, Realtime for message reads) — a documented exception, not a general pattern.
 - Vendor reliance on Supabase + Vercel — accepted in exchange for minimal ops.
 
@@ -145,4 +152,5 @@ Each phase is independently shippable and testable.
 - Billing / invoicing / superbills.
 - Analytics & outcome dashboards (GAD-7 / PHQ-9 aggregation).
 - Resource library, availability/integration settings beyond the basics.
+- **Native iOS/Android apps (Expo)** — deferred until App Store presence, HealthKit, or robust iOS push is actually needed. PWA covers v1.
 - Full HIPAA certification work (tracked separately; gates real-patient onboarding).
