@@ -86,6 +86,86 @@ const content = {
   },
 };
 
+// Blueprint vignettes shown on the phone, one per step, swapped as the active step changes.
+const phoneScreens: Record<Role, React.ReactNode[]> = {
+  patient: [
+    <>
+      <div className="ps-head">Your match</div>
+      <div className="ps-match">
+        <span className="ps-avatar" />
+        <div>
+          <div className="ps-name">Dr. Amara Okafor</div>
+          <div className="ps-role">Licensed therapist</div>
+        </div>
+      </div>
+      <div className="ps-tags">
+        <span>Anxiety</span>
+        <span>CBT</span>
+        <span>Sleep</span>
+      </div>
+      <span className="ps-chip">Matched</span>
+    </>,
+    <>
+      <div className="ps-head">Today's check-in</div>
+      <div className="ps-scale">
+        {Array.from({ length: 10 }).map((_, n) => (
+          <span key={n} className={n === 6 ? "on" : ""} />
+        ))}
+      </div>
+      <div className="ps-sub">Mood logged · 7 / 10</div>
+      <ul className="ps-rows">
+        <li><span className="ps-dot on" />Morning check-in</li>
+        <li><span className="ps-dot" />Evening journal</li>
+      </ul>
+    </>,
+    <>
+      <div className="ps-head">7-day trend</div>
+      <div className="ps-bars">
+        {[4, 6, 5, 7, 6, 8, 7].map((h, n) => (
+          <span key={n} style={{ height: `${h * 11}px` }} />
+        ))}
+      </div>
+      <div className="ps-sub">Trending up this week</div>
+    </>,
+  ],
+  therapist: [
+    <>
+      <div className="ps-head">Your clients</div>
+      <ul className="ps-rows">
+        <li><span className="ps-dot on" />Jada P.</li>
+        <li><span className="ps-dot on" />Marcus T.</li>
+        <li><span className="ps-dot" />New intake</li>
+      </ul>
+    </>,
+    <>
+      <div className="ps-head">This week</div>
+      <div className="ps-slots">
+        <span className="filled">Mon 10:00</span>
+        <span>Mon 14:00</span>
+        <span className="filled">Tue 09:00</span>
+        <span>Wed 11:00</span>
+      </div>
+      <div className="ps-sub">Auto-scheduled with breaks</div>
+    </>,
+    <>
+      <div className="ps-head">Session summary</div>
+      <div className="ps-note">Drafted notes ready to review. Two follow-ups suggested for next week.</div>
+      <ul className="ps-rows">
+        <li><span className="ps-dot on" />SOAP note</li>
+        <li><span className="ps-dot on" />Next steps</li>
+      </ul>
+    </>,
+  ],
+};
+
+function PhoneScreen({ role, step }: { role: Role; step: number }) {
+  return (
+    <div className="phone-screen-inner" key={`${role}-${step}`}>
+      {phoneScreens[role][step]}
+    </div>
+  );
+}
+
 export default function Home() {
   const [isLight, setIsLight] = useState(false);
   const [role, setRole] = useState<Role>("patient");
@@ -94,11 +174,31 @@ export default function Home() {
   const t = content[role];
   const [rituals, setRituals] = useState<Ritual[]>(t.hero.rituals);
   const nextRitualIndex = rituals.findIndex((r) => !r.done);
+  const [activeStep, setActiveStep] = useState(0);
+  const stepRefs = useRef<(HTMLElement | null)[]>([]);
 
   const signupHref = `/signup?role=${role}`;
 
   useEffect(() => {
     setRituals(content[role].hero.rituals);
+    setActiveStep(0);
+  }, [role]);
+
+  // Sync the phone screen to whichever step is nearest the viewport center.
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const idx = Number((entry.target as HTMLElement).dataset.step);
+            if (!Number.isNaN(idx)) setActiveStep(idx);
+          }
+        });
+      },
+      { rootMargin: "-45% 0px -45% 0px", threshold: 0 },
+    );
+    stepRefs.current.forEach((el) => el && observer.observe(el));
+    return () => observer.disconnect();
   }, [role]);
 
   const toggleRitual = (index: number) => {
@@ -258,28 +358,44 @@ export default function Home() {
 
         <section id="how" className="section reveal">
           <h2 className="section-title">How it works</h2>
-          <div className="process-flow">
-            {t.howItWorks.map((s, i) => (
-              <div className="process-step" key={`${role}-${i}`}>
-                <div className="process-number">0{i + 1}</div>
-                <div>
-                  <h3>{s.title}</h3>
-                  <p>{s.desc}</p>
+          <div className="how-grid">
+            <div className="how-steps">
+              {t.howItWorks.map((s, i) => (
+                <div
+                  className={`how-step ${activeStep === i ? "active" : ""}`}
+                  key={`${role}-${i}`}
+                  data-step={i}
+                  ref={(el) => {
+                    stepRefs.current[i] = el;
+                  }}
+                  onMouseEnter={() => setActiveStep(i)}
+                >
+                  <span className="how-num">0{i + 1}</span>
+                  <div className="how-step-body">
+                    <h3>{s.title}</h3>
+                    <p>{s.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="how-phone-wrap" aria-hidden="true">
+              <div className="phone">
+                <div className="phone-screen">
+                  <PhoneScreen role={role} step={activeStep} />
                 </div>
               </div>
-            ))}
+            </div>
           </div>
         </section>
 
         <section className="section reveal">
           <div className="cta-panel">
+            <span className="cta-orb" aria-hidden="true" />
             <h2>{t.cta.title}</h2>
             <p>{t.cta.desc}</p>
-            <div className="hero-actions">
-              <Link href={signupHref} className="cta-button no-underline flex items-center">
-                Get Started
-              </Link>
-            </div>
+            <Link href={signupHref} className="cta-button cta-button--lg no-underline">
+              Get Started
+            </Link>
           </div>
         </section>
 
