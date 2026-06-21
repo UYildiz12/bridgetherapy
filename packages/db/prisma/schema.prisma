@@ -50,6 +50,7 @@ model TherapistProfile {
   licenseNumber String?
   specialty     String?
   bio           String?
+  approvedAt    DateTime? // null = pending admin approval; set = approved & active
 
   // Relationships
   patients      PatientTherapist[]
