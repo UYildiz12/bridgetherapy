@@ -67,6 +67,21 @@ describe("POST /api/auth/provision", () => {
     expect(callArg.data.patientProfile).toBeDefined();
   });
 
+  it("creates a THERAPIST as pending — no approval set, client cannot set it", async () => {
+    getAuthUser.mockResolvedValue({ authId: "uid-2", email: "t@b.co" });
+    create.mockResolvedValue({ id: "uid-2", email: "t@b.co", role: "THERAPIST" });
+    const POST = await loadRoute();
+    const res = await POST(post({ firstName: "T", lastName: "H", role: "THERAPIST" }));
+    expect(res.status).toBe(201);
+
+    const callArg = create.mock.calls[0][0];
+    expect(callArg.data.role).toBe("THERAPIST");
+    // Profile created empty → approvedAt defaults to null (pending).
+    expect(callArg.data.therapistProfile).toEqual({ create: {} });
+    // Defense in depth: nothing in the create payload sets approval.
+    expect(JSON.stringify(callArg.data)).not.toContain("approvedAt");
+  });
+
   it("200 (not 201) on idempotent re-call with the same role", async () => {
     getAuthUser.mockResolvedValue({ authId: "uid-1", email: "a@b.co" });
     create.mockRejectedValue(uniqueViolation());

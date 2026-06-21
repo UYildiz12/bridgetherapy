@@ -35,6 +35,10 @@ export const POST = withErrorHandling(async (req: Request) => {
   const { firstName, lastName, role } = parsed.data;
 
   try {
+    // A client may self-assign role THERAPIST, but that grants nothing: the new
+    // therapistProfile is created with approvedAt = null (pending), and there is
+    // no approval field in the request body. Therapist access is gated by
+    // requireApprovedTherapist (lib/authz.ts), which an admin unlocks via db:approve.
     const user = await prisma.user.create({
       data: {
         id: auth.authId,
