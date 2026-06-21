@@ -25,13 +25,13 @@ const content = {
     badge: "Patient",
     hero: {
       title: "mental health, clarified.",
-      desc: "An intelligent workspace for your mind: track your mood, journal with AI insights, and stay connected with your therapist.",
+      desc: "A steady workspace for your mind: track your mood, capture reflections, and stay connected with your therapist.",
       panelHeader: "Today's Plan",
       rituals: [
         { label: "Morning Check-in", time: "2 min", done: true },
         { label: "Mood Log", time: "1 min", done: true },
         { label: "Therapy Session", time: "50 min", active: true },
-        { label: "Evening Journal", time: "10 min", done: false },
+        { label: "Evening Reflection", time: "10 min", done: false },
       ] as Ritual[],
     },
     valuesTitle: "What you get",
@@ -40,13 +40,13 @@ const content = {
         title: "Track your mood",
         desc: "Log how you feel in seconds. Patterns surface over time, so progress stops being a mystery and starts being visible.",
       },
-      { title: "Journal with clarity", desc: "A private space to reflect, with gentle prompts that reveal recurring themes." },
+      { title: "Reflect with clarity", desc: "A private-feeling space to notice situations, thoughts, feelings, and recurring themes." },
       { title: "Stay connected", desc: "Share what matters with your therapist between sessions, securely." },
     ] as ValueProp[],
     howItWorks: [
       { title: "Match", desc: "Tell us what you need and choose from CBT therapists matched to you." },
       { title: "Engage", desc: "Work through CBT homework sets and daily check-ins your therapist assigns." },
-      { title: "Grow", desc: "Track your trends, with gentle nudges from Lumen, your AI companion." },
+      { title: "Grow", desc: "Track your trends and bring clearer patterns into the next session." },
     ],
     cta: {
       title: "Begin with clarity.",
@@ -62,7 +62,7 @@ const content = {
       rituals: [
         { label: "Review: Jada P.", time: "09:00", done: true },
         { label: "Session: Marcus T.", time: "10:00", done: true },
-        { label: "Notes & Billing", time: "11:00", active: true },
+        { label: "Notes Review", time: "11:00", active: true },
         { label: "Group Session", time: "14:00", done: false },
       ] as Ritual[],
     },
@@ -78,7 +78,7 @@ const content = {
     howItWorks: [
       { title: "Onboard", desc: "Import existing clients or open slots for new matches." },
       { title: "Build", desc: "Build flexible CBT homework sets from worksheets, readings, or anything." },
-      { title: "Focus", desc: "AI-drafted notes and suggested homework after every session." },
+      { title: "Focus", desc: "Structured notes and suggested homework after every session." },
     ],
     cta: {
       title: "Upgrade your practice.",

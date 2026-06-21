@@ -20,9 +20,9 @@ This repo is currently a Next.js App Router application with Route Handler APIs,
 | Homework assignment | Therapist assigns sets only to active linked patients; patient can complete and submit assignments. |
 | Homework review | Therapist can review submitted assignments and inspect item responses. |
 | Media attachments | Patient media upload/download routes with owner checks for homework voice and drawing responses. |
-| Patient notes | Patients can leave questions or session topics; approved therapists can review and resolve notes for active linked patients. |
+| Reflections / patient notes | Patients capture questions, CBT-style reflections, and session topics in one notes stream; approved therapists can review and resolve notes for active linked patients. |
 | AI summaries | Server-side Gemini Interactions API wrapper using `AI_key`, `gemini-3.1-flash-lite`, `store: false`, and a therapist session-summary route. |
-| Database | Prisma schema and migrations for users, profiles, connections, mood, journal, homework, sessions, summaries, media, push tokens, and audit logs. |
+| Database | Prisma schema and migrations for users, profiles, connections, mood, notes, homework, sessions, summaries, media, push tokens, and audit logs. |
 | Quality gates | Unit/API/component tests, lint, typecheck, production build, dependency audit, and CI workflow coverage. |
 
 ## Remaining Product Work
@@ -30,7 +30,6 @@ This repo is currently a Next.js App Router application with Route Handler APIs,
 | Area | Needed |
 | --- | --- |
 | Sessions UI | Calendar/list pages, note editor, and therapist UI trigger for AI-generated summaries. |
-| Journal | Patient encrypted journal UI/API and AI follow-up prompt flow. |
 | Messaging | Conversation list/thread APIs and UI for patient-therapist messaging. |
 | Wellness tools | Breathwork, meditation, and crisis support screens. |
 | Settings | Account/profile/notification/privacy settings pages for both roles. |

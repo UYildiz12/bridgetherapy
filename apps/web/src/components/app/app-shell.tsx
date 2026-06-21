@@ -8,8 +8,8 @@ const NAV: Record<"PATIENT" | "THERAPIST", { href: string; label: string }[]> = 
   PATIENT: [
     { href: "/dashboard", label: "Home" },
     { href: "/mood", label: "Mood" },
+    { href: "/notes", label: "Reflections" },
     { href: "/homework", label: "Homework" },
-    { href: "/notes", label: "Notes" },
     { href: "/find", label: "Therapist" },
   ],
   THERAPIST: [
