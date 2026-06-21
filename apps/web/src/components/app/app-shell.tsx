@@ -13,6 +13,7 @@ const NAV: Record<"PATIENT" | "THERAPIST", { href: string; label: string }[]> = 
     { href: "/wellness", label: "Wellness" },
     { href: "/homework", label: "Homework" },
     { href: "/find", label: "Therapist" },
+    { href: "/settings", label: "Settings" },
   ],
   THERAPIST: [
     { href: "/dashboard", label: "Home" },
@@ -24,6 +25,7 @@ const NAV: Record<"PATIENT" | "THERAPIST", { href: string; label: string }[]> = 
     { href: "/practice/notes", label: "Notes" },
     { href: "/practice/homework", label: "Sets" },
     { href: "/practice/assignments", label: "Assignments" },
+    { href: "/settings", label: "Settings" },
   ],
 };
 
