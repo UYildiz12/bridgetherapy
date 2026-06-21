@@ -17,7 +17,7 @@ git clone https://github.com/UYildiz12/exhale.git
 cd exhale
 cp .env.example .env          # fill in Supabase values
 pnpm install
-pnpm --filter @exhale/db migrate   # apply migrations
+pnpm db:migrate               # apply migrations (loads root .env)
 pnpm dev                      # Next.js app (web + API) on http://localhost:3000
 ```
 

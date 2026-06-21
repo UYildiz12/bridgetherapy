@@ -3,14 +3,15 @@
   "private": true,
   "packageManager": "pnpm@10.14.0",
   "scripts": {
-    "dev": "pnpm --filter web dev",
-    "build": "pnpm --filter web build",
+    "dev": "dotenv -e .env -- pnpm --filter web dev",
+    "build": "dotenv -e .env -- pnpm --filter web build",
     "typecheck": "pnpm -r --if-present typecheck",
     "test": "pnpm -r --if-present test",
-    "db:generate": "pnpm --filter @exhale/db generate",
-    "db:migrate": "pnpm --filter @exhale/db migrate"
+    "db:generate": "dotenv -e .env -- pnpm --filter @exhale/db generate",
+    "db:migrate": "dotenv -e .env -- pnpm --filter @exhale/db migrate"
   },
   "devDependencies": {
+    "dotenv-cli": "^11.0.0",
     "typescript": "^5.6.0"
   }
 }
