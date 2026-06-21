@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { prisma } from "@exhale/db";
+import { ensureProvisioned } from "@/lib/provision";
 import { AppShell } from "@/components/app/app-shell";
 
 export default async function AppLayout({
@@ -12,11 +12,9 @@ export default async function AppLayout({
   const { data, error } = await supabase.auth.getUser();
   if (error || !data.user) redirect("/login");
 
-  const user = await prisma.user.findUnique({
-    where: { id: data.user.id },
-    select: { firstName: true, role: true },
-  });
-  if (!user) redirect("/signup");
+  // Self-healing: create the app User row from the session if it's missing,
+  // rather than bouncing to /signup (which loops for confirmed-but-unprovisioned users).
+  const user = await ensureProvisioned(data.user);
 
   return (
     <AppShell firstName={user.firstName} role={user.role}>

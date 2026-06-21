@@ -32,6 +32,15 @@ function SignupForm() {
     const { data, error: signErr } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
+      options: {
+        // Carried into auth metadata so the account can be provisioned even when
+        // signUp returns no session (email-confirmation flow) — see lib/provision.ts.
+        data: {
+          first_name: form.firstName,
+          last_name: form.lastName,
+          role: form.role,
+        },
+      },
     });
     if (signErr) {
       setError(signErr.message);
@@ -40,7 +49,7 @@ function SignupForm() {
     }
     const token = data.session?.access_token;
     if (!token) {
-      setNote("Almost there — check your email to confirm, then log in.");
+      setNote("Almost there — check your email to confirm, then log in. We'll finish setting up your account automatically.");
       setLoading(false);
       return;
     }
