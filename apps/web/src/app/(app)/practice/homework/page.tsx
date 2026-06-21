@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FolderPlus } from "lucide-react";
 import { EmptyState } from "@/components/app/empty-state";
+import { PageHeader } from "@/components/app/page-header";
 
 const fieldCls =
   "h-9 rounded-md border border-input bg-transparent px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50";
@@ -35,15 +36,15 @@ export default function HomeworkSetsPage() {
 
   return (
     <div className="grid gap-6">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold">Homework sets</h1>
-          <p className="text-sm text-muted-foreground">Reusable sets you can assign to patients.</p>
-        </div>
-        <Button asChild>
-          <Link href="/practice/homework/new">New set</Link>
-        </Button>
-      </div>
+      <PageHeader
+        title="Homework sets"
+        sub="Reusable sets you can assign to patients."
+        action={
+          <Button asChild>
+            <Link href="/practice/homework/new">New set</Link>
+          </Button>
+        }
+      />
 
       {error && <p className="text-sm text-destructive">{error}</p>}
       {sets === null && !error && <Skeleton className="h-28 w-full rounded-xl" />}
@@ -116,7 +117,7 @@ function AssignForm({
       </p>
     );
   }
-  if (done) return <p className="text-sm text-emerald-400">Assigned.</p>;
+  if (done) return <p className="text-sm text-foreground">Assigned.</p>;
 
   async function submit() {
     setBusy(true);

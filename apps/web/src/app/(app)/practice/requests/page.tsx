@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/app/empty-state";
+import { PageHeader } from "@/components/app/page-header";
 
 export default function RequestsPage() {
   const [items, setItems] = useState<IncomingRequest[] | null>(null);
@@ -42,10 +43,7 @@ export default function RequestsPage() {
 
   return (
     <div className="grid gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Requests</h1>
-        <p className="text-sm text-muted-foreground">Patients asking to connect with you.</p>
-      </div>
+      <PageHeader title="Requests" sub="Patients asking to connect with you." />
 
       {error && <p className="text-sm text-destructive">{error}</p>}
       {items === null && !error && <Skeleton className="h-28 w-full rounded-xl" />}

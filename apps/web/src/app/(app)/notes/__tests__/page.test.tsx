@@ -2,60 +2,67 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
-const { createPatientNote, fetchPatientNotes } = vi.hoisted(() => ({
-  createPatientNote: vi.fn(),
-  fetchPatientNotes: vi.fn(),
+const { fetchEntries, createEntry, updateEntry, deleteEntry, fetchLumen, sendLumen } = vi.hoisted(
+  () => ({
+    fetchEntries: vi.fn(),
+    createEntry: vi.fn(),
+    updateEntry: vi.fn(),
+    deleteEntry: vi.fn(),
+    fetchLumen: vi.fn(),
+    sendLumen: vi.fn(),
+  }),
+);
+
+vi.mock("@/lib/notes-client", () => ({
+  fetchEntries,
+  createEntry,
+  updateEntry,
+  deleteEntry,
+  fetchLumen,
+  sendLumen,
 }));
 
-vi.mock("@/lib/notes-client", () => ({ createPatientNote, fetchPatientNotes }));
+import NotesPage from "../page";
 
-import PatientNotesPage from "../page";
-
-describe("PatientNotesPage", () => {
+describe("NotesPage (reflections workspace)", () => {
   beforeEach(() => {
-    fetchPatientNotes.mockReset().mockResolvedValue([]);
-    createPatientNote.mockReset();
+    fetchEntries.mockReset().mockResolvedValue([]);
+    createEntry.mockReset();
+    fetchLumen.mockReset().mockResolvedValue({ configured: true, messages: [] });
   });
-
   afterEach(cleanup);
 
-  it("renders one reflections surface without a journal passphrase", async () => {
-    render(<PatientNotesPage />);
-
+  it("shows the empty state when there are no entries", async () => {
+    render(<NotesPage />);
     await waitFor(() => screen.getByText(/no reflections yet/i));
-
-    expect(screen.getByRole("heading", { name: /write the moment/i })).toBeDefined();
-    expect(screen.queryByText(/passphrase/i)).toBeNull();
   });
 
-  it("adds CBT-style starter text to the composer", async () => {
-    render(<PatientNotesPage />);
-    await waitFor(() => screen.getByText(/no reflections yet/i));
-
-    fireEvent.click(screen.getByRole("button", { name: /thought record/i }));
-
-    const composer = screen.getByRole("textbox", { name: /new reflection/i }) as HTMLTextAreaElement;
-    expect(composer.value).toContain("Automatic thought:");
-    expect(composer.value).toContain("A more balanced response");
-  });
-
-  it("saves a reflection into the stream", async () => {
-    createPatientNote.mockResolvedValue({
+  it("creates a private reflection from the composer", async () => {
+    createEntry.mockResolvedValue({
       id: "n1",
-      content: "Can we discuss the sleep spiral?",
-      isResolved: false,
+      title: null,
+      content: "Sleep spiral again.",
+      visibility: "PRIVATE",
+      sharedAt: null,
+      lumenCount: 0,
       createdAt: "2026-06-21T12:00:00Z",
+      updatedAt: "2026-06-21T12:00:00Z",
     });
 
-    render(<PatientNotesPage />);
+    render(<NotesPage />);
     await waitFor(() => screen.getByText(/no reflections yet/i));
 
-    fireEvent.change(screen.getByRole("textbox", { name: /new reflection/i }), {
-      target: { value: "Can we discuss the sleep spiral?" },
+    fireEvent.click(screen.getByRole("button", { name: /new/i }));
+    fireEvent.change(screen.getByLabelText("Reflection"), {
+      target: { value: "Sleep spiral again." },
     });
     fireEvent.click(screen.getByRole("button", { name: /save reflection/i }));
 
-    await waitFor(() => expect(createPatientNote).toHaveBeenCalledWith("Can we discuss the sleep spiral?"));
-    await waitFor(() => screen.getByText(/sleep spiral/i));
+    await waitFor(() =>
+      expect(createEntry).toHaveBeenCalledWith(
+        expect.objectContaining({ content: "Sleep spiral again." }),
+      ),
+    );
+    await waitFor(() => screen.getByRole("button", { name: /sleep spiral/i }));
   });
 });

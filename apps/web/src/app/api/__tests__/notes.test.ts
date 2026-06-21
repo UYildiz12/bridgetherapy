@@ -2,13 +2,20 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const requirePatient = vi.fn();
 const requireApprovedTherapist = vi.fn();
+const lumenConfigured = vi.fn();
+const askLumen = vi.fn();
 const noteCreate = vi.fn();
 const noteFindMany = vi.fn();
 const noteFindFirst = vi.fn();
 const noteUpdate = vi.fn();
+const lumenCreate = vi.fn();
+const lumenFindMany = vi.fn();
+const moodFindMany = vi.fn();
+const profileFindUnique = vi.fn();
 
 vi.mock("@/lib/patient", () => ({ requirePatient }));
 vi.mock("@/lib/authz", () => ({ requireApprovedTherapist }));
+vi.mock("@/lib/lumen", () => ({ lumenConfigured, askLumen }));
 vi.mock("@exhale/db", () => ({
   prisma: {
     patientNote: {
@@ -17,6 +24,9 @@ vi.mock("@exhale/db", () => ({
       findFirst: noteFindFirst,
       update: noteUpdate,
     },
+    lumenMessage: { create: lumenCreate, findMany: lumenFindMany },
+    moodEntry: { findMany: moodFindMany },
+    patientProfile: { findUnique: profileFindUnique },
   },
 }));
 
@@ -28,17 +38,20 @@ function req(path: string, body?: unknown) {
     body: body ? JSON.stringify(body) : undefined,
   });
 }
-
-function patch(body: unknown) {
-  return new Request("http://t/api/therapist/notes/n1", {
-    method: "PATCH",
-    body: JSON.stringify(body),
-  });
-}
-
 function ctx(id: string) {
   return { params: Promise.resolve({ id }) };
 }
+const row = (over: Record<string, unknown> = {}) => ({
+  id: "n1",
+  title: null,
+  content: "Question",
+  visibility: "PRIVATE",
+  sharedAt: null,
+  createdAt: new Date("2026-06-21T00:00:00.000Z"),
+  updatedAt: new Date("2026-06-21T00:00:00.000Z"),
+  _count: { lumenMessages: 0 },
+  ...over,
+});
 
 describe("/api/notes", () => {
   beforeEach(() => {
@@ -48,54 +61,102 @@ describe("/api/notes", () => {
 
   it("GET propagates the patient auth response", async () => {
     requirePatient.mockResolvedValue({ ok: false, response: json({ error: "Unauthorized" }, 401) });
-
     const { GET } = await import("../notes/route");
     const res = await GET(req("/api/notes"));
-
     expect(res.status).toBe(401);
     expect(noteFindMany).not.toHaveBeenCalled();
   });
 
-  it("GET returns only the patient's notes newest-first", async () => {
+  it("GET returns the patient's entries newest-first with a Lumen count", async () => {
     requirePatient.mockResolvedValue({ ok: true, patientId: "pp1" });
-    noteFindMany.mockResolvedValue([{ id: "n1", content: "Question", isResolved: false }]);
-
+    noteFindMany.mockResolvedValue([row({ _count: { lumenMessages: 3 } })]);
     const { GET } = await import("../notes/route");
     const res = await GET(req("/api/notes"));
-
     expect(res.status).toBe(200);
-    expect((await res.json()).data[0].id).toBe("n1");
+    const data = (await res.json()).data;
+    expect(data[0].id).toBe("n1");
+    expect(data[0].lumenCount).toBe(3);
     expect(noteFindMany).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { patientId: "pp1" },
-        orderBy: { createdAt: "desc" },
-      }),
+      expect.objectContaining({ where: { patientId: "pp1" }, orderBy: { updatedAt: "desc" } }),
     );
   });
 
-  it("POST creates a trimmed unresolved note for the patient", async () => {
+  it("POST creates a trimmed private entry", async () => {
     requirePatient.mockResolvedValue({ ok: true, patientId: "pp1" });
-    noteCreate.mockResolvedValue({ id: "n2", content: "Can we discuss sleep?", isResolved: false });
-
+    noteCreate.mockResolvedValue(row({ id: "n2", content: "Can we discuss sleep?" }));
     const { POST } = await import("../notes/route");
     const res = await POST(req("/api/notes", { content: "  Can we discuss sleep?  " }));
-
     expect(res.status).toBe(201);
     expect(noteCreate).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: { patientId: "pp1", content: "Can we discuss sleep?" },
+        data: { patientId: "pp1", title: null, content: "Can we discuss sleep?" },
       }),
     );
   });
 
-  it("POST rejects empty notes", async () => {
+  it("POST rejects empty entries", async () => {
     requirePatient.mockResolvedValue({ ok: true, patientId: "pp1" });
-
     const { POST } = await import("../notes/route");
     const res = await POST(req("/api/notes", { content: "   " }));
-
     expect(res.status).toBe(400);
     expect(noteCreate).not.toHaveBeenCalled();
+  });
+});
+
+describe("/api/notes/[id] PATCH", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    [requirePatient, noteFindFirst, noteUpdate].forEach((f) => f.mockReset());
+  });
+
+  it("shares an entry and stamps sharedAt the first time", async () => {
+    requirePatient.mockResolvedValue({ ok: true, patientId: "pp1" });
+    noteFindFirst.mockResolvedValue({ id: "n1", sharedAt: null });
+    noteUpdate.mockResolvedValue(row({ visibility: "SHARED", sharedAt: new Date() }));
+    const { PATCH } = await import("../notes/[id]/route");
+    const res = await PATCH(
+      new Request("http://t/api/notes/n1", { method: "PATCH", body: JSON.stringify({ visibility: "SHARED" }) }),
+      ctx("n1"),
+    );
+    expect(res.status).toBe(200);
+    expect(noteUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: "n1" },
+        data: expect.objectContaining({ visibility: "SHARED", sharedAt: expect.any(Date) }),
+      }),
+    );
+  });
+
+  it("404s when the entry is not the patient's", async () => {
+    requirePatient.mockResolvedValue({ ok: true, patientId: "pp1" });
+    noteFindFirst.mockResolvedValue(null);
+    const { PATCH } = await import("../notes/[id]/route");
+    const res = await PATCH(
+      new Request("http://t/api/notes/n1", { method: "PATCH", body: JSON.stringify({ visibility: "SHARED" }) }),
+      ctx("n1"),
+    );
+    expect(res.status).toBe(404);
+    expect(noteUpdate).not.toHaveBeenCalled();
+  });
+});
+
+describe("/api/notes/[id]/lumen POST", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    [requirePatient, noteFindFirst, lumenConfigured, lumenCreate].forEach((f) => f.mockReset());
+  });
+
+  it("503s when Lumen has no API key configured", async () => {
+    requirePatient.mockResolvedValue({ ok: true, patientId: "pp1" });
+    noteFindFirst.mockResolvedValue({ id: "n1", title: null, content: "x" });
+    lumenConfigured.mockReturnValue(false);
+    const { POST } = await import("../notes/[id]/lumen/route");
+    const res = await POST(
+      new Request("http://t/api/notes/n1/lumen", { method: "POST", body: JSON.stringify({ message: "help" }) }),
+      ctx("n1"),
+    );
+    expect(res.status).toBe(503);
+    expect(lumenCreate).not.toHaveBeenCalled();
   });
 });
 
@@ -104,97 +165,47 @@ describe("/api/therapist/notes", () => {
 
   beforeEach(() => {
     vi.resetModules();
-    [requireApprovedTherapist, noteFindMany, noteFindFirst, noteUpdate].forEach((f) => f.mockReset());
+    [requireApprovedTherapist, noteFindMany].forEach((f) => f.mockReset());
   });
 
-  it("GET propagates the approved therapist auth response", async () => {
-    requireApprovedTherapist.mockResolvedValue({
-      ok: false,
-      response: json({ error: "Forbidden" }, 403),
-    });
-
+  it("GET propagates the approved-therapist auth response", async () => {
+    requireApprovedTherapist.mockResolvedValue({ ok: false, response: json({ error: "Forbidden" }, 403) });
     const { GET } = await import("../therapist/notes/route");
     const res = await GET(req("/api/therapist/notes"));
-
     expect(res.status).toBe(403);
     expect(noteFindMany).not.toHaveBeenCalled();
   });
 
-  it("GET returns notes for active linked patients with patient labels", async () => {
+  it("GET returns only SHARED entries for active patients, with labels", async () => {
     requireApprovedTherapist.mockResolvedValue(therapist);
     noteFindMany.mockResolvedValue([
       {
         id: "n1",
         patientId: "pp1",
+        title: "Panic loop",
         content: "Question",
-        isResolved: false,
+        sharedAt: new Date("2026-06-21T00:00:00.000Z"),
         createdAt: new Date("2026-06-21T00:00:00.000Z"),
-        patient: {
-          user: { firstName: "Sam", lastName: "Lee", email: "sam@example.com" },
-        },
+        updatedAt: new Date("2026-06-21T00:00:00.000Z"),
+        patient: { user: { firstName: "Sam", lastName: "Lee", email: "sam@example.com" } },
       },
     ]);
-
     const { GET } = await import("../therapist/notes/route");
     const res = await GET(req("/api/therapist/notes"));
-
     expect(res.status).toBe(200);
     expect(noteFindMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: {
-          patient: {
-            therapists: {
-              some: { therapistId: "tp1", isActive: true, status: "ACTIVE" },
-            },
-          },
-        },
+        where: expect.objectContaining({
+          visibility: "SHARED",
+          patient: { therapists: { some: { therapistId: "tp1", isActive: true, status: "ACTIVE" } } },
+        }),
       }),
     );
     expect((await res.json()).data[0]).toMatchObject({
       id: "n1",
-      patientId: "pp1",
       patientName: "Sam Lee",
       patientEmail: "sam@example.com",
+      title: "Panic loop",
     });
-  });
-
-  it("PATCH resolves a linked patient's note", async () => {
-    requireApprovedTherapist.mockResolvedValue(therapist);
-    noteFindFirst.mockResolvedValue({ id: "n1" });
-    noteUpdate.mockResolvedValue({ id: "n1", isResolved: true });
-
-    const { PATCH } = await import("../therapist/notes/[id]/route");
-    const res = await PATCH(patch({ isResolved: true }), ctx("n1"));
-
-    expect(res.status).toBe(200);
-    expect(noteFindFirst).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: {
-          id: "n1",
-          patient: {
-            therapists: {
-              some: { therapistId: "tp1", isActive: true, status: "ACTIVE" },
-            },
-          },
-        },
-      }),
-    );
-    expect(noteUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { id: "n1" },
-        data: { isResolved: true },
-      }),
-    );
-  });
-
-  it("PATCH returns 404 for a note outside the therapist's active patients", async () => {
-    requireApprovedTherapist.mockResolvedValue(therapist);
-    noteFindFirst.mockResolvedValue(null);
-
-    const { PATCH } = await import("../therapist/notes/[id]/route");
-    const res = await PATCH(patch({ isResolved: true }), ctx("n1"));
-
-    expect(res.status).toBe(404);
-    expect(noteUpdate).not.toHaveBeenCalled();
   });
 });

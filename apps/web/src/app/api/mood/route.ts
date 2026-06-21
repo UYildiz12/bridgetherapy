@@ -5,10 +5,13 @@ import { parseBody } from "@/lib/validation";
 import { json, withErrorHandling } from "@/lib/http";
 
 const CreateMood = z.object({
-  moodScore: z.number().int().min(1).max(10),
+  moodScore: z.number().min(1).max(10),
   notes: z.string().max(2000).optional(),
   tags: z.array(z.string().min(1).max(40)).max(20).optional(),
 });
+
+// Store at most one decimal place (e.g. 8.6) so the slider's fine values stay tidy.
+const round1 = (n: number) => Math.round(n * 10) / 10;
 
 export const GET = withErrorHandling(async (req: Request) => {
   const patient = await requirePatient(req);
@@ -31,7 +34,7 @@ export const POST = withErrorHandling(async (req: Request) => {
   const { moodScore, notes, tags } = parsed.data;
 
   const entry = await prisma.moodEntry.create({
-    data: { patientId: patient.patientId, moodScore, notes, tags: tags ?? [] },
+    data: { patientId: patient.patientId, moodScore: round1(moodScore), notes, tags: tags ?? [] },
   });
   return json({ data: entry }, 201);
 });

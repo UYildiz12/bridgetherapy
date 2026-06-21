@@ -157,14 +157,15 @@ function SignupForm() {
             type="password"
             autoComplete="new-password"
             placeholder="At least 6 characters"
+            minLength={6}
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
             required
           />
         </div>
 
-        {error && <p className="auth-error">{error}</p>}
-        {note && <p className="auth-note">{note}</p>}
+        {error && <p role="alert" className="auth-error">{error}</p>}
+        {note && <p role="status" className="auth-note">{note}</p>}
 
         <button className="cta-button auth-submit" type="submit" disabled={loading}>
           {loading ? "Creating…" : "Create account"}

@@ -110,7 +110,7 @@ function TextAreaField({
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
       <textarea
         id={id}
-        className={`${minHeight} w-full resize-y border-0 border-b border-border bg-transparent px-0 py-3 text-base leading-7 outline-none placeholder:text-muted-foreground focus-visible:border-emerald-300`}
+        className={`${minHeight} w-full resize-y border-0 border-b border-border bg-transparent px-0 py-3 text-base leading-7 outline-none placeholder:text-muted-foreground focus-visible:border-foreground/50`}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
@@ -134,14 +134,14 @@ function BlueprintVisual({
       aria-label="Therapy match blueprint"
       className="relative overflow-hidden border border-border bg-[linear-gradient(rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.045)_1px,transparent_1px)] bg-[size:24px_24px] p-5"
     >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(16,185,129,0.16),transparent_30%),radial-gradient(circle_at_90%_80%,rgba(245,158,11,0.12),transparent_32%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.07),transparent_30%),radial-gradient(circle_at_90%_80%,rgba(255,255,255,0.045),transparent_32%)]" />
       <div className="relative grid gap-5">
         <div className="flex items-center justify-between gap-4 border-b border-border pb-4">
           <div>
             <p className="text-xs text-muted-foreground">Matching blueprint</p>
             <p className="mt-1 text-lg font-semibold tracking-tight">{STEPS[step].short}</p>
           </div>
-          <div className="flex size-12 items-center justify-center border border-emerald-300/50 text-emerald-200">
+          <div className="flex size-12 items-center justify-center border border-foreground/40 text-foreground">
             <Route className="size-5" aria-hidden="true" />
           </div>
         </div>
@@ -150,7 +150,7 @@ function BlueprintVisual({
             <p className="text-xs text-muted-foreground">You</p>
             <p className="mt-4 text-sm leading-6">{previewList(concerns, concernLabel)}</p>
           </div>
-          <div className="h-px w-10 bg-emerald-300/70" />
+          <div className="h-px w-10 bg-foreground/40" />
           <div className="min-h-28 border border-border/80 bg-background/45 p-4">
             <p className="text-xs text-muted-foreground">Therapist fit</p>
             <p className="mt-4 text-sm leading-6">{previewList(availability, availabilityLabel)}</p>
@@ -160,7 +160,7 @@ function BlueprintVisual({
           {STEPS.map((item, index) => (
             <div
               key={item.short}
-              className={`h-1.5 ${index <= step ? "bg-emerald-300" : "bg-foreground/10"}`}
+              className={`h-1.5 ${index <= step ? "bg-foreground" : "bg-foreground/10"}`}
             />
           ))}
         </div>
@@ -272,7 +272,7 @@ export default function IntakePage() {
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground">{STEPS[step].intro}</p>
             <div className="mt-8 h-1.5 w-full max-w-2xl bg-foreground/10" aria-hidden="true">
-              <div className="h-full bg-emerald-300 transition-all" style={{ width: `${progress}%` }} />
+              <div className="h-full bg-primary transition-all" style={{ width: `${progress}%` }} />
             </div>
           </div>
           <BlueprintVisual step={step} concerns={concerns} availability={availability} />
@@ -289,7 +289,7 @@ export default function IntakePage() {
                   onClick={() => setStep(index)}
                   className={`w-full border-l py-2 pl-4 text-left text-sm transition-colors ${
                     index === step
-                      ? "border-emerald-300 text-foreground"
+                      ? "border-foreground text-foreground"
                       : "border-border text-muted-foreground hover:border-foreground/60 hover:text-foreground"
                   }`}
                 >
@@ -309,7 +309,7 @@ export default function IntakePage() {
                 </p>
                 <ChipSelect options={CONCERNS} selected={concerns} onToggle={toggleConcern} />
                 {concerns.length === 0 && (
-                  <p className="text-sm text-amber-200">Pick at least one focus area to continue.</p>
+                  <p className="text-sm text-muted-foreground">Pick at least one focus area to continue.</p>
                 )}
               </div>
             )}
@@ -554,7 +554,7 @@ export default function IntakePage() {
             {isLastStep ? (
               <Button type="button" className="gap-2 sm:w-auto" onClick={save} disabled={saving || concerns.length === 0}>
                 <Check className="size-4" aria-hidden="true" />
-                {saving ? "Saving..." : "Find matching therapists"}
+                {saving ? "Saving…" : "Find matching therapists"}
               </Button>
             ) : (
               <Button type="button" className="gap-2 sm:w-auto" onClick={continueFlow} disabled={!canContinue || saving}>
@@ -574,7 +574,7 @@ export default function IntakePage() {
             ["Match-ready", "Therapists are ranked by focus fit, related concerns, and schedule overlap."],
           ].map(([title, body]) => (
             <div key={title} className="border-l border-border pl-4">
-              <HeartPulse className="mb-3 size-4 text-emerald-300" aria-hidden="true" />
+              <HeartPulse className="mb-3 size-4 text-foreground" aria-hidden="true" />
               <p className="text-sm font-medium">{title}</p>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">{body}</p>
             </div>

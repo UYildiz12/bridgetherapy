@@ -51,6 +51,22 @@ export function AppShell({
     name ? name.split(/\s+/).map((w) => w[0]).slice(0, 2).join("") : email?.[0] ?? "?"
   ).toUpperCase();
   const links = NAV[role === "THERAPIST" ? "THERAPIST" : "PATIENT"];
+  const renderLinks = () =>
+    links.map((l) => {
+      const active = l.href === "/dashboard" ? pathname === l.href : pathname.startsWith(l.href);
+      return (
+        <Link
+          key={l.href}
+          href={l.href}
+          aria-current={active ? "page" : undefined}
+          className={`shrink-0 whitespace-nowrap rounded-md px-3 py-1.5 text-sm transition-colors ${
+            active ? "bg-accent text-foreground" : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          {l.label}
+        </Link>
+      );
+    });
 
   return (
     <div className="app-shell dark min-h-screen bg-background text-foreground">
@@ -60,23 +76,7 @@ export function AppShell({
             <Link href="/dashboard" className="font-semibold tracking-tight">
               exhale
             </Link>
-            <nav className="hidden items-center gap-1 sm:flex">
-              {links.map((l) => {
-                const active =
-                  l.href === "/dashboard" ? pathname === l.href : pathname.startsWith(l.href);
-                return (
-                  <Link
-                    key={l.href}
-                    href={l.href}
-                    className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
-                      active ? "bg-accent text-foreground" : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {l.label}
-                  </Link>
-                );
-              })}
-            </nav>
+            <nav className="hidden items-center gap-1 sm:flex">{renderLinks()}</nav>
           </div>
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-2.5">
@@ -90,6 +90,13 @@ export function AppShell({
             <SignOutButton />
           </div>
         </div>
+        <nav
+          aria-label="Primary"
+          className="flex gap-1 overflow-x-auto px-4 pb-2 sm:hidden [&::-webkit-scrollbar]:hidden"
+          style={{ scrollbarWidth: "none" }}
+        >
+          {renderLinks()}
+        </nav>
       </header>
       <main key={pathname} className="app-rise mx-auto max-w-5xl px-6 py-8">
         {children}

@@ -1,5 +1,7 @@
+"use client";
 // TEMPORARY visual-audit page (public, no auth) so the dark app UI can be seen
 // without logging in. Delete after the design pass.
+import { useState } from "react";
 import Link from "next/link";
 import { ClipboardList } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { StatusBadge } from "@/components/homework/status-badge";
 import { EmptyState } from "@/components/app/empty-state";
 import { PageHeader } from "@/components/app/page-header";
+import { MoodSlider } from "@/components/mood/mood-slider";
 
 const LINKS = [
   { title: "Mood check-in", desc: "Log how you feel and watch the trend build over time." },
@@ -17,6 +20,7 @@ const LINKS = [
 ];
 
 export default function UiPreview() {
+  const [mood, setMood] = useState<number | null>(7.4);
   return (
     <div className="app-shell dark min-h-screen bg-background text-foreground">
       <header className="border-b border-border">
@@ -44,6 +48,11 @@ export default function UiPreview() {
             ))}
           </nav>
         </div>
+
+        <section className="grid gap-6">
+          <h2 className="text-xl">Mood slider</h2>
+          <MoodSlider value={mood} onChange={setMood} />
+        </section>
 
         <Card>
           <CardHeader>

@@ -208,7 +208,7 @@ model MoodEntry {
   id          String   @id @default(cuid())
   patientId   String
   patient     PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  moodScore   Int      // 1-10 scale
+  moodScore   Float    // 1-10 scale, supports tenths (e.g. 8.6)
   notes       String?
   tags        String[] // e.g., ["anxious", "tired", "hopeful"]
   createdAt   DateTime @default(now())
@@ -252,19 +252,44 @@ model JournalFollowUp {
 }
 
 // ==========================================
-// Patient Notes (questions for therapist)
+// Journal & Reflections (Lumen workspace)
 // ==========================================
 
 model PatientNote {
   id          String   @id @default(cuid())
   patientId   String
   patient     PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  title       String?
   content     String
-  isResolved  Boolean  @default(false)
+  visibility  NoteVisibility @default(PRIVATE)
+  sharedAt    DateTime?      // first time this entry was shared with the therapist
+  lumenMessages LumenMessage[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([patientId])
+}
+
+enum NoteVisibility {
+  PRIVATE
+  SHARED
+}
+
+// One turn in a patient's Lumen (AI) conversation about a journal entry.
+model LumenMessage {
+  id        String   @id @default(cuid())
+  noteId    String
+  note      PatientNote @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  role      LumenRole
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([noteId, createdAt])
+}
+
+enum LumenRole {
+  USER
+  LUMEN
 }
 
 // ==========================================

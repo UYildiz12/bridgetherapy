@@ -11,7 +11,7 @@ This repo is currently a Next.js App Router application with Route Handler APIs,
 | App shell | Authenticated patient and therapist navigation, user display, sign out, role-aware menus. |
 | Therapist approval | Admin script and approval gate; therapist-only APIs require `approvedAt`. |
 | Patient dashboard | Authenticated home dashboard with links into core patient flows. |
-| Mood tracking | Patient mood entry API, client helper, check-in UI, history list, chart display, validation tests. |
+| Mood tracking | Patient mood entry API, client helper, fractional check-in UI, history list, chart display, validation tests. |
 | Intake | Guided, step-by-step CBT-informed onboarding with focus areas, availability, current problems, recent situations, thoughts, emotions, body sensations, behaviors, screening-style frequency prompts, safety/support context, strengths, therapist preferences, and a blueprint-style matching visual. |
 | Therapist matching | Directory API, patient connection requests, therapist request review APIs, specialty/availability scoring with exact and related concern matches. |
 | Therapist profile | Therapist specialties, availability, bio, accepting-patients profile route and UI. |
@@ -20,7 +20,7 @@ This repo is currently a Next.js App Router application with Route Handler APIs,
 | Homework assignment | Therapist assigns sets only to active linked patients; patient can complete and submit assignments. |
 | Homework review | Therapist can review submitted assignments and inspect item responses. |
 | Media attachments | Patient media upload/download routes with owner checks for homework voice and drawing responses. |
-| Reflections / patient notes | Patients capture questions, CBT-style reflections, and session topics in one notes stream; approved therapists can review and resolve notes for active linked patients. |
+| Reflections / patient notes | Patients use one private reflections workspace with optional titles, therapist sharing, private Lumen conversation turns backed by Gemini/`AI_key`, and read-only therapist access to shared entries. |
 | Sessions | Therapist session list and detail screens with scheduling, linked patient access checks, note capture, and AI summary generation. |
 | Messaging | Patient-therapist conversation list and thread screens, active-link access checks, message sending, and explicit read-state updates. |
 | Wellness tools | Breathwork pattern switcher, grounding/meditation prompts, and crisis support screen with emergency/988 actions. |

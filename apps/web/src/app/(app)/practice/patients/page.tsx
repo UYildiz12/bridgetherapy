@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Users } from "lucide-react";
 import { EmptyState } from "@/components/app/empty-state";
+import { PageHeader } from "@/components/app/page-header";
 
 export default function PatientsPage() {
   const [patients, setPatients] = useState<LinkedPatient[] | null>(null);
@@ -41,12 +42,7 @@ export default function PatientsPage() {
 
   return (
     <div className="grid gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Patients</h1>
-        <p className="text-sm text-muted-foreground">
-          Invite a patient by the email they signed up with.
-        </p>
-      </div>
+      <PageHeader title="Patients" sub="Invite a patient by the email they signed up with." />
 
       <Card>
         <CardContent className="pt-6">
@@ -63,11 +59,11 @@ export default function PatientsPage() {
               />
             </div>
             <Button type="submit" disabled={adding || !email.trim()}>
-              {adding ? "Inviting..." : "Invite patient"}
+              {adding ? "Inviting…" : "Invite patient"}
             </Button>
           </form>
           {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
-          {notice && <p className="mt-3 text-sm text-emerald-400">{notice}</p>}
+          {notice && <p className="mt-3 text-sm text-foreground">{notice}</p>}
         </CardContent>
       </Card>
 

@@ -8,6 +8,7 @@ import { StatusBadge } from "@/components/homework/status-badge";
 import { EmptyState } from "@/components/app/empty-state";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageHeader } from "@/components/app/page-header";
 
 export default function HomeworkListPage() {
   const [items, setItems] = useState<PatientAssignment[] | null>(null);
@@ -21,12 +22,7 @@ export default function HomeworkListPage() {
 
   return (
     <div className="grid gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Homework</h1>
-        <p className="text-sm text-muted-foreground">
-          Sets your therapist assigned, and where you are on each.
-        </p>
-      </div>
+      <PageHeader title="Homework" sub="Sets your therapist assigned, and where you are on each." />
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 

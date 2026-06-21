@@ -1,71 +1,41 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 
-const { fetchTherapistNotes, updateTherapistNote } = vi.hoisted(() => ({
-  fetchTherapistNotes: vi.fn(),
-  updateTherapistNote: vi.fn(),
-}));
+const { fetchSharedEntries } = vi.hoisted(() => ({ fetchSharedEntries: vi.fn() }));
 
-vi.mock("@/lib/notes-client", () => ({ fetchTherapistNotes, updateTherapistNote }));
+vi.mock("@/lib/notes-client", () => ({ fetchSharedEntries }));
 
 import TherapistNotesPage from "../page";
 
-const NOTES = [
+const ENTRIES = [
   {
     id: "n1",
-    content: "I want to talk about the panic loop.",
-    isResolved: false,
-    createdAt: "2026-06-21T12:00:00Z",
+    patientId: "p1",
     patientName: "Sam Lee",
     patientEmail: "sam@example.com",
-  },
-  {
-    id: "n2",
-    content: "We covered the sleep plan.",
-    isResolved: true,
-    createdAt: "2026-06-20T12:00:00Z",
-    patientName: "Mira Chen",
-    patientEmail: "mira@example.com",
+    title: "Panic loop",
+    content: "I want to talk about the panic loop.",
+    sharedAt: "2026-06-21T12:00:00Z",
+    createdAt: "2026-06-21T12:00:00Z",
+    updatedAt: "2026-06-21T12:00:00Z",
   },
 ];
 
-describe("TherapistNotesPage", () => {
-  beforeEach(() => {
-    fetchTherapistNotes.mockReset().mockResolvedValue(NOTES);
-    updateTherapistNote.mockReset();
-  });
-
+describe("TherapistNotesPage (shared reflections)", () => {
+  beforeEach(() => fetchSharedEntries.mockReset().mockResolvedValue(ENTRIES));
   afterEach(cleanup);
 
-  it("shows open patient reflections first", async () => {
+  it("lists shared reflections read-only (no resolve action)", async () => {
     render(<TherapistNotesPage />);
-
-    await waitFor(() => screen.getByText(/panic loop/i));
-
+    await waitFor(() => screen.getByText("Panic loop"));
     expect(screen.getByText("Sam Lee")).toBeDefined();
-    expect(screen.queryByText("Mira Chen")).toBeNull();
+    expect(screen.queryByRole("button", { name: /resolve/i })).toBeNull();
   });
 
-  it("can switch to all reflections", async () => {
+  it("shows an empty state when nothing is shared", async () => {
+    fetchSharedEntries.mockResolvedValue([]);
     render(<TherapistNotesPage />);
-    await waitFor(() => screen.getByText(/panic loop/i));
-
-    fireEvent.click(screen.getByRole("tab", { name: /all/i }));
-
-    expect(screen.getByText("Sam Lee")).toBeDefined();
-    expect(screen.getByText("Mira Chen")).toBeDefined();
-  });
-
-  it("resolves an open note", async () => {
-    updateTherapistNote.mockResolvedValue({ id: "n1", isResolved: true });
-
-    render(<TherapistNotesPage />);
-    await waitFor(() => screen.getByText(/panic loop/i));
-
-    fireEvent.click(screen.getByRole("button", { name: /resolve/i }));
-
-    await waitFor(() => expect(updateTherapistNote).toHaveBeenCalledWith("n1", true));
-    await waitFor(() => screen.getByText(/no open reflections/i));
+    await waitFor(() => screen.getByText(/no shared reflections/i));
   });
 });

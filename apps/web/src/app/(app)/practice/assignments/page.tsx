@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Inbox } from "lucide-react";
 import { EmptyState } from "@/components/app/empty-state";
+import { PageHeader } from "@/components/app/page-header";
 
 export default function AssignmentsPage() {
   const [items, setItems] = useState<TherapistAssignment[] | null>(null);
@@ -20,10 +21,7 @@ export default function AssignmentsPage() {
 
   return (
     <div className="grid gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Assignments</h1>
-        <p className="text-sm text-muted-foreground">Track and review what you have assigned.</p>
-      </div>
+      <PageHeader title="Assignments" sub="Track and review what you have assigned." />
 
       {error && <p className="text-sm text-destructive">{error}</p>}
       {items === null && !error && <Skeleton className="h-24 w-full rounded-xl" />}
@@ -50,7 +48,7 @@ export default function AssignmentsPage() {
                       <span className="text-sm text-muted-foreground">{a.patient.name}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      {a.reviewedAt && <span className="text-xs text-emerald-400">Reviewed</span>}
+                      {a.reviewedAt && <span className="text-xs text-foreground">Reviewed</span>}
                       <StatusBadge status={a.status} />
                     </div>
                   </div>

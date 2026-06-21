@@ -3,7 +3,7 @@ import type { AssignmentStatus } from "@/lib/homework/client";
 const STYLES: Record<AssignmentStatus, string> = {
   PENDING: "border-border text-muted-foreground",
   IN_PROGRESS: "border-primary/40 text-primary",
-  COMPLETED: "border-emerald-500/40 text-emerald-400",
+  COMPLETED: "border-foreground/40 text-foreground",
   OVERDUE: "border-destructive/40 text-destructive",
 };
 

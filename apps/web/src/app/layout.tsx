@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Instrument_Sans, Instrument_Serif } from "next/font/google";
 import "./globals.css";
-import "./landing.css"; // We will create this
+import "./landing.css";
 import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
 import { IosInstallHint } from "@/components/pwa/ios-install-hint";
 

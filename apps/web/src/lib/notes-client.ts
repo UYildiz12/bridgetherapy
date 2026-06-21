@@ -1,15 +1,38 @@
-export interface PatientNote {
+export type NoteVisibility = "PRIVATE" | "SHARED";
+
+/** A patient's own journal entry (their workspace). */
+export interface JournalEntry {
   id: string;
+  title: string | null;
   content: string;
-  isResolved: boolean;
+  visibility: NoteVisibility;
+  sharedAt: string | null;
+  lumenCount: number;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface TherapistNote extends PatientNote {
+/** A shared entry as seen by the therapist (read-only). */
+export interface SharedEntry {
+  id: string;
   patientId: string;
   patientName: string;
   patientEmail: string;
+  title: string | null;
+  content: string;
+  sharedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type LumenRole = "USER" | "LUMEN";
+
+export interface LumenMessage {
+  id: string;
+  noteId: string;
+  role: LumenRole;
+  content: string;
+  createdAt: string;
 }
 
 async function getJson<T>(url: string): Promise<T> {
@@ -18,11 +41,15 @@ async function getJson<T>(url: string): Promise<T> {
   return (await res.json()).data as T;
 }
 
-async function send<T>(url: string, method: "POST" | "PATCH", body: unknown): Promise<T> {
+async function send<T>(
+  url: string,
+  method: "POST" | "PATCH" | "DELETE",
+  body?: unknown,
+): Promise<T> {
   const res = await fetch(url, {
     method,
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(body),
+    headers: body === undefined ? undefined : { "content-type": "application/json" },
+    body: body === undefined ? undefined : JSON.stringify(body),
   });
   if (!res.ok) {
     let message = `${method} ${url} failed: ${res.status}`;
@@ -37,9 +64,21 @@ async function send<T>(url: string, method: "POST" | "PATCH", body: unknown): Pr
   return (await res.json()).data as T;
 }
 
-export const fetchPatientNotes = () => getJson<PatientNote[]>("/api/notes");
-export const createPatientNote = (content: string) =>
-  send<PatientNote>("/api/notes", "POST", { content });
-export const fetchTherapistNotes = () => getJson<TherapistNote[]>("/api/therapist/notes");
-export const updateTherapistNote = (id: string, isResolved: boolean) =>
-  send<TherapistNote>(`/api/therapist/notes/${id}`, "PATCH", { isResolved });
+// Patient workspace
+export const fetchEntries = () => getJson<JournalEntry[]>("/api/notes");
+export const createEntry = (input: { title?: string; content: string }) =>
+  send<JournalEntry>("/api/notes", "POST", input);
+export const updateEntry = (
+  id: string,
+  patch: { title?: string | null; content?: string; visibility?: NoteVisibility },
+) => send<JournalEntry>(`/api/notes/${id}`, "PATCH", patch);
+export const deleteEntry = (id: string) => send<{ id: string }>(`/api/notes/${id}`, "DELETE");
+
+// Lumen conversation for one entry
+export const fetchLumen = (id: string) =>
+  getJson<{ configured: boolean; messages: LumenMessage[] }>(`/api/notes/${id}/lumen`);
+export const sendLumen = (id: string, message: string) =>
+  send<{ user: LumenMessage; lumen: LumenMessage }>(`/api/notes/${id}/lumen`, "POST", { message });
+
+// Therapist (read-only shared entries)
+export const fetchSharedEntries = () => getJson<SharedEntry[]>("/api/therapist/notes");

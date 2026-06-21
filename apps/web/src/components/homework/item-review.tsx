@@ -22,7 +22,7 @@ export function ItemReview({ item, response }: { item: HomeworkItem; response?: 
           <span
             className={`flex size-6 shrink-0 items-center justify-center rounded-full border ${
               complete
-                ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-400"
+                ? "border-foreground bg-foreground text-background"
                 : "border-border text-muted-foreground"
             }`}
           >
@@ -76,7 +76,7 @@ function QuizAnswer({
   return (
     <div className="grid gap-1">
       <p className="text-foreground/90">Answered: {item.choices[choiceIndex]}</p>
-      <p className={correct ? "text-emerald-400" : "text-destructive"}>
+      <p className={correct ? "text-foreground" : "text-destructive"}>
         {correct ? "Correct" : `Correct answer: ${item.choices[item.answerIndex]}`}
       </p>
     </div>

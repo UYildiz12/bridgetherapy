@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/app/empty-state";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { PageHeader } from "@/components/app/page-header";
 
 function initials(name: string) {
   return name.split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
@@ -65,18 +66,18 @@ export default function FindPage() {
 
   return (
     <div className="grid gap-6">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold">Find your therapist</h1>
-          <p className="text-sm text-muted-foreground">Matched to your intake. Send a request to connect.</p>
-        </div>
-        <Button asChild variant="outline" size="sm">
-          <Link href="/intake">Edit intake</Link>
-        </Button>
-      </div>
+      <PageHeader
+        title="Find your therapist"
+        sub="Matched to your intake. Send a request to connect."
+        action={
+          <Button asChild variant="outline" size="sm">
+            <Link href="/intake">Edit intake</Link>
+          </Button>
+        }
+      />
 
       {conn?.status === "active" && (
-        <Card className="border-emerald-500/30">
+        <Card className="border-foreground/30">
           <CardContent className="pt-6 text-sm">
             You are connected with <span className="font-medium">{conn.therapistName}</span>.
           </CardContent>
@@ -138,7 +139,7 @@ export default function FindPage() {
                 )}
                 <div>
                   {t.connection === "active" ? (
-                    <span className="text-sm text-emerald-400">Connected</span>
+                    <span className="text-sm text-foreground">Connected</span>
                   ) : t.connection === "pending" ? (
                     <span className="text-sm text-muted-foreground">Request pending</span>
                   ) : (

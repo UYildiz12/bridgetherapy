@@ -13,7 +13,8 @@ export default function ReviewPage() {
   const { id } = useParams<{ id: string }>();
   const [detail, setDetail] = useState<ReviewDetail | null>(null);
   const [feedback, setFeedback] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(null);
 
@@ -23,10 +24,10 @@ export default function ReviewPage() {
         setDetail(d);
         setFeedback(d.response.feedback ?? "");
       })
-      .catch(() => setError("Couldn't load this submission."));
+      .catch(() => setLoadError("Couldn't load this submission."));
   }, [id]);
 
-  if (error) return <p className="text-sm text-destructive">{error}</p>;
+  if (loadError) return <p className="text-sm text-destructive">{loadError}</p>;
   if (!detail) {
     return (
       <div className="grid gap-4">
@@ -41,7 +42,7 @@ export default function ReviewPage() {
 
   async function save() {
     setSaving(true);
-    setError(null);
+    setSaveError(null);
     try {
       const res = await reviewAssignment(id, feedback);
       setSavedAt(new Date().toLocaleTimeString());
@@ -55,7 +56,7 @@ export default function ReviewPage() {
           : d,
       );
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Couldn't save feedback.");
+      setSaveError(e instanceof Error ? e.message : "Couldn't save feedback.");
     } finally {
       setSaving(false);
     }
@@ -94,7 +95,7 @@ export default function ReviewPage() {
           onChange={(e) => setFeedback(e.target.value)}
           placeholder="Share encouragement or next steps…"
         />
-        {error && <p className="text-sm text-destructive">{error}</p>}
+        {saveError && <p role="alert" className="text-sm text-destructive">{saveError}</p>}
         <div className="flex items-center gap-3">
           <Button onClick={save} disabled={saving}>
             {saving ? "Saving…" : response.reviewedAt ? "Update feedback" : "Send feedback"}

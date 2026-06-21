@@ -290,10 +290,6 @@ function PhoneScreen({ role, step }: { role: Role; step: number }) {
 }
 
 export default function Home() {
-  const [isLight, setIsLight] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return window.localStorage.getItem("exhale-theme") === "light";
-  });
   const [role, setRole] = useState<Role>("patient");
   const heroVisualRef = useRef<HTMLDivElement>(null);
 
@@ -330,12 +326,6 @@ export default function Home() {
 
   const toggleRitual = (index: number) => {
     setRituals((prev) => prev.map((r, i) => (i === index ? { ...r, done: !r.done } : r)));
-  };
-
-  const toggleTheme = () => {
-    const newTheme = !isLight;
-    setIsLight(newTheme);
-    window.localStorage.setItem("exhale-theme", newTheme ? "light" : "dark");
   };
 
   // Scroll reveal: re-observe when role changes so new copy animates in.
@@ -376,7 +366,7 @@ export default function Home() {
   }, [role]);
 
   return (
-    <div className="landing-page" data-theme={isLight ? "light" : "dark"}>
+    <div className="landing-page" data-theme="dark">
       <BlueprintSvg />
       <BlueprintSecondarySvg />
 
@@ -385,7 +375,7 @@ export default function Home() {
           <div className="logo">
             <span className="logo-badge"></span>
             exhale
-            <span className="ml-3 text-[10px] tracking-widest text-muted-foreground uppercase border border-white/10 px-2 py-0.5 rounded-full">
+            <span className="ml-3 text-[10px] tracking-widest text-white/70 uppercase border border-white/10 px-2 py-0.5 rounded-full">
               {t.badge}
             </span>
           </div>
@@ -404,11 +394,8 @@ export default function Home() {
                 Therapist
               </button>
             </div>
-            <button className="theme-toggle" type="button" aria-pressed={isLight} onClick={toggleTheme}>
-              {isLight ? "Dark" : "Light"}
-            </button>
             <Link href="/login" className="nav-login no-underline">
-              Log in
+              Sign in / Register
             </Link>
           </div>
         </nav>
@@ -423,9 +410,6 @@ export default function Home() {
               <Link href={signupHref} className="cta-button no-underline flex items-center">
                 Get Started
               </Link>
-              <a href="#how" className="ghost-button no-underline flex items-center">
-                See how it works
-              </a>
             </div>
           </div>
           <div className="hero-visual" ref={heroVisualRef}>
