@@ -96,15 +96,17 @@ function SignupForm() {
               Therapist
             </button>
           </div>
+          <div
+            className={`auth-warning-slot${form.role === "THERAPIST" ? " is-open" : ""}`}
+            aria-hidden={form.role !== "THERAPIST"}
+          >
+            <p className="auth-warning">
+              Therapist accounts go through a verification check by our team. You can sign
+              in right away, but access to patient features is unlocked only after we approve
+              your account.
+            </p>
+          </div>
         </div>
-
-        {form.role === "THERAPIST" && (
-          <p className="auth-warning">
-            Therapist accounts go through a verification check by our team. You can sign
-            in right away, but access to patient features is unlocked only after we approve
-            your account.
-          </p>
-        )}
 
         <div className="auth-row">
           <div className="auth-field">

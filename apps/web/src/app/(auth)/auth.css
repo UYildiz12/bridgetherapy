@@ -226,6 +226,8 @@
 
 /* Therapist verification callout — noticeable but not an error. */
 .auth-warning {
+  overflow: hidden;
+  min-height: 0;
   font-size: 13px;
   line-height: 1.45;
   color: var(--ink);
@@ -233,6 +235,29 @@
   border: 1px solid rgba(214, 158, 46, 0.35);
   border-radius: 10px;
   padding: 11px 13px;
+}
+
+/* Collapsible wrapper: fades/slides the callout in and out when the role
+   toggles. The 0fr -> 1fr grid trick animates to the content's natural height
+   without a hard-coded max-height. */
+.auth-warning-slot {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: grid-template-rows 0.28s ease, opacity 0.24s ease, transform 0.28s ease;
+}
+
+.auth-warning-slot.is-open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-warning-slot {
+    transition: none;
+  }
 }
 
 @media (max-width: 480px) {
