@@ -24,6 +24,7 @@ export const POST = withErrorHandling(async (req: Request, ctx: Ctx) => {
     select: {
       id: true,
       notes: {
+        where: { therapistId },
         orderBy: { createdAt: "asc" },
         select: { content: true },
       },

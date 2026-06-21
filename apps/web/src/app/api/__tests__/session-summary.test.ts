@@ -61,6 +61,11 @@ describe("/api/therapist/sessions/[id]/summary POST", () => {
             },
           },
         }),
+        select: expect.objectContaining({
+          notes: expect.objectContaining({
+            where: { therapistId: "tp1" },
+          }),
+        }),
       }),
     );
   });
