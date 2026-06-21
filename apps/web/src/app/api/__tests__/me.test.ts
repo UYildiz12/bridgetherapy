@@ -1,16 +1,25 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 const getAuthUser = vi.fn();
 const findUnique = vi.fn();
 vi.mock("@/lib/auth", () => ({ getAuthUser }));
 vi.mock("@exhale/db", () => ({ prisma: { user: { findUnique } } }));
 
+async function loadRoute() {
+  return (await import("../me/route")).GET;
+}
+
 describe("GET /api/me", () => {
-  beforeEach(() => { getAuthUser.mockReset(); findUnique.mockReset(); });
+  beforeEach(() => {
+    vi.resetModules();
+    getAuthUser.mockReset();
+    findUnique.mockReset();
+  });
+  afterEach(() => vi.restoreAllMocks());
 
   it("401 when unauthenticated", async () => {
     getAuthUser.mockResolvedValue(null);
-    const { GET } = await import("../me/route");
+    const GET = await loadRoute();
     const res = await GET(new Request("http://t/api/me"));
     expect(res.status).toBe(401);
   });
@@ -18,7 +27,7 @@ describe("GET /api/me", () => {
   it("404 when authenticated but not provisioned", async () => {
     getAuthUser.mockResolvedValue({ authId: "uid-1", email: "a@b.co" });
     findUnique.mockResolvedValue(null);
-    const { GET } = await import("../me/route");
+    const GET = await loadRoute();
     const res = await GET(new Request("http://t/api/me"));
     expect(res.status).toBe(404);
   });
@@ -26,7 +35,7 @@ describe("GET /api/me", () => {
   it("200 with the user when provisioned", async () => {
     getAuthUser.mockResolvedValue({ authId: "uid-1", email: "a@b.co" });
     findUnique.mockResolvedValue({ id: "uid-1", email: "a@b.co", role: "PATIENT" });
-    const { GET } = await import("../me/route");
+    const GET = await loadRoute();
     const res = await GET(new Request("http://t/api/me"));
     expect(res.status).toBe(200);
     const body = await res.json();
@@ -36,5 +45,15 @@ describe("GET /api/me", () => {
     expect(callArg.select).toBeDefined();
     expect(callArg.select.passwordHash).toBeFalsy();
     expect(callArg.select.id).toBe(true);
+  });
+
+  it("500 when the database errors unexpectedly", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    getAuthUser.mockResolvedValue({ authId: "uid-1", email: "a@b.co" });
+    findUnique.mockRejectedValue(new Error("connection reset"));
+    const GET = await loadRoute();
+    const res = await GET(new Request("http://t/api/me"));
+    expect(res.status).toBe(500);
+    expect(await res.json()).toEqual({ error: "Internal server error" });
   });
 });
