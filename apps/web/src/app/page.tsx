@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
+import { Check } from "lucide-react";
 import { BlueprintSvg } from "@/components/landing/blueprint-svg";
 import { BlueprintSecondarySvg } from "@/components/landing/blueprint-secondary-svg";
 
@@ -43,8 +44,8 @@ const content = {
       { title: "Stay connected", desc: "Share what matters with your therapist between sessions, securely." },
     ] as ValueProp[],
     howItWorks: [
-      { title: "Match", desc: "Answer a few questions and meet a therapist who fits your needs." },
-      { title: "Engage", desc: "Start a simple daily plan: check in, log your mood, and journal." },
+      { title: "Match", desc: "Tell us what you're looking for and choose from therapists matched to you." },
+      { title: "Engage", desc: "Work a personalized plan: daily check-ins, journaling, and CBT homework." },
       { title: "Grow", desc: "Watch your trends and mark progress alongside your therapist." },
     ],
     cta: {
@@ -89,53 +90,120 @@ const content = {
 // Blueprint vignettes shown on the phone, one per step, swapped as the active step changes.
 const phoneScreens: Record<Role, React.ReactNode[]> = {
   patient: [
+    // Match: tell us what you want -> several matched therapists
     <>
-      <div className="ps-head">Your match</div>
-      <div className="ps-match">
-        <span className="ps-avatar" />
-        <div>
-          <div className="ps-name">Dr. Amara Okafor</div>
-          <div className="ps-role">Licensed therapist</div>
-        </div>
+      <div className="ps-head">Find your therapist</div>
+      <div className="ps-prefs">
+        <span className="on">Anxiety</span>
+        <span className="on">CBT</span>
+        <span>Evenings</span>
+        <span>Spanish</span>
       </div>
-      <div className="ps-tags">
-        <span>Anxiety</span>
-        <span>CBT</span>
-        <span>Sleep</span>
-      </div>
-      <span className="ps-chip">Matched</span>
-    </>,
-    <>
-      <div className="ps-head">Today's check-in</div>
-      <div className="ps-scale">
-        {Array.from({ length: 10 }).map((_, n) => (
-          <span key={n} className={n === 6 ? "on" : ""} />
-        ))}
-      </div>
-      <div className="ps-sub">Mood logged · 7 / 10</div>
-      <ul className="ps-rows">
-        <li><span className="ps-dot on" />Morning check-in</li>
-        <li><span className="ps-dot" />Evening journal</li>
+      <div className="ps-sub">3 therapists fit what you&apos;re looking for</div>
+      <ul className="ps-matches">
+        <li>
+          <span className="ps-avatar sm" />
+          <div className="ps-mt">
+            <div className="ps-name">Dr. Amara Okafor</div>
+            <div className="ps-role">CBT · Anxiety</div>
+          </div>
+          <span className="ps-pct">96%</span>
+        </li>
+        <li>
+          <span className="ps-avatar sm" />
+          <div className="ps-mt">
+            <div className="ps-name">Daniel Reyes</div>
+            <div className="ps-role">CBT · Sleep</div>
+          </div>
+          <span className="ps-pct">92%</span>
+        </li>
+        <li>
+          <span className="ps-avatar sm" />
+          <div className="ps-mt">
+            <div className="ps-name">Priya Nair</div>
+            <div className="ps-role">ACT · Stress</div>
+          </div>
+          <span className="ps-pct">88%</span>
+        </li>
       </ul>
     </>,
+    // Engage: personalized CBT plan with real check-states + actions
     <>
-      <div className="ps-head">7-day trend</div>
+      <div className="ps-head">Your plan today</div>
+      <div className="ps-mood">
+        <span className="ps-mood-label">Mood</span>
+        <strong>
+          7<small>/10</small>
+        </strong>
+        <span className="ps-tag">Logged</span>
+      </div>
+      <ul className="ps-tasks">
+        <li className="done">
+          <span className="ps-box">
+            <Check size={11} strokeWidth={3} />
+          </span>
+          Thought record
+        </li>
+        <li className="done">
+          <span className="ps-box">
+            <Check size={11} strokeWidth={3} />
+          </span>
+          4-7-8 breathing
+        </li>
+        <li>
+          <span className="ps-box" />
+          Behavioral activation: a short walk
+        </li>
+      </ul>
+      <div className="ps-actions">
+        <span className="ps-btn">Modify plan</span>
+        <span className="ps-btn primary">Add entry</span>
+      </div>
+    </>,
+    // Grow: trend + real stats
+    <>
+      <div className="ps-head">Your progress</div>
       <div className="ps-bars">
         {[4, 6, 5, 7, 6, 8, 7].map((h, n) => (
           <span key={n} style={{ height: `${h * 11}px` }} />
         ))}
       </div>
-      <div className="ps-sub">Trending up this week</div>
+      <div className="ps-stats">
+        <div>
+          <strong>+18%</strong>
+          <span>mood · 30d</span>
+        </div>
+        <div>
+          <strong>12</strong>
+          <span>day streak</span>
+        </div>
+      </div>
     </>,
   ],
   therapist: [
     <>
       <div className="ps-head">Your clients</div>
-      <ul className="ps-rows">
-        <li><span className="ps-dot on" />Jada P.</li>
-        <li><span className="ps-dot on" />Marcus T.</li>
-        <li><span className="ps-dot" />New intake</li>
+      <ul className="ps-tasks">
+        <li className="done">
+          <span className="ps-box">
+            <Check size={11} strokeWidth={3} />
+          </span>
+          Jada P.<span className="ps-meta">Active</span>
+        </li>
+        <li className="done">
+          <span className="ps-box">
+            <Check size={11} strokeWidth={3} />
+          </span>
+          Marcus T.<span className="ps-meta">Active</span>
+        </li>
+        <li>
+          <span className="ps-box" />
+          New intake<span className="ps-meta">Pending</span>
+        </li>
       </ul>
+      <div className="ps-actions">
+        <span className="ps-btn primary">Add client</span>
+      </div>
     </>,
     <>
       <div className="ps-head">This week</div>
@@ -145,15 +213,28 @@ const phoneScreens: Record<Role, React.ReactNode[]> = {
         <span className="filled">Tue 09:00</span>
         <span>Wed 11:00</span>
       </div>
-      <div className="ps-sub">Auto-scheduled with breaks</div>
+      <div className="ps-sub">Auto-scheduled with breaks between sessions</div>
     </>,
     <>
       <div className="ps-head">Session summary</div>
-      <div className="ps-note">Drafted notes ready to review. Two follow-ups suggested for next week.</div>
-      <ul className="ps-rows">
-        <li><span className="ps-dot on" />SOAP note</li>
-        <li><span className="ps-dot on" />Next steps</li>
+      <div className="ps-note">Drafted notes ready to review. Two CBT assignments suggested.</div>
+      <ul className="ps-tasks">
+        <li className="done">
+          <span className="ps-box">
+            <Check size={11} strokeWidth={3} />
+          </span>
+          SOAP note
+        </li>
+        <li className="done">
+          <span className="ps-box">
+            <Check size={11} strokeWidth={3} />
+          </span>
+          Assign homework
+        </li>
       </ul>
+      <div className="ps-actions">
+        <span className="ps-btn">Review</span>
+      </div>
     </>,
   ],
 };
@@ -344,11 +425,18 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="features" className="section reveal">
+        <section id="features" className="section reveal value-section">
           <h2 className="section-title">{t.valuesTitle}</h2>
+          <svg className="draw-line" viewBox="0 0 260 8" fill="none" aria-hidden="true">
+            <path d="M1 5 H 259" pathLength={1} />
+          </svg>
           <div className="value-list" key={role}>
             {t.values.map((v, i) => (
-              <div className="value-row" key={`${role}-${i}`}>
+              <div
+                className="value-row"
+                key={`${role}-${i}`}
+                style={{ "--i": i } as React.CSSProperties}
+              >
                 <h3>{v.title}</h3>
                 <p>{v.desc}</p>
               </div>
