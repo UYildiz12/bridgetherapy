@@ -13,7 +13,7 @@ export default async function AuthLayout({
   // Already signed in? Skip auth entirely.
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase.auth.getUser();
-  if (data.user) redirect("/app");
+  if (data.user) redirect("/dashboard");
 
   return (
     <div className="landing-page" data-theme="dark">

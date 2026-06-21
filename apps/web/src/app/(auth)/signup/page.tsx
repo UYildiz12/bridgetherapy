@@ -51,7 +51,7 @@ function SignupForm() {
         role: form.role,
       });
       router.refresh(); // ensure server components see the new session before navigating
-      router.push("/app");
+      router.push("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Provisioning failed");
     } finally {

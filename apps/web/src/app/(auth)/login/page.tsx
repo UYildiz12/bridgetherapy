@@ -23,7 +23,7 @@ export default function LoginPage() {
       return;
     }
     router.refresh(); // ensure server components see the new session before navigating
-    router.push("/app");
+    router.push("/dashboard");
   }
 
   return (
