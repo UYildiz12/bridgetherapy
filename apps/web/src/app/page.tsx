@@ -95,35 +95,38 @@ const phoneScreens: Record<Role, React.ReactNode[]> = {
       <div className="ps-head">Find your CBT therapist</div>
       <div className="ps-prefs">
         <span className="on">CBT</span>
-        <span className="on">Anxiety</span>
-        <span className="on">Evenings</span>
+        <span>Anxiety</span>
         <span>Sleep</span>
+        <span>Evening sessions</span>
       </div>
-      <div className="ps-sub">3 CBT therapists fit your needs</div>
+      <div className="ps-sub ps-why-head">
+        <Sparkles size={11} strokeWidth={2} />
+        Why Lumen matched these three
+      </div>
       <ul className="ps-matches">
         <li>
           <span className="ps-avatar sm" />
           <div className="ps-mt">
             <div className="ps-name">Dr. Amara Okafor</div>
             <div className="ps-role">CBT · Anxiety</div>
+            <div className="ps-why">Anxiety focus, offers evening sessions</div>
           </div>
-          <span className="ps-pct">96%</span>
         </li>
         <li>
           <span className="ps-avatar sm" />
           <div className="ps-mt">
             <div className="ps-name">Daniel Reyes</div>
             <div className="ps-role">CBT-I · Sleep</div>
+            <div className="ps-why">CBT-I matched to your sleep goal</div>
           </div>
-          <span className="ps-pct">92%</span>
         </li>
         <li>
           <span className="ps-avatar sm" />
           <div className="ps-mt">
             <div className="ps-name">Priya Nair</div>
             <div className="ps-role">CBT · Stress</div>
+            <div className="ps-why">Stress and burnout, flexible weekly slots</div>
           </div>
-          <span className="ps-pct">88%</span>
         </li>
       </ul>
     </>,
@@ -163,6 +166,17 @@ const phoneScreens: Record<Role, React.ReactNode[]> = {
     // Grow: progress + the Lumen AI companion nudge
     <>
       <div className="ps-head">Your progress</div>
+      <div className="ps-stats">
+        <div>
+          <strong className="ps-trend">+18%</strong>
+          <span>calmer this week</span>
+        </div>
+        <div>
+          <strong>7</strong>
+          <span>day streak</span>
+        </div>
+      </div>
+      <div className="ps-sub">Mood · last 7 days</div>
       <div className="ps-bars sm">
         {[4, 6, 5, 7, 6, 8, 7].map((h, n) => (
           <span key={n} style={{ height: `${h * 8}px` }} />

@@ -69,3 +69,7 @@ credentials/
 
 # Agent workflows
 .agent/
+.vercel
+
+# Local editor / preview config
+.claude/

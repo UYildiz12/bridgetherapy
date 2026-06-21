@@ -1704,6 +1704,21 @@
     color: var(--accent);
 }
 
+/* Lumen's match reasoning: an accent header + a short per-therapist "why" line. */
+.landing-page .ps-why-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--accent);
+}
+
+.landing-page .ps-why {
+    margin-top: 3px;
+    font-size: 10.5px;
+    line-height: 1.35;
+    color: var(--muted);
+}
+
 .landing-page .ps-mood {
     display: flex;
     align-items: center;
@@ -1823,6 +1838,11 @@
 .landing-page .ps-stats span {
     font-size: 11px;
     color: var(--muted);
+}
+
+/* The trend figure (week-over-week) reads in the brand accent to signal direction. */
+.landing-page .ps-stats .ps-trend {
+    color: var(--accent);
 }
 
 /* --- Value section: blueprint draw-on + staggered "writing" reveal --- */
