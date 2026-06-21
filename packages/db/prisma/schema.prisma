@@ -34,6 +34,7 @@ model User {
   // Audit logs for therapist access
   auditLogs AuditLog[]
   sentMessages Message[]
+  pushTokens PushToken[]
 
   @@index([email])
 }
@@ -356,6 +357,7 @@ enum MediaType {
 model PushToken {
   id          String   @id @default(cuid())
   userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   token       String   @unique
   platform    String   // "ios", "android"
   createdAt   DateTime @default(now())

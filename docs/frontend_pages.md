@@ -26,6 +26,7 @@ This repo is currently a Next.js App Router application with Route Handler APIs,
 | Wellness tools | Breathwork pattern switcher, grounding/meditation prompts, and crisis support screen with emergency/988 actions. |
 | Settings | Role-aware account, profile-link, notification preference, and privacy-boundary settings page. |
 | Reports | Patient progress metrics, therapist active-patient outcome summaries, and patient CSV export rows. |
+| Push notifications | Push-token registration/removal API, client helper, and cron reminder workflow for due homework and upcoming sessions through a pluggable webhook. |
 | AI summaries | Server-side Gemini Interactions API wrapper using `AI_key`, `gemini-3.1-flash-lite`, `store: false`, and a therapist session-summary route. |
 | Database | Prisma schema and migrations for users, profiles, connections, mood, notes, homework, sessions, summaries, media, push tokens, and audit logs. |
 | Quality gates | Unit/API/component tests, lint, typecheck, production build, dependency audit, and CI workflow coverage. |
@@ -34,7 +35,6 @@ This repo is currently a Next.js App Router application with Route Handler APIs,
 
 | Area | Needed |
 | --- | --- |
-| Push notifications | Push-token registration and reminder delivery workflows. |
 | Mobile app | Expo/React Native client, planned later against the same APIs. |
 
 ## Explicitly Excluded
