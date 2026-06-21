@@ -70,6 +70,7 @@ function SignupForm() {
 
   return (
     <div className="auth-card">
+      <div className="auth-brand">Exhale</div>
       <div className="auth-eyebrow">Get started</div>
       <h1 className="auth-title">Create your account</h1>
       <p className="auth-sub">A calmer, clearer space for the work ahead.</p>
@@ -96,6 +97,14 @@ function SignupForm() {
             </button>
           </div>
         </div>
+
+        {form.role === "THERAPIST" && (
+          <p className="auth-warning">
+            Therapist accounts go through a verification check by our team. You can sign
+            in right away, but access to patient features is unlocked only after we approve
+            your account.
+          </p>
+        )}
 
         <div className="auth-row">
           <div className="auth-field">
