@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import Link from "next/link";
 import { BlueprintSvg } from "@/components/landing/blueprint-svg";
 import { BlueprintSecondarySvg } from "@/components/landing/blueprint-secondary-svg";
 
@@ -15,7 +16,7 @@ interface Ritual {
 
 const content = {
   patient: {
-    nav: { cta: "Patient Login", badge: "Patient" },
+    nav: { cta: "Get Started", badge: "Patient" },
     hero: {
       title: "mental health, clarified.",
       axis: "Daily Flow",
@@ -301,9 +302,15 @@ export default function Home() {
             >
               {isLight ? "Dark" : "Light"}
             </button>
-            <a href="/dashboard" className="cta-button no-underline flex items-center">
+            <Link
+              href="/login"
+              className="no-underline text-[11px] uppercase tracking-[0.22em] text-gray-400 hover:text-white transition-colors px-2"
+            >
+              Log in
+            </Link>
+            <Link href={`/signup?role=${role}`} className="cta-button no-underline flex items-center">
               {t.nav.cta}
-            </a>
+            </Link>
           </div>
         </nav>
 
@@ -315,10 +322,10 @@ export default function Home() {
             <div className="flow-axis">{t.hero.axis}</div>
             <p>{t.hero.desc}</p>
             <div className="hero-actions">
-              <a href="/dashboard" className="cta-button no-underline flex items-center">
+              <Link href={`/signup?role=${role}`} className="cta-button no-underline flex items-center">
                 {t.hero.cta}
-              </a>
-              <a href="/dashboard" className="ghost-button no-underline flex items-center">
+              </Link>
+              <a href="#approach" className="ghost-button no-underline flex items-center">
                 {t.hero.secondaryCta}
               </a>
             </div>
@@ -449,10 +456,10 @@ export default function Home() {
             <h2>{t.cta.title}</h2>
             <p>{t.cta.desc}</p>
             <div className="hero-actions">
-              <a href="/dashboard" className="cta-button no-underline flex items-center">
+              <Link href={`/signup?role=${role}`} className="cta-button no-underline flex items-center">
                 {t.cta.btn}
-              </a>
-              <a href="/dashboard" className="ghost-button no-underline flex items-center">
+              </Link>
+              <a href="#pricing" className="ghost-button no-underline flex items-center">
                 Schedule a tour
               </a>
             </div>
