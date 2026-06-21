@@ -73,9 +73,17 @@ Thin wrapper: reads the email from `process.argv`, calls `approveTherapist`, pri
 
 ### 5. UI
 
-- **Signup page** (`(auth)/signup/page.tsx`): keep the Patient/Therapist `<select>`. Add a one-line note that therapist accounts require approval before access.
-- **App landing** (`app/page.tsx`): a `THERAPIST` whose `therapistProfile.approvedAt` is null sees a "your therapist account is pending approval" screen instead of therapist UI. Patients unchanged.
-- `/api/me` and the provision response already return `therapistProfile` in full via `publicUserSelect`, so `approvedAt` reaches the client with **no** change to those selects.
+**Signup page** (`(auth)/signup/page.tsx`) — migrate onto the existing `auth-card` design system (login already uses it; signup is the lone holdout still on inline styles + a raw `<select>`). Specifically:
+
+- Use `.auth-card` / `.auth-title` / `.auth-sub` / `.auth-form` / `.auth-field` / `.auth-input`, with first/last name in an `.auth-row`, matching `login/page.tsx`.
+- **Prominent Exhale branding.** Add a large serif "Exhale" wordmark/brand lockup at the top of the signup card — deliberately bigger than the shared 24px `.auth-logo` in the layout (the brand should lead on the account-creation screen). New `.auth-brand` class in `auth.css` (large `--font-instrument-serif`, accent treatment).
+- **Role as a segmented control.** Replace the `<select>` with the existing `.auth-segment` Patient/Therapist toggle (the class exists for this and mirrors the landing nav). The selected role still drives `provisionUser`. Role values stay `PATIENT | THERAPIST`.
+- **Therapist warning.** When `THERAPIST` is selected, show a warning beneath the toggle: that therapist accounts go through a verification check by our team, the person can sign in immediately, but access to patient features is unlocked only after the team approves the account. Hidden when `PATIENT` is selected. New `.auth-warning` class in `auth.css` (distinct from the muted `.auth-note` — a noticeable but non-error callout). Patient selection shows nothing extra.
+- **Respect the landing deep-link.** The marketing site links to `/signup?role=therapist|patient`; read that query param to pre-select the segment (default `PATIENT`). Low-cost consistency win, and it means a therapist arriving from the landing CTA sees the warning immediately.
+
+**App landing** (`app/page.tsx`): a `THERAPIST` whose `therapistProfile.approvedAt` is null sees a "your therapist account is pending approval" screen instead of therapist UI. Patients unchanged.
+
+`/api/me` and the provision response already return `therapistProfile` in full via `publicUserSelect`, so `approvedAt` reaches the client with **no** change to those selects.
 
 ## Data flow
 
@@ -108,6 +116,6 @@ UI pending-state rendering is low-risk presentational and not unit-tested; secur
 
 ## Files
 
-**Modify:** `packages/db/prisma/schema.prisma` (+ migration), `apps/web/src/app/api/auth/provision/route.ts`, `apps/web/src/app/app/page.tsx`, `apps/web/src/app/(auth)/signup/page.tsx`, `apps/web/package.json`.
+**Modify:** `packages/db/prisma/schema.prisma` (+ migration), `apps/web/src/app/api/auth/provision/route.ts`, `apps/web/src/app/app/page.tsx`, `apps/web/src/app/(auth)/signup/page.tsx`, `apps/web/src/app/(auth)/auth.css` (add `.auth-brand`, `.auth-warning`), `apps/web/package.json`.
 
 **Create:** `apps/web/src/lib/authz.ts`, `apps/web/src/lib/approve-therapist.ts`, `apps/web/src/scripts/approve-therapist.ts`, `apps/web/src/lib/__tests__/authz.test.ts`, `apps/web/src/lib/__tests__/approve-therapist.test.ts`.
