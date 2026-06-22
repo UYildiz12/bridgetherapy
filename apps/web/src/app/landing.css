@@ -1300,21 +1300,32 @@
 @media (max-width: 860px) {
     .landing-page .how-grid {
         grid-template-columns: 1fr;
-        gap: 0;
+        gap: 18px;
     }
 
+    /* Phone moves above the steps and stays pinned, still syncing to the
+       active step as you scroll the list below it. */
     .landing-page .how-phone-wrap {
-        display: none;
+        order: -1;
+        position: sticky;
+        top: 68px;
+        z-index: 5;
+        padding-bottom: 6px;
+    }
+
+    .landing-page .phone {
+        width: 208px;
     }
 
     .landing-page .how-step {
-        opacity: 1;
-        padding: 24px 0;
+        padding: 20px 4px;
         border-bottom: 1px solid var(--line);
         border-radius: 0;
+        opacity: 0.45;
     }
 
     .landing-page .how-step.active {
+        opacity: 1;
         background: transparent;
     }
 }
@@ -1536,6 +1547,14 @@
 @media (max-width: 900px) {
     .landing-page .nav-links {
         display: none;
+    }
+
+    .landing-page .nav {
+        padding: 16px 20px;
+    }
+
+    .landing-page .nav-actions {
+        gap: 8px;
     }
 
     .landing-page .hero {

@@ -375,7 +375,7 @@ export default function Home() {
           <div className="logo">
             <span className="logo-badge"></span>
             exhale
-            <span className="ml-3 text-[10px] tracking-widest text-white/70 uppercase border border-white/10 px-2 py-0.5 rounded-full">
+            <span className="ml-3 hidden text-[10px] tracking-widest text-white/70 uppercase border border-white/10 px-2 py-0.5 rounded-full sm:inline-block">
               {t.badge}
             </span>
           </div>
@@ -383,13 +383,13 @@ export default function Home() {
             <div className="flex bg-white/5 border border-white/10 rounded-full p-1 mr-1">
               <button
                 onClick={() => chooseRole("patient")}
-                className={`px-3 py-1 text-[10px] uppercase tracking-wider rounded-full transition-all ${role === "patient" ? "bg-white text-black" : "text-gray-400 hover:text-white"}`}
+                className={`px-3 py-1 text-[10px] uppercase tracking-wider rounded-full transition-all ${role === "patient" ? "bg-white text-black" : "text-white/50 hover:text-white"}`}
               >
                 Patient
               </button>
               <button
                 onClick={() => chooseRole("therapist")}
-                className={`px-3 py-1 text-[10px] uppercase tracking-wider rounded-full transition-all ${role === "therapist" ? "bg-white text-black" : "text-gray-400 hover:text-white"}`}
+                className={`px-3 py-1 text-[10px] uppercase tracking-wider rounded-full transition-all ${role === "therapist" ? "bg-white text-black" : "text-white/50 hover:text-white"}`}
               >
                 Therapist
               </button>

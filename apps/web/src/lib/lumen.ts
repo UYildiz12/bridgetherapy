@@ -87,7 +87,7 @@ export async function askLumen(ctx: LumenContext, thread: LumenTurn[]): Promise<
     store: false,
   });
 
-  const text = interaction.output_text;
+  const text = interaction.output_text?.trim();
   if (!text) throw new Error("Lumen returned an empty response.");
-  return text.trim();
+  return text;
 }
