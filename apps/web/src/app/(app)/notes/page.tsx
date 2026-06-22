@@ -31,7 +31,19 @@ export default function NotesPage() {
 
   useEffect(() => {
     fetchEntries()
-      .then(setEntries)
+      .then((loaded) => {
+        setEntries(loaded);
+        try {
+          const open = sessionStorage.getItem("exhale:notes-open");
+          if (open && loaded.some((e) => e.id === open)) {
+            setSelectedId(open);
+            setComposing(false);
+            sessionStorage.removeItem("exhale:notes-open");
+          }
+        } catch {
+          // ignore storage access errors
+        }
+      })
       .catch(() => setError("Couldn't load your reflections."));
   }, []);
 
@@ -319,7 +331,11 @@ function Editor({
               <audio controls src={mediaUrl(entry.voiceMediaId)} className="w-full" />
             </div>
           )}
-          <LumenPanel noteId={entry.id} hasVoiceNote={Boolean(entry.voiceMediaId)} />
+          <LumenPanel
+            key={entry.id}
+            noteId={entry.id}
+            hasVoiceNote={Boolean(entry.voiceMediaId)}
+          />
         </div>
       )}
     </div>

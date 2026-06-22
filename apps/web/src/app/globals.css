@@ -179,3 +179,69 @@
     animation: app-rise 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 }
+
+/* CBT loop centerpiece motion. All animations live under no-preference, so
+   reduced-motion users get the same diagram, held still. */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes cbt-rise {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes cbt-soft-pulse {
+    0%,
+    100% {
+      opacity: 0.45;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes cbt-breathe {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.12);
+    }
+  }
+
+  .cbt-rise {
+    animation: cbt-rise 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .cbt-soft-pulse {
+    animation: cbt-soft-pulse 2.6s ease-in-out infinite;
+  }
+
+  .cbt-breathe {
+    animation: cbt-breathe 2.6s ease-in-out infinite;
+    transform-origin: center;
+  }
+
+  @keyframes cbt-flash {
+    0% {
+      opacity: 0.95;
+      transform: scale(0.2);
+    }
+    70% {
+      opacity: 0.3;
+    }
+    100% {
+      opacity: 0;
+      transform: scale(2.6);
+    }
+  }
+
+  .cbt-flash {
+    animation: cbt-flash 0.7s ease-out both;
+  }
+}

@@ -1,123 +1,112 @@
 "use client";
 import { useState } from "react";
-import { Brain, ChevronDown, Route } from "lucide-react";
-import { CBT_LOOP } from "@/lib/education";
+import type { LucideIcon } from "lucide-react";
+import {
+  Brain,
+  ChevronDown,
+  CloudLightning,
+  Contrast,
+  Eye,
+  Filter,
+  Gavel,
+  Heart,
+  Repeat,
+  Tag,
+  Target,
+  Telescope,
+} from "lucide-react";
 import { LESSONS, THINKING_TRAPS } from "@/lib/lessons";
+import { CbtLoop } from "./cbt-loop";
+
+const TRAP_ICONS: Record<string, LucideIcon> = {
+  contrast: Contrast,
+  repeat: Repeat,
+  filter: Filter,
+  eye: Eye,
+  telescope: Telescope,
+  cloudLightning: CloudLightning,
+  heart: Heart,
+  gavel: Gavel,
+  tag: Tag,
+  target: Target,
+};
 
 export function LearnModules() {
-  const [loopIdx, setLoopIdx] = useState(0);
   const [trapIdx, setTrapIdx] = useState(0);
   const [openLesson, setOpenLesson] = useState<string | null>(LESSONS[0]?.id ?? null);
-  const node = CBT_LOOP[loopIdx] as (typeof CBT_LOOP)[number] & { example?: string };
+
   const trap = THINKING_TRAPS[trapIdx];
+  const TrapIcon = TRAP_ICONS[trap.icon] ?? Brain;
 
   return (
-    <div className="grid gap-12">
+    <div className="grid gap-16">
+      {/* ---- CBT loop: the centerpiece ---- */}
+      <CbtLoop />
+
+      {/* ---- Thinking traps ---- */}
       <section className="grid gap-5">
-        <div className="grid gap-1">
-          <div className="inline-flex items-center gap-2 text-sm font-medium">
-            <Route className="size-4" aria-hidden="true" />
-            The CBT loop
-          </div>
-          <p className="max-w-prose text-sm text-muted-foreground">
-            One moment, four linked parts. Tap each part to see how it plays out, and where the loop
-            can be interrupted.
-          </p>
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-2">
-          <ol className="grid content-start gap-2">
-            {CBT_LOOP.map((step, i) => {
-              const active = i === loopIdx;
-              return (
-                <li key={step.label}>
-                  <button
-                    type="button"
-                    onClick={() => setLoopIdx(i)}
-                    aria-pressed={active}
-                    className={`flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left transition-colors ${
-                      active
-                        ? "border-foreground/40 bg-foreground/[0.06]"
-                        : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground"
-                    }`}
-                  >
-                    <span
-                      className="text-sm tabular-nums"
-                      style={{ fontFamily: "var(--font-instrument-serif), serif" }}
-                    >
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <span className="text-sm font-medium">{step.label}</span>
-                    {i < CBT_LOOP.length - 1 && (
-                      <span className="ml-auto text-muted-foreground" aria-hidden>
-                        next
-                      </span>
-                    )}
-                  </button>
-                </li>
-              );
-            })}
-          </ol>
-
-          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur-xl">
-            <h4 className="text-lg leading-snug">{node.label}</h4>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">{node.detail}</p>
-            {node.example && (
-              <div className="mt-4 border-l-2 border-foreground/40 pl-3">
-                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Example</p>
-                <p className="mt-1 text-sm leading-6 text-foreground/90">{node.example}</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      <section className="grid gap-5">
-        <div className="grid gap-1">
+        <div className="grid max-w-prose gap-2">
           <div className="inline-flex items-center gap-2 text-sm font-medium">
             <Brain className="size-4" aria-hidden="true" />
             Thinking traps
           </div>
-          <p className="max-w-prose text-sm text-muted-foreground">
-            Common distortions that fuel anxiety and low mood. Tap one to see how it sounds and a
-            question that loosens its grip.
+          <p className="text-sm leading-6 text-muted-foreground">
+            These are the shortcuts a worried mind takes. Naming the one you are in is often enough to
+            take some of the air out of it. Tap any to see how it tends to sound, and a question that
+            loosens its grip.
           </p>
         </div>
 
         <div className="flex flex-wrap gap-2">
-          {THINKING_TRAPS.map((t, i) => (
-            <button
-              key={t.name}
-              type="button"
-              onClick={() => setTrapIdx(i)}
-              aria-pressed={i === trapIdx}
-              className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
-                i === trapIdx
-                  ? "border-foreground bg-foreground text-background"
-                  : "border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground"
-              }`}
-            >
-              {t.name}
-            </button>
-          ))}
+          {THINKING_TRAPS.map((t, i) => {
+            const I = TRAP_ICONS[t.icon] ?? Brain;
+            return (
+              <button
+                key={t.name}
+                type="button"
+                onClick={() => setTrapIdx(i)}
+                aria-pressed={i === trapIdx}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors ${
+                  i === trapIdx
+                    ? "border-foreground bg-foreground text-background"
+                    : "border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground"
+                }`}
+              >
+                <I size={13} aria-hidden />
+                {t.name}
+              </button>
+            );
+          })}
         </div>
 
         <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur-xl">
-          <h4 className="text-lg leading-snug">{trap.name}</h4>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">{trap.what}</p>
+          <div className="flex items-center gap-3">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-foreground/30 text-foreground">
+              <TrapIcon size={18} aria-hidden />
+            </span>
+            <h4 className="text-lg leading-snug">{trap.name}</h4>
+          </div>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">{trap.what}</p>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <div className="border-l-2 border-border pl-3">
               <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Sounds like</p>
-              <p className="mt-1 text-sm leading-6 text-foreground/90">{trap.example}</p>
+              <ul className="mt-1.5 grid gap-1.5">
+                {trap.examples.map((ex) => (
+                  <li key={ex} className="text-sm leading-6 text-foreground/90">
+                    {ex}
+                  </li>
+                ))}
+              </ul>
             </div>
             <div className="border-l-2 border-foreground/40 pl-3">
               <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Loosen it</p>
-              <p className="mt-1 text-sm leading-6 text-foreground/90">{trap.reframe}</p>
+              <p className="mt-1.5 text-sm leading-6 text-foreground/90">{trap.reframe}</p>
             </div>
           </div>
         </div>
       </section>
 
+      {/* ---- Lessons ---- */}
       <section className="grid gap-4">
         <h3 className="text-xl">Lessons</h3>
         <div className="grid border-t border-border">
@@ -134,7 +123,8 @@ export function LearnModules() {
                   <span className="grid gap-1">
                     <span className="text-lg font-medium text-foreground">{lesson.title}</span>
                     <span className="text-sm text-muted-foreground">
-                      {lesson.minutes} min read - {lesson.summary}
+                      {lesson.summary}{" "}
+                      <span className="text-muted-foreground/60">· {lesson.minutes} min</span>
                     </span>
                   </span>
                   <ChevronDown

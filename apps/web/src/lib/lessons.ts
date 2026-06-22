@@ -1,5 +1,11 @@
 // Detailed, CBT-informed lessons for the Wellness > Learn tab. Educational and
-// meant to complement (not replace) work with a therapist.
+// meant to complement (not replace) work with a therapist. Grounded in the
+// cognitive model (Beck), the maintenance / vicious cycle and negative
+// reinforcement of safety behaviours (Salkovskis), behavioural activation
+// (Jacobson, Dimidjian), the inhibitory-learning account of exposure (Craske),
+// the two-process model of sleep (Borbely) and stimulus control (Bootzin),
+// affect labeling (Lieberman), intolerance of uncertainty (Dugas), and
+// self-compassion (Neff) / compassion-focused therapy (Gilbert).
 
 export interface LessonSection {
   heading: string;
@@ -20,302 +26,344 @@ export const LESSONS: Lesson[] = [
   {
     id: "anxiety-cycle",
     title: "The anxiety cycle",
-    minutes: 4,
-    summary: "Why anxiety sticks around, and where it can be interrupted.",
+    minutes: 5,
+    summary: "Why anxiety keeps its grip, and the one place it reliably loosens.",
     sections: [
       {
-        heading: "What keeps it going",
-        body: "Anxiety is the body's alarm for predicted danger. A trigger leads to a threat thought (\"this will go badly\"), which fires a body alarm (racing heart, tight chest), which pushes you to avoid or escape. Avoidance brings instant relief, so your brain learns the threat was real and the alarm was right. The relief is exactly what trains the cycle to repeat.",
+        heading: "What keeps it running",
+        body: "Anxiety is the body's alarm for danger it predicts, not danger that is necessarily present. A trigger sparks a threat read (\"this will go badly\"), the body floods with alarm (racing heart, tight chest, narrowed focus), and you do something to make it stop: avoid, escape, check, or ask to be reassured. Each of those brings quick relief, and the relief is the catch. It teaches the brain that the threat was real and that the safety move is what saved you, so the alarm returns a little louder next time. Clinicians call this negative reinforcement, and it is why anxiety tends to grow in exactly the situations you handle by backing away from them.",
       },
       {
-        heading: "Where to interrupt it",
-        body: "You usually cannot argue the body out of alarm in the moment. The most reliable lever is the response: approaching in small, survivable steps instead of avoiding. Each time you stay with discomfort and nothing catastrophic happens, the prediction updates and the alarm quiets over time.",
+        heading: "Where it loosens",
+        body: "You usually cannot reason the body out of alarm while it is firing, so that is not where the work happens. The reliable lever is what you do next. When you approach something you would normally avoid and the feared outcome does not arrive, or you find you can cope even when it does, the original prediction takes a hit. Modern exposure research frames this as new learning rather than erasing the old fear: a truer association, \"I can handle this,\" grows alongside the alarm and gradually starts to win.",
       },
     ],
     keyPoints: [
-      "Avoidance lowers anxiety now but strengthens it later.",
-      "Physical symptoms are uncomfortable, not dangerous.",
-      "Approaching gradually is how predictions get corrected.",
+      "Relief from avoiding is short-lived and trains the alarm to come back.",
+      "The body's symptoms are intensely uncomfortable, not dangerous.",
+      "Approaching, and being surprised by the outcome, is what updates the fear.",
     ],
     tryThis:
-      "Name one small thing you have been avoiding. Pick a version that is 10% easier and plan to do it once this week, then notice what actually happens versus what you predicted.",
+      "Name one thing you have been steering around. Pick a version about ten percent easier, write down what you expect to happen, then do it once and compare the prediction to what actually occurred.",
   },
   {
     id: "thought-records",
     title: "Thought records",
     minutes: 5,
-    summary: "Separating facts from interpretations to find a steadier thought.",
+    summary: "Catching the gap between what happened and the story you told about it.",
     sections: [
       {
-        heading: "Facts vs. interpretations",
-        body: "When something happens, your mind adds meaning almost instantly. \"She did not reply\" is a fact; \"she is angry at me\" is an interpretation. Thought records slow this down so you can see the interpretation as one option, not the truth.",
+        heading: "Fact, then interpretation",
+        body: "Something happens and your mind adds meaning so fast the two feel like one thing. \"She did not reply\" is a fact. \"She is annoyed with me\" is an interpretation, and only one of several that fit the same fact. A thought record slows that moment down on paper so you can see the interpretation as a guess rather than a verdict. This is the heart of Beck's cognitive model: the event does not set the feeling, the appraisal of it does.",
       },
       {
-        heading: "Building a balanced thought",
-        body: "Write the situation, the hot thought, and the feeling. Then list evidence for and against the thought. A balanced thought is not forced positivity; it is the most accurate, fair read given all the evidence, and it usually lowers the feeling a notch.",
+        heading: "Toward a fairer read",
+        body: "Write the situation, the hottest thought, and how strong the feeling is out of a hundred. Then gather evidence on both sides, the facts that fit the thought and the facts that do not. What you are after is not a cheerful spin but the most accurate account given everything you know, the version that would hold up if a fair-minded friend looked at it with you. A more balanced thought rarely makes the feeling vanish, but it usually takes it down a notch, and a notch is often enough to think and act more clearly.",
       },
     ],
     keyPoints: [
-      "A thought is a mental event, not a fact.",
-      "Look for evidence on both sides before deciding.",
+      "A thought is a mental event you can examine, not a fact you must obey.",
+      "Weigh the evidence for and against before deciding what is true.",
       "Aim for accurate and fair, not relentlessly positive.",
     ],
     tryThis:
-      "Catch one sticky thought today. Write the situation, the thought, and rate the feeling 0-100. List one piece of evidence against the thought, then re-rate the feeling.",
+      "Catch one sticky thought today. Write the situation, the thought, and rate the feeling out of a hundred. Add one solid piece of evidence that does not fit the thought, then rate the feeling again.",
   },
   {
     id: "behavioral-activation",
     title: "Behavioral activation",
     minutes: 4,
-    summary: "When mood is low, action often has to come before motivation.",
+    summary: "When mood is low, doing usually has to come before feeling like it.",
     sections: [
       {
         heading: "Mood follows action",
-        body: "Low mood tells you to withdraw and wait until you feel like doing things. But waiting usually deepens the dip. Behavioral activation flips the order: you schedule small, meaningful actions first, and motivation tends to follow the doing rather than precede it.",
+        body: "Low mood gives clear instructions: pull back, cancel, wait until you feel up to things. Following them tends to deepen the dip, because withdrawing strips out the very experiences that lift mood and the day empties. Behavioral activation reverses the order. You schedule small, meaningful actions first and let motivation catch up to the doing, instead of waiting for a motivation that low mood will not supply. In trials going back to Jacobson and Dimidjian, this approach holds up as well as full cognitive therapy for depression, including more severe cases.",
       },
       {
-        heading: "Choosing the right activities",
-        body: "The best activities give a sense of pleasure, accomplishment, or connection, and they line up with what you value. Start tiny and specific. A five-minute walk you actually do beats an hour-long plan you keep postponing.",
+        heading: "Choosing what to schedule",
+        body: "The actions that actually shift mood tend to offer one of three things: a little pleasure, a sense of accomplishment, or connection with someone, and they line up with what you genuinely care about. Start far smaller than feels worthwhile. A five-minute walk you complete beats the hour-long plan you keep pushing to tomorrow, because the point is to break the withdrawal loop and collect first-hand evidence that doing still does something.",
       },
     ],
     keyPoints: [
-      "Don't wait to feel motivated; act, and motivation often follows.",
-      "Pick activities tied to pleasure, mastery, or your values.",
+      "Don't wait for motivation; act first, and it tends to follow.",
+      "Favour activities tied to pleasure, mastery, or connection, and to your values.",
       "Make the first step almost too small to fail.",
     ],
     tryThis:
-      "Schedule one small activity for a specific time tomorrow. Rate your mood 0-10 just before and just after, and see whether doing it shifted the number.",
+      "Pick one small activity and put it in tomorrow at a specific time. Rate your mood out of ten just before and just after, and see whether doing it moved the number.",
   },
   {
     id: "sleep-routines",
     title: "Sleep and routines",
     minutes: 5,
-    summary: "Working with sleep pressure and your body clock instead of against them.",
+    summary: "Working with the two systems that run sleep instead of fighting them.",
     sections: [
       {
-        heading: "The two systems behind sleep",
-        body: "Sleep is driven by sleep pressure (which builds the longer you are awake) and your circadian rhythm (your internal clock, anchored by light and consistent timing). Naps, caffeine, and irregular wake times all blunt one of these systems and make falling asleep harder.",
+        heading: "The two-process model",
+        body: "Sleep is governed by two systems working together. One is sleep pressure, a kind of appetite for sleep that builds the longer you are awake. The other is your circadian rhythm, the internal clock that decides when you feel alert or drowsy, set largely by light and by consistent timing. Naps, late caffeine, and a wake time that drifts all weaken one of these, which is why a night can feel wired or wide awake despite a long day. Sleep scientists call this the two-process model, and most good sleep advice is really about protecting it.",
       },
       {
-        heading: "Protecting the bed-sleep link",
-        body: "If you lie in bed awake, frustrated, your brain starts associating the bed with effort and worry. Stimulus control keeps the bed for sleep: if you are wide awake after a while, get up, do something calm and dim, and return when sleepy.",
+        heading: "Keeping the bed for sleep",
+        body: "Lie in bed awake and frustrated often enough and the brain learns a quiet new link: bed means effort and worry, not rest. Stimulus control breaks that link by reserving the bed for sleep alone. If you are clearly awake after a while, get up, do something calm in dim light, and return only when sleepiness comes back. It feels counterintuitive, but it rebuilds the association between bed and sleep that insomnia erodes, and it is one of the most evidence-backed pieces of CBT for insomnia.",
       },
     ],
     keyPoints: [
-      "Keep a consistent wake time, even after a rough night.",
-      "Get daylight early; dim screens and lights before bed.",
-      "If you can't sleep, leave the bed rather than fighting it.",
+      "Hold a steady wake time, even after a bad night; it anchors the clock.",
+      "Get daylight early, and dim screens and lights as bedtime nears.",
+      "If you are wide awake, leave the bed rather than fighting for sleep in it.",
     ],
     tryThis:
-      "Set one fixed wake-up time for the next three days and get a few minutes of daylight within an hour of waking. Notice any change in how sleepy you feel at night.",
+      "Fix one wake-up time for the next three days and get a few minutes of daylight within an hour of rising. Notice whether you feel sleepier at a sensible hour by the third night.",
   },
   {
     id: "riding-the-wave",
     title: "Riding the wave",
     minutes: 4,
-    summary: "Letting strong emotions and urges crest and pass without acting on them.",
+    summary: "Letting a strong feeling or urge crest and pass without acting on it.",
     sections: [
       {
-        heading: "Emotions are waves",
-        body: "Intense feelings and urges rise, peak, and fall on their own, usually within minutes if you do not feed them. The instinct is to act fast to make the feeling stop. Urge surfing is the practice of staying present with the sensation and watching it crest like a wave instead of being pulled under.",
+        heading: "Feelings move like waves",
+        body: "Intense emotions and urges rise, peak, and fall on their own, often within minutes, as long as you do not keep feeding them with replay or resistance. The instinct is to act at once to shut the feeling down, which works briefly and quietly teaches you that you could not have survived it otherwise. Urge surfing, a skill from relapse-prevention work, is the alternative: you stay with the sensation and watch it move, the way a surfer rides a wave instead of being dragged under.",
       },
       {
-        heading: "Naming and locating",
-        body: "Naming an emotion (\"this is anxiety,\" \"this is shame\") reduces its grip, and noticing where it sits in the body turns an overwhelming state into something observable. You are not the wave; you are the surfer noticing it move.",
+        heading: "Name it to loosen it",
+        body: "Putting a feeling into words does more than describe it. In Lieberman's affect labeling studies, simply naming an emotion (\"this is anxiety,\" \"this is shame\") lowered activity in the brain's threat centre and brought the thinking regions back online. Pair the name with where you feel it in the body and the state shifts from something that has you to something you are watching. You are not the wave. You are the one noticing it pass.",
       },
     ],
     keyPoints: [
-      "Urges peak and fade; you can outlast them.",
-      "Naming a feeling lowers its intensity.",
-      "Observing the body sensation creates distance from it.",
+      "Urges crest and fade; you can usually outlast them.",
+      "Naming a feeling measurably lowers its intensity.",
+      "Noticing the body sensation creates distance from it.",
     ],
     tryThis:
-      "Next time an urge hits, set a timer for ten minutes and just watch the sensation rise and fall, naming it once. See where the intensity is by the end.",
+      "Next time an urge hits, set a timer for ten minutes and just watch the sensation rise and fall, naming it once. Check where the intensity sits when the timer ends.",
   },
   {
     id: "behavioral-experiments",
     title: "Behavioral experiments",
     minutes: 4,
-    summary: "Testing a worried belief like a hypothesis instead of arguing with it.",
+    summary: "Testing a worried belief like a hypothesis instead of debating it in your head.",
     sections: [
       {
-        heading: "Treat the thought as a prediction",
-        body: "Some beliefs do not budge through logic alone; they need evidence from real life. A behavioral experiment turns a belief into a testable prediction. \"If I ask a question in the meeting, people will think I'm stupid\" becomes something you can actually check by asking one question and watching what happens.",
+        heading: "Turn the belief into a prediction",
+        body: "Some beliefs will not move through reasoning, however good the argument, because they were never built on argument in the first place. They shift when life hands you evidence. A behavioral experiment turns a belief into something testable. \"If I ask a question in the meeting, people will think I am stupid\" becomes a prediction you can actually check by asking one question and watching what happens to the room and the conversation.",
       },
       {
         heading: "Predict, do, review",
-        body: "Write the prediction and rate how strongly you believe it (0-100%). Design a small, specific action to test it. Do it, and note what actually happened versus what you expected. Then re-rate the belief. A noticeable drop is real evidence that the old prediction was overblown.",
+        body: "Write the prediction and rate how strongly you believe it out of a hundred. Design one small, specific action that would put it to the test, ideally dropping any safety behaviour you would normally lean on, since that is what usually lets you credit a good outcome to the prop rather than to reality. Do it, set what really happened next to what you expected, then rate the belief again. Across the research, this kind of experiential learning shifts conviction faster and more durably than talking a thought through, because you are no longer taking your own word for it.",
       },
     ],
     keyPoints: [
-      "Beliefs are hypotheses, not facts.",
-      "Make the test small, specific, and doable.",
-      "Compare the actual outcome to your prediction, then re-rate.",
+      "Treat beliefs as hypotheses, not settled facts.",
+      "Keep the test small, specific, and genuinely doable.",
+      "Living evidence changes a belief faster than argument does.",
     ],
     tryThis:
-      "Pick one anxious prediction. Write it down with a 0-100% belief rating, do one small action to test it today, then re-rate how strongly you believe it afterward.",
+      "Pick one anxious prediction. Write it with a belief rating out of a hundred, run one small action today to test it, then re-rate how strongly you believe it afterward.",
   },
   {
     id: "facing-fears",
     title: "Facing fears, step by step",
     minutes: 5,
-    summary: "Graded exposure: shrinking a fear by approaching it in tolerable steps.",
+    summary: "Graded exposure, and why being surprised matters more than calming down.",
     sections: [
       {
-        heading: "Build a fear ladder",
-        body: "List the situations you avoid and rate each one 0-100 for how much anxiety it brings (clinicians call this SUDS). Arrange them from easiest to hardest so you have rungs at every level, from mildly uncomfortable up to very challenging.",
+        heading: "Build a ladder",
+        body: "List the situations you avoid and rate each for how much anxiety it brings, from zero to a hundred (clinicians call this rating SUDS). Arrange them from mildly uncomfortable up to genuinely hard so there is a rung at every level. The ladder turns one overwhelming fear into a series of approachable steps, and it gives you somewhere sensible to begin that is neither trivial nor terrifying.",
       },
       {
-        heading: "Climb one rung at a time",
-        body: "Start on a rung around 3-5 out of 10, not the easiest and not the most terrifying. Stay in the situation until your anxiety drops by about half. With repetition your body learns the feared thing is survivable (habituation), and you move up only when the current rung feels manageable.",
+        heading: "Climb toward the surprise",
+        body: "Older exposure advice said to stay until your anxiety dropped by half. The newer inhibitory-learning model points somewhere more useful: stay until your expectation is proven wrong. What you are after is the gap between what you feared (\"I will panic and have to flee\") and what occurs (\"it was uncomfortable and I stayed\"). That surprise is what builds a new, competing association that the feared thing is survivable. Drop the safety behaviours that would let you explain away the result, repeat it in different settings, and let the prediction, not the fear level, tell you it worked.",
       },
     ],
     keyPoints: [
-      "Avoidance shrinks your world; gradual approach grows it back.",
-      "Rate situations 0-100 and start in the middle, not the extremes.",
-      "Stay long enough for anxiety to fall by half, and repeat.",
+      "Avoidance shrinks your world; graded approach grows it back.",
+      "Rate situations zero to a hundred and start in the middle, not the extremes.",
+      "Stay until the feared outcome is disconfirmed, and drop your safety props.",
     ],
     tryThis:
-      "Write three things you avoid and rate each 0-100. Pick one around 3-5/10 and plan a single, repeatable practice of it this week. This is exposure work best done with your therapist's guidance.",
+      "Write three things you avoid and rate each zero to a hundred. Pick one in the lower-middle, name exactly what you predict will happen, and plan one repeatable practice this week. Exposure is best done with a therapist's guidance.",
   },
   {
     id: "worry-uncertainty",
     title: "Worry and uncertainty",
-    minutes: 4,
-    summary: "Sorting solvable problems from unsolvable what-ifs, and loosening the need for certainty.",
+    minutes: 5,
+    summary: "Sorting solvable problems from what-ifs, and loosening the need to know.",
     sections: [
       {
         heading: "Two kinds of worry",
-        body: "Productive worry is about a real, current problem you can act on, so it leads to a plan. Unproductive worry is a chain of hypothetical what-ifs with no action attached. The skill is telling them apart: solvable worries get problem-solving, hypothetical ones get gently set down.",
+        body: "Productive worry is attached to a real, present problem you can do something about, so it ends in a plan. Unproductive worry is a chain of hypothetical what-ifs with no action at the other end, and it tends to breed more of itself. The first skill is simply telling them apart in the moment. Solvable worries get problem-solving. Hypothetical ones get noticed, named as hypothetical, and set down, which is a skill that sharpens with practice rather than a switch you flip.",
       },
       {
-        heading: "Worry feeds on certainty",
-        body: "Much worry is an attempt to feel 100% certain that nothing will go wrong, which is impossible. Practising tolerating uncertainty, and even scheduling a short \"worry time\" rather than worrying all day, shrinks how much space worry takes up.",
+        heading: "Worry runs on the need to be certain",
+        body: "Much chronic worry is an attempt to feel completely sure that nothing will go wrong, which no amount of thinking can deliver. Researchers call the underlying driver intolerance of uncertainty, and in treatment studies for generalized anxiety, reducing it accounts for the majority of the drop in worry. You loosen it not by getting more certain but by practising acting while uncertain, in small doses, and discovering that not knowing is uncomfortable rather than dangerous. A short, scheduled worry window can help contain the rest of the day.",
       },
     ],
     keyPoints: [
-      "Ask: is this a solvable problem or a hypothetical what-if?",
+      "Ask whether this is a solvable problem or a hypothetical what-if.",
       "Solvable worries get a plan; hypothetical ones get postponed.",
-      "Chasing total certainty fuels worry; tolerating doubt starves it.",
+      "Chasing total certainty feeds worry; tolerating doubt starves it.",
     ],
     tryThis:
-      "Set a 15-minute \"worry window\" later today. When a worry shows up before then, jot it down and tell yourself you'll attend to it in the window. Notice how many still feel urgent when it arrives.",
+      "Set a fifteen-minute worry window later today. When a worry arrives before then, jot it down and tell yourself you will deal with it in the window. Notice how many still feel urgent once it comes.",
   },
   {
     id: "core-beliefs",
     title: "Core beliefs underneath",
     minutes: 5,
-    summary: "Finding the deeper rules that automatic thoughts grow from.",
+    summary: "The deeper rules that the same automatic thoughts keep growing from.",
     sections: [
       {
-        heading: "Layers of thinking",
-        body: "Automatic thoughts sit on top of deeper assumptions and core beliefs about yourself, other people, and the world (\"I'm not good enough,\" \"people can't be trusted\"). The same core belief can generate the same automatic thought across very different situations.",
+        heading: "Thinking has layers",
+        body: "Cognitive therapy describes thought in layers. At the surface are automatic thoughts, the quick appraisals that flit through a situation. Beneath them sit assumptions and rules, often shaped as if-then (\"if I am not useful, I will be rejected\"). Deeper still are core beliefs, the flat statements about yourself, others, and the world that you absorbed early and rarely question (\"I am not good enough,\" \"people cannot be trusted\"). One core belief can quietly generate the same automatic thought across situations that look nothing alike.",
       },
       {
-        heading: "The downward arrow",
-        body: "To find a core belief, take a hot thought and keep asking: \"If that were true, what would it mean about me?\" Follow the chain down until you reach the bedrock belief. Naming it is the first step; over time, gathering evidence helps build a kinder, more flexible belief alongside it.",
+        heading: "Following the arrow down",
+        body: "A simple way to find the belief underneath is the downward arrow: take a hot thought and keep asking, \"if that were true, what would it say about me?\" until you reach something that feels like bedrock. Naming it matters, because core beliefs work best in the dark, steering what you notice and remember so they keep being confirmed. Once it is in the open, you can begin, slowly, to gather the evidence it has been screening out and grow a fairer belief beside it. This one runs deep, and is often best explored alongside a therapist.",
       },
     ],
     keyPoints: [
-      "Surface thoughts grow from deeper core beliefs.",
-      "The downward-arrow question reveals the belief underneath.",
+      "Surface thoughts grow from deeper assumptions and core beliefs.",
+      "The downward-arrow question surfaces the belief underneath.",
       "Core beliefs are learned, and can be updated with evidence over time.",
     ],
     tryThis:
-      "Take a recurring self-critical thought and ask \"what would that mean about me?\" three times in a row. Notice the deeper belief it points to, without trying to fix it yet. This goes deep, so it's good to explore with your therapist.",
+      "Take a recurring self-critical thought and ask \"what would that say about me?\" three times in a row. Notice the deeper belief it points to, without rushing to fix it. Because this goes deep, it is good to explore with your therapist.",
   },
   {
     id: "self-compassion",
     title: "Self-compassion",
     minutes: 4,
-    summary: "Replacing the harsh inner critic with the steadier voice you'd offer a friend.",
+    summary: "Trading the harsh inner critic for the steadier voice you would give a friend.",
     sections: [
       {
-        heading: "The critic isn't the coach",
-        body: "Many people believe self-criticism keeps them in line, but harsh self-talk tends to add shame and drain motivation. Self-compassion is not letting yourself off the hook; it is meeting difficulty with the same steadiness and honesty you would give a friend who was struggling.",
+        heading: "The critic is not the coach",
+        body: "Many people keep the inner critic on staff because they believe it drives them. The evidence runs the other way: harsh self-talk mostly adds shame, and shame drains the energy you need to change. Compassion-focused work traces this to two different systems in us, a threat system the critic keeps switched on and a soothing system that steadies us, and self-criticism keeps you stuck in the first. Self-compassion is not letting yourself off the hook. It is meeting difficulty with the same honesty and steadiness you would offer someone you respect.",
       },
       {
-        heading: "Three moves",
-        body: "Self-compassion has three parts: kindness instead of judgment, remembering that struggle is part of being human rather than a personal defect, and mindful awareness of the pain without drowning in it. Together they make hard feelings easier to face and learn from.",
+        heading: "Three parts that work together",
+        body: "In Kristin Neff's research, self-compassion has three strands. Kindness toward yourself rather than judgment. Common humanity, the recognition that struggling is part of being a person and not a private defect. And mindful awareness that faces the pain without being swept away by it or pretending it is not there. Held together, they make hard feelings easier to stay with, and people higher in self-compassion tend to report less anxiety and depression and to recover from setbacks more readily.",
       },
     ],
     keyPoints: [
       "Self-criticism usually adds shame, not motivation.",
-      "Talk to yourself like a friend you respect.",
+      "Speak to yourself like a friend you respect and want to help.",
       "Kindness, common humanity, and mindful awareness work together.",
     ],
     tryThis:
-      "Think of how you'd speak to a close friend facing your exact situation. Write one or two of those sentences and read them back to yourself.",
+      "Think of how you would speak to a close friend in your exact situation. Write down one or two of those sentences, then read them back to yourself as if they were meant for you.",
   },
 ];
 
 // Common thinking traps (cognitive distortions, Beck/Burns) for the interactive reference.
+// `icon` maps to a lucide icon in the Learn UI.
 export interface ThinkingTrap {
   name: string;
+  icon: string;
   what: string;
-  example: string;
+  examples: string[];
   reframe: string;
 }
 
 export const THINKING_TRAPS: ThinkingTrap[] = [
   {
     name: "All-or-nothing",
+    icon: "contrast",
     what: "Seeing things in absolute, black-and-white terms with no middle ground.",
-    example: "\"I got one thing wrong, so the whole day was a failure.\"",
-    reframe: "Where is this on a scale, not just success or failure?",
+    examples: [
+      "\"I got one thing wrong, so the whole day was a failure.\"",
+      "\"If I'm not the best at this, there's no point even trying.\"",
+    ],
+    reframe: "Where does this actually sit on a scale, not just success or failure?",
   },
   {
     name: "Overgeneralizing",
+    icon: "repeat",
     what: "Treating one event as a never-ending pattern of defeat.",
-    example: "\"That call went badly. I always mess these up.\"",
+    examples: [
+      "\"That call went badly. I always mess these up.\"",
+      "\"He cancelled once, so nobody really wants my company.\"",
+    ],
     reframe: "Is one instance really proof of always or never?",
   },
   {
     name: "Mental filter",
+    icon: "filter",
     what: "Zooming in on a single negative and screening out everything positive.",
-    example: "\"They gave great feedback but mentioned one fix, so it was bad.\"",
+    examples: [
+      "\"They praised the report but flagged one typo, so it was bad.\"",
+      "\"The day had good moments, but I only replay the tense one.\"",
+    ],
     reframe: "What am I leaving out of the picture?",
   },
   {
     name: "Mind reading",
+    icon: "eye",
     what: "Assuming you know what others are thinking, usually the worst.",
-    example: "\"She didn't smile, so she must be annoyed with me.\"",
+    examples: [
+      "\"She didn't smile back, so she must be annoyed with me.\"",
+      "\"They went quiet; I just know they think I'm boring.\"",
+    ],
     reframe: "What other explanations could there be? Do I actually know?",
   },
   {
     name: "Fortune telling",
+    icon: "telescope",
     what: "Predicting the future will go badly as if it were already fact.",
-    example: "\"If I go, I'll have a panic attack and humiliate myself.\"",
+    examples: [
+      "\"If I go, I'll have a panic attack and humiliate myself.\"",
+      "\"There's no point applying; I already know I'll be rejected.\"",
+    ],
     reframe: "What has actually happened the other times I worried about this?",
   },
   {
     name: "Catastrophizing",
+    icon: "cloudLightning",
     what: "Blowing the importance of a problem far out of proportion.",
-    example: "\"If I fail this, my whole career is over.\"",
+    examples: [
+      "\"If I fail this, my whole career is over.\"",
+      "\"This headache is probably something serious.\"",
+    ],
     reframe: "What's most likely to happen, and could I cope if it did?",
   },
   {
     name: "Emotional reasoning",
+    icon: "heart",
     what: "Taking a feeling as proof of fact.",
-    example: "\"I feel like a burden, so I must be one.\"",
+    examples: [
+      "\"I feel like a burden, so I must be one.\"",
+      "\"I feel guilty, so I must have done something wrong.\"",
+    ],
     reframe: "A feeling is real, but is it evidence? What are the facts?",
   },
   {
     name: "Should statements",
+    icon: "gavel",
     what: "Rigid rules about how you or others must be, which breed guilt or anger.",
-    example: "\"I should never need help.\"",
+    examples: [
+      "\"I should never need help.\"",
+      "\"They should just know what I need without me saying it.\"",
+    ],
     reframe: "Would I hold a friend to this rule? What's a fairer expectation?",
   },
   {
     name: "Labeling",
+    icon: "tag",
     what: "Turning a single action into a fixed, global label for the whole person.",
-    example: "\"I made a mistake, so I'm a failure.\"",
+    examples: [
+      "\"I made a mistake, so I'm a failure.\"",
+      "\"I got nervous, so I'm just pathetic.\"",
+    ],
     reframe: "Can I describe the behavior without branding the whole me?",
   },
   {
     name: "Personalizing",
+    icon: "target",
     what: "Taking the blame for things that are not entirely in your control.",
-    example: "\"The event flopped. It's all my fault.\"",
+    examples: [
+      "\"The event flopped, and it's entirely my fault.\"",
+      "\"They seem upset, so I must have caused it.\"",
+    ],
     reframe: "What factors besides me played a part here?",
   },
 ];

@@ -58,7 +58,7 @@ const PATTERNS: Pattern[] = [
     id: "exhale",
     name: "Extended exhale",
     tone: "Soften",
-    benefit: "Lengthening only the out-breath gently lowers arousal, no holds.",
+    benefit: "A longer out-breath than in, with nothing to hold, to ease the body down.",
     whenToUse: "When you want to downshift without holding your breath.",
     phases: [
       { label: "Breathe in", seconds: 4, scale: 1 },

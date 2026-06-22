@@ -9,10 +9,36 @@ const PROMPTS = [
   "What could I bring to my next session?",
 ];
 
+interface LumenSeed {
+  prompts: string[] | null;
+  prefill: string;
+}
+
+function takeSeed(noteId: string): LumenSeed | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const key = `exhale:lumen-seed:${noteId}`;
+    const raw = sessionStorage.getItem(key);
+    if (!raw) return null;
+    sessionStorage.removeItem(key);
+    const seed = JSON.parse(raw) as { prompts?: unknown; prefill?: unknown };
+    const prompts = Array.isArray(seed.prompts)
+      ? seed.prompts.filter((p): p is string => typeof p === "string")
+      : [];
+    return {
+      prompts: prompts.length ? prompts : null,
+      prefill: typeof seed.prefill === "string" ? seed.prefill : "",
+    };
+  } catch {
+    return null;
+  }
+}
+
 export function LumenPanel({ noteId, hasVoiceNote = false }: { noteId: string; hasVoiceNote?: boolean }) {
+  const [seed] = useState<LumenSeed | null>(() => takeSeed(noteId));
   const [messages, setMessages] = useState<LumenMessage[] | null>(null);
   const [configured, setConfigured] = useState(true);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState(seed?.prefill ?? "");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const threadRef = useRef<HTMLDivElement>(null);
@@ -68,7 +94,9 @@ export function LumenPanel({ noteId, hasVoiceNote = false }: { noteId: string; h
   }
 
   const empty = messages !== null && messages.length === 0;
-  const prompts = hasVoiceNote ? ["Help me reflect on the voice note.", ...PROMPTS] : PROMPTS;
+  const prompts =
+    seed?.prompts ??
+    (hasVoiceNote ? ["Help me reflect on the voice note.", ...PROMPTS] : PROMPTS);
 
   return (
     <div className="flex min-h-0 flex-col rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl">

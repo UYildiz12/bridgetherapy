@@ -21,7 +21,7 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
   {
     key: "anxiety",
     title: "Calm anxiety",
-    blurb: "CBT-informed skills for working with worry, avoidance, and the anxiety cycle.",
+    blurb: "Practical CBT skills for when worry takes over and you start avoiding more and more.",
     videos: [
       {
         id: "anx-cycle",
@@ -49,7 +49,7 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
   {
     key: "ground",
     title: "Ground a hard moment",
-    blurb: "Short five-senses exercises to come back to the present during panic or overwhelm.",
+    blurb: "Quick five-senses exercises to pull yourself back into the room when panic spikes.",
     videos: [
       {
         id: "ground-543",
@@ -68,7 +68,7 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
   {
     key: "breathe",
     title: "Breathe",
-    blurb: "Follow-along breathwork to slow the body down before a session, message, or sleep.",
+    blurb: "Follow-along breathwork for when your body is racing and you need it to slow down.",
     videos: [
       {
         id: "breathe-box",
@@ -87,7 +87,7 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
   {
     key: "meditate",
     title: "Meditate",
-    blurb: "Beginner-friendly guided meditations for attention, stress, and a steadier mind.",
+    blurb: "Short guided meditations to steady your attention, gentle enough if you've never tried it.",
     videos: [
       {
         id: "med-beginner",
@@ -112,7 +112,7 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
   {
     key: "sleep",
     title: "Wind down for sleep",
-    blurb: "Longer guided sessions to quiet a busy mind and drift off.",
+    blurb: "Longer sessions to quiet a busy head and ease into sleep.",
     videos: [
       {
         id: "sleep-fast",
@@ -131,7 +131,7 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
   {
     key: "release",
     title: "Release tension",
-    blurb: "Progressive muscle relaxation to let physical stress drain out of the body.",
+    blurb: "Tense and release each muscle group, and feel the day drain out of your shoulders.",
     videos: [
       {
         id: "pmr-full",
@@ -150,7 +150,7 @@ export const VIDEO_CATEGORIES: VideoCategory[] = [
   {
     key: "understand",
     title: "Understand therapy",
-    blurb: "Short explainers on how CBT works, so the work with your therapist makes more sense.",
+    blurb: "Short, clear explainers on how CBT actually works, so your sessions land better.",
     videos: [
       {
         id: "cbt-what",

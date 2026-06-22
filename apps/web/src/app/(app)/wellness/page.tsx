@@ -6,21 +6,7 @@ import { PageHeader } from "@/components/app/page-header";
 import { VideoLibrary } from "@/components/wellness/video-library";
 import { BreathingGuide } from "@/components/wellness/breathing-guide";
 import { LearnModules } from "@/components/wellness/learn-modules";
-
-const practices = [
-  {
-    title: "Grounding scan",
-    body: "5 things you can see, 4 things you can feel, 3 sounds, 2 scents, 1 helpful next action.",
-  },
-  {
-    title: "Soft attention",
-    body: "Let attention rest on one neutral object. When it wanders, name that gently and return.",
-  },
-  {
-    title: "Thought defusion",
-    body: "Prefix a sticky thought with: I am noticing the thought that... Then write the next useful step.",
-  },
-];
+import { QuickPractices } from "@/components/wellness/quick-practices";
 
 type View = "watch" | "practice" | "learn" | "crisis";
 
@@ -38,7 +24,7 @@ export default function WellnessPage() {
     <div className="grid gap-8">
       <PageHeader
         title="Wellness"
-        sub="A library of guided videos, breathing, and CBT basics to watch, practice, and learn between sessions."
+        sub="A calm place to watch, breathe, and learn between sessions."
       />
 
       <div className="grid gap-2 sm:grid-cols-4">
@@ -73,16 +59,10 @@ export default function WellnessPage() {
           <section className="grid gap-4">
             <h2 className="text-xl">Quick practices</h2>
             <p className="max-w-prose text-sm text-muted-foreground">
-              Short grounding techniques you can run in under a minute, no setup needed.
+              Short, guided exercises you can actually do right now. Tap one to begin; most take a
+              minute or two.
             </p>
-            <div className="grid gap-6 md:grid-cols-3">
-              {practices.map((item) => (
-                <div key={item.title} className="border-t border-border pt-5">
-                  <h3 className="text-lg font-medium">{item.title}</h3>
-                  <p className="mt-3 text-sm leading-6 text-muted-foreground">{item.body}</p>
-                </div>
-              ))}
-            </div>
+            <QuickPractices />
           </section>
         </div>
       )}
