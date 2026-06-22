@@ -44,7 +44,7 @@ const content = {
       { title: "Stay connected", desc: "Share what matters with your therapist between sessions, securely." },
     ] as ValueProp[],
     howItWorks: [
-      { title: "Match", desc: "Tell us what you need and choose from CBT therapists matched to you." },
+      { title: "Connect", desc: "Invite your current therapist into Exhale, or complete the intake to find a CBT therapist who fits your needs." },
       { title: "Engage", desc: "Work through CBT homework sets and daily check-ins your therapist assigns." },
       { title: "Grow", desc: "Track your trends and bring clearer patterns into the next session." },
     ],
@@ -90,42 +90,40 @@ const content = {
 // Blueprint vignettes shown on the phone, one per step, swapped as the active step changes.
 const phoneScreens: Record<Role, React.ReactNode[]> = {
   patient: [
-    // Match: CBT-first matching from your needs
+    // Connect: use Exhale with your therapist, or find a CBT-first match.
     <>
-      <div className="ps-head">Find your CBT therapist</div>
+      <div className="ps-head">Set up your therapy workspace</div>
       <div className="ps-prefs">
-        <span className="on">CBT</span>
-        <span>Anxiety</span>
-        <span>Sleep</span>
-        <span>Evening sessions</span>
+        <span className="on">Already have a therapist</span>
+        <span>Find a CBT match</span>
       </div>
       <div className="ps-sub ps-why-head">
         <Sparkles size={11} strokeWidth={2} />
-        Why Lumen matched these three
+        Two ways to start
       </div>
       <ul className="ps-matches">
         <li>
           <span className="ps-avatar sm" />
           <div className="ps-mt">
-            <div className="ps-name">Dr. Amara Okafor</div>
-            <div className="ps-role">CBT · Anxiety</div>
-            <div className="ps-why">Anxiety focus, offers evening sessions</div>
+            <div className="ps-name">Invite your therapist</div>
+            <div className="ps-role">Use Exhale with your current therapist</div>
+            <div className="ps-why">Share reflections, homework, and check-ins with the therapist you already trust.</div>
           </div>
         </li>
         <li>
           <span className="ps-avatar sm" />
           <div className="ps-mt">
-            <div className="ps-name">Daniel Reyes</div>
-            <div className="ps-role">CBT-I · Sleep</div>
-            <div className="ps-why">CBT-I matched to your sleep goal</div>
+            <div className="ps-name">Find a CBT match</div>
+            <div className="ps-role">Guided intake when you need someone new</div>
+            <div className="ps-why">Tell us your needs and choose from therapists matched to your goals and schedule.</div>
           </div>
         </li>
         <li>
           <span className="ps-avatar sm" />
           <div className="ps-mt">
-            <div className="ps-name">Priya Nair</div>
-            <div className="ps-role">CBT · Stress</div>
-            <div className="ps-why">Stress and burnout, flexible weekly slots</div>
+            <div className="ps-name">Keep one workspace</div>
+            <div className="ps-role">Notes, mood, messages, sessions</div>
+            <div className="ps-why">Your between-session work stays organized either way.</div>
           </div>
         </li>
       </ul>
