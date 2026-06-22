@@ -13,6 +13,7 @@ const NAV: Record<"PATIENT" | "THERAPIST", { href: string; label: string }[]> = 
     { href: "/mood", label: "Mood" },
     { href: "/notes", label: "Reflections" },
     { href: "/messages", label: "Messages" },
+    { href: "/sessions", label: "Sessions" },
     { href: "/wellness", label: "Wellness" },
     { href: "/homework", label: "Homework" },
     { href: "/reports", label: "Reports" },

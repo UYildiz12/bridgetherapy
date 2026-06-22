@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   addSessionNote,
   createSession,
+  ensureSessionVideo,
+  fetchPatientSessions,
   fetchSession,
   fetchSessions,
   generateSessionSummary,
@@ -48,6 +50,17 @@ describe("sessions-client", () => {
     await expect(fetchSession("s1")).resolves.toMatchObject({ id: "s1" });
   });
 
+  it("fetchPatientSessions returns the patient data array", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(new Response(JSON.stringify({ data: [{ id: "s1" }] }), { status: 200 })),
+    );
+
+    const sessions = await fetchPatientSessions();
+
+    expect(sessions[0].id).toBe("s1");
+  });
+
   it("updateSession patches status", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(JSON.stringify({ data: { id: "s1", status: "COMPLETED" } }), { status: 200 }),
@@ -92,6 +105,20 @@ describe("sessions-client", () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       "/api/therapist/sessions/s1/summary",
+      expect.objectContaining({ method: "POST" }),
+    );
+  });
+
+  it("ensureSessionVideo posts to the video route", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ data: { id: "s1", videoRoomId: "exhale-room" } }), { status: 200 }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await ensureSessionVideo("s1");
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/therapist/sessions/s1/video",
       expect.objectContaining({ method: "POST" }),
     );
   });

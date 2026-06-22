@@ -1,9 +1,11 @@
 import { z } from "zod";
+import { randomUUID } from "node:crypto";
 import { prisma } from "@exhale/db";
 import { requireApprovedTherapist } from "@/lib/authz";
 import { json, withErrorHandling } from "@/lib/http";
 import { parseBody } from "@/lib/validation";
 import { sessionInclude, toSessionListItem } from "@/lib/sessions/server";
+import { VIDEO_PROVIDER } from "@/lib/video";
 
 const CreateSession = z.object({
   patientId: z.string().min(1),
@@ -54,6 +56,8 @@ export const POST = withErrorHandling(async (req: Request) => {
       patientId: parsed.data.patientId,
       scheduledAt: new Date(parsed.data.scheduledAt),
       status: "SCHEDULED",
+      videoProvider: VIDEO_PROVIDER,
+      videoRoomId: `exhale-${randomUUID().replaceAll("-", "")}`,
     },
     include: sessionInclude(therapistId),
   });

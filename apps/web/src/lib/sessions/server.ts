@@ -1,4 +1,5 @@
 import type { Prisma } from "@exhale/db";
+import { videoRoomUrl } from "@/lib/video";
 
 type UserLabel = { firstName: string; lastName: string; email: string };
 
@@ -53,6 +54,9 @@ export function toSessionListItem(session: SessionWithRelations) {
     startedAt: session.startedAt,
     endedAt: session.endedAt,
     status: session.status,
+    videoProvider: session.videoProvider,
+    videoRoomId: session.videoRoomId,
+    videoUrl: videoRoomUrl(session.videoProvider, session.videoRoomId),
     noteCount: session.notes.length,
     hasSummary: Boolean(session.summary),
   };

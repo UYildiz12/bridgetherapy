@@ -1,11 +1,13 @@
 "use client";
 import { useEffect, useState, type FormEvent } from "react";
 import { useParams } from "next/navigation";
-import { CheckCircle2, FileText, Sparkles } from "lucide-react";
+import { CheckCircle2, ExternalLink, FileText, Sparkles, Video } from "lucide-react";
+import { JitsiMeeting } from "@/components/sessions/jitsi-meeting";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   addSessionNote,
+  ensureSessionVideo,
   fetchSession,
   generateSessionSummary,
   updateSession,
@@ -31,6 +33,7 @@ export default function SessionDetailPage() {
   const [noteDraft, setNoteDraft] = useState("");
   const [savingNote, setSavingNote] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [creatingVideo, setCreatingVideo] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -66,6 +69,19 @@ export default function SessionDetailPage() {
       setError(err instanceof Error ? err.message : "Couldn't generate a summary.");
     } finally {
       setGenerating(false);
+    }
+  }
+
+  async function createVideoRoom() {
+    setCreatingVideo(true);
+    setError(null);
+    try {
+      const updated = await ensureSessionVideo(sessionId);
+      setSession(updated);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Couldn't create the video room.");
+    } finally {
+      setCreatingVideo(false);
     }
   }
 
@@ -108,7 +124,7 @@ export default function SessionDetailPage() {
               {session.patientName}
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground">
-              {formatSessionDate(session.scheduledAt)} · {session.patientEmail}
+              {formatSessionDate(session.scheduledAt)} - {session.patientEmail}
             </p>
           </div>
           <div className="self-end border-l border-border pl-6">
@@ -127,6 +143,52 @@ export default function SessionDetailPage() {
             </select>
           </div>
         </div>
+      </section>
+
+      <section className="grid gap-6 border-b border-border py-8 lg:grid-cols-[12rem_1fr]">
+        <div>
+          <div className="inline-flex items-center gap-2 text-sm font-medium">
+            <Video className="size-4" aria-hidden="true" />
+            Video room
+          </div>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            Free Jitsi room for this session. Use only when that setup is appropriate for the appointment.
+          </p>
+        </div>
+        {session.videoUrl && session.videoRoomId ? (
+          <div className="grid gap-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-medium text-foreground">Room ready</p>
+                <p className="mt-1 text-sm text-muted-foreground">Shareable room ID: {session.videoRoomId}</p>
+              </div>
+              <Button asChild className="w-full gap-2 sm:w-auto">
+                <a href={session.videoUrl} target="_blank" rel="noreferrer">
+                  <ExternalLink className="size-4" aria-hidden="true" />
+                  Join video
+                </a>
+              </Button>
+            </div>
+            <div className="hidden lg:block">
+              <JitsiMeeting
+                roomId={session.videoRoomId}
+                displayName={session.patientName}
+                email={session.patientEmail}
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="border-y border-dashed border-border py-8">
+            <p className="text-sm font-medium">No video room yet</p>
+            <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">
+              Create a free room for this session. New scheduled sessions get one automatically.
+            </p>
+            <Button type="button" className="mt-5 gap-2" onClick={createVideoRoom} disabled={creatingVideo}>
+              <Video className="size-4" aria-hidden="true" />
+              {creatingVideo ? "Creating..." : "Create free video room"}
+            </Button>
+          </div>
+        )}
       </section>
 
       <section className="grid gap-10 py-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(18rem,0.55fr)]">

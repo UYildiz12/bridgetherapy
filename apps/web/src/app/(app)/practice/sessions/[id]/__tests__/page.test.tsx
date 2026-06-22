@@ -4,12 +4,14 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 
 const {
   addSessionNote,
+  ensureSessionVideo,
   fetchSession,
   generateSessionSummary,
   updateSession,
   useParams,
 } = vi.hoisted(() => ({
   addSessionNote: vi.fn(),
+  ensureSessionVideo: vi.fn(),
   fetchSession: vi.fn(),
   generateSessionSummary: vi.fn(),
   updateSession: vi.fn(),
@@ -19,9 +21,13 @@ const {
 vi.mock("next/navigation", () => ({ useParams }));
 vi.mock("@/lib/sessions-client", () => ({
   addSessionNote,
+  ensureSessionVideo,
   fetchSession,
   generateSessionSummary,
   updateSession,
+}));
+vi.mock("@/components/sessions/jitsi-meeting", () => ({
+  JitsiMeeting: () => <div>Embedded video room</div>,
 }));
 
 import SessionDetailPage from "../page";
@@ -35,6 +41,9 @@ const DETAIL = {
   startedAt: null,
   endedAt: null,
   status: "SCHEDULED",
+  videoProvider: "jitsi",
+  videoRoomId: "exhale-room",
+  videoUrl: "https://meet.jit.si/exhale-room",
   notes: [],
   summary: null,
 };
@@ -44,6 +53,7 @@ describe("SessionDetailPage", () => {
     useParams.mockReturnValue({ id: "s1" });
     fetchSession.mockReset().mockResolvedValue(DETAIL);
     addSessionNote.mockReset();
+    ensureSessionVideo.mockReset();
     generateSessionSummary.mockReset();
     updateSession.mockReset();
   });
@@ -56,8 +66,39 @@ describe("SessionDetailPage", () => {
     await waitFor(() => screen.getByText(/sam lee/i));
 
     expect(screen.getByRole("textbox", { name: /session note/i })).toBeDefined();
+    expect(screen.getByRole("link", { name: /join video/i }).getAttribute("href")).toBe(
+      "https://meet.jit.si/exhale-room",
+    );
+    expect(screen.getByText(/embedded video room/i)).toBeDefined();
     const addButton = screen.getByRole("button", { name: /add note/i }) as HTMLButtonElement;
     expect(addButton.disabled).toBe(true);
+  });
+
+  it("creates a free video room when an older session does not have one", async () => {
+    fetchSession.mockResolvedValueOnce({
+      ...DETAIL,
+      videoProvider: null,
+      videoRoomId: null,
+      videoUrl: null,
+    });
+    ensureSessionVideo.mockResolvedValue({
+      ...DETAIL,
+      videoProvider: "jitsi",
+      videoRoomId: "exhale-new",
+      videoUrl: "https://meet.jit.si/exhale-new",
+    });
+
+    render(<SessionDetailPage />);
+    await waitFor(() => screen.getByText(/no video room yet/i));
+
+    fireEvent.click(screen.getByRole("button", { name: /create free video room/i }));
+
+    await waitFor(() => expect(ensureSessionVideo).toHaveBeenCalledWith("s1"));
+    await waitFor(() =>
+      expect(screen.getByRole("link", { name: /join video/i }).getAttribute("href")).toBe(
+        "https://meet.jit.si/exhale-new",
+      ),
+    );
   });
 
   it("adds a note and can generate a summary", async () => {

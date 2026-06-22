@@ -41,7 +41,12 @@ describe("TherapistSessionsPage", () => {
       patientName: "Sam Lee",
       patientEmail: "sam@example.com",
       scheduledAt: "2026-06-22T15:00:00.000Z",
+      startedAt: null,
+      endedAt: null,
       status: "SCHEDULED",
+      videoProvider: "jitsi",
+      videoRoomId: "exhale-room",
+      videoUrl: "https://meet.jit.si/exhale-room",
       noteCount: 0,
       hasSummary: false,
     });

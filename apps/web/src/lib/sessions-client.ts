@@ -18,6 +18,9 @@ export interface SessionListItem {
   startedAt: string | null;
   endedAt: string | null;
   status: SessionStatus;
+  videoProvider: string | null;
+  videoRoomId: string | null;
+  videoUrl: string | null;
   noteCount: number;
   hasSummary: boolean;
 }
@@ -32,6 +35,17 @@ export interface SessionNote {
 export interface SessionDetail extends SessionListItem {
   notes: SessionNote[];
   summary: SessionSummary | null;
+}
+
+export interface PatientSessionItem {
+  id: string;
+  scheduledAt: string;
+  startedAt: string | null;
+  endedAt: string | null;
+  status: SessionStatus;
+  videoProvider: string | null;
+  videoRoomId: string | null;
+  videoUrl: string | null;
 }
 
 async function getJson<T>(url: string): Promise<T> {
@@ -60,11 +74,13 @@ async function send<T>(url: string, method: "POST" | "PATCH", body?: unknown): P
 }
 
 export const fetchSessions = () => getJson<SessionListItem[]>("/api/therapist/sessions");
+export const fetchPatientSessions = () => getJson<PatientSessionItem[]>("/api/sessions");
 export const createSession = (body: { patientId: string; scheduledAt: string }) =>
   send<SessionListItem>("/api/therapist/sessions", "POST", body);
 export const fetchSession = (id: string) => getJson<SessionDetail>(`/api/therapist/sessions/${id}`);
 export const updateSession = (id: string, body: { status?: SessionStatus; scheduledAt?: string }) =>
   send<SessionDetail>(`/api/therapist/sessions/${id}`, "PATCH", body);
+export const ensureSessionVideo = (id: string) => send<SessionDetail>(`/api/therapist/sessions/${id}/video`, "POST");
 export const addSessionNote = (id: string, content: string) =>
   send<SessionNote>(`/api/therapist/sessions/${id}/notes`, "POST", { content });
 export const generateSessionSummary = (id: string) =>

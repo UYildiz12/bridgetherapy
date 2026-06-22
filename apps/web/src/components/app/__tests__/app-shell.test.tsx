@@ -27,6 +27,7 @@ describe("AppShell", () => {
 
     const mobileNav = screen.getByRole("navigation", { name: /mobile navigation/i });
     expect(within(mobileNav).getByRole("link", { name: "Reflections" }).getAttribute("aria-current")).toBe("page");
+    expect(within(mobileNav).getByRole("link", { name: "Sessions" }).getAttribute("href")).toBe("/sessions");
     expect(within(mobileNav).getByRole("link", { name: "Therapist" }).getAttribute("href")).toBe("/find");
     expect(screen.getByRole("button", { name: /close navigation menu/i }).getAttribute("aria-expanded")).toBe("true");
   });
