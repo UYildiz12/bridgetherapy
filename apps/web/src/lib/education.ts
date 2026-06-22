@@ -2,18 +2,22 @@ export const CBT_LOOP = [
   {
     label: "Situation",
     detail: "The concrete moment, place, or trigger you can describe without interpreting it.",
+    example: "A text from your manager: \"Can we talk later?\"",
   },
   {
     label: "Automatic thought",
     detail: "The fast meaning your mind attaches to the situation, often before you notice it.",
+    example: "\"I'm in trouble. I've done something wrong.\"",
   },
   {
     label: "Feeling and body signal",
     detail: "Emotion, intensity, and physical cues such as tension, heat, heaviness, or restlessness.",
+    example: "Anxiety 80/100, tight chest, stomach drop, can't focus.",
   },
   {
     label: "Response",
     detail: "What you do next: avoidance, checking, reassurance, reaching out, resting, or practicing a skill.",
+    example: "Re-read the text ten times, rehearse defenses, avoid replying.",
   },
 ];
 

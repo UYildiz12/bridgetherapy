@@ -6,26 +6,34 @@ import WellnessPage from "../page";
 describe("WellnessPage", () => {
   afterEach(cleanup);
 
-  it("opens with breathwork tools and switches breathing patterns", () => {
+  it("opens with a video library", () => {
     render(<WellnessPage />);
 
     expect(screen.getByRole("heading", { name: /wellness/i })).toBeDefined();
-    expect(screen.getByRole("heading", { name: /4-7-8 breathing/i })).toBeDefined();
-
-    fireEvent.click(screen.getByRole("button", { name: /box breathing/i }));
-
-    expect(screen.getByText(/4 seconds in/i)).toBeDefined();
-    expect(screen.getAllByText(/4 seconds hold/i).length).toBe(2);
+    expect(screen.getByRole("heading", { name: /calm anxiety/i })).toBeDefined();
+    expect(screen.getByText(/how to break the anxiety cycle/i)).toBeDefined();
   });
 
-  it("shows grounding and meditation support", () => {
+  it("shows guided breathing and switches breathing patterns", () => {
     render(<WellnessPage />);
 
-    fireEvent.click(screen.getByRole("button", { name: /meditation/i }));
+    fireEvent.click(screen.getByRole("button", { name: /practice/i }));
+    expect(screen.getByRole("heading", { name: /guided breathing/i })).toBeDefined();
 
-    expect(screen.getByText(/grounding scan/i)).toBeDefined();
-    expect(screen.getByText(/5 things you can see/i)).toBeDefined();
-    expect(screen.getByText(/soft attention/i)).toBeDefined();
+    fireEvent.click(screen.getByRole("button", { name: /4-7-8 breathing/i }));
+
+    expect(screen.getByText(/long exhale signals/i)).toBeDefined();
+    expect(screen.getByText(/Breathe out - 8s/i)).toBeDefined();
+  });
+
+  it("shows CBT learning support", () => {
+    render(<WellnessPage />);
+
+    fireEvent.click(screen.getByRole("button", { name: /learn/i }));
+
+    expect(screen.getByText(/the CBT loop/i)).toBeDefined();
+    expect(screen.getByText(/thinking traps/i)).toBeDefined();
+    expect(screen.getByText(/thought records/i)).toBeDefined();
   });
 
   it("shows crisis support with direct emergency and 988 options", () => {

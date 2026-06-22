@@ -3,9 +3,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { SignOutButton } from "./sign-out-button";
+import { AccountMenu } from "./account-menu";
 
 const NAV: Record<"PATIENT" | "THERAPIST", { href: string; label: string }[]> = {
   PATIENT: [
@@ -15,11 +15,9 @@ const NAV: Record<"PATIENT" | "THERAPIST", { href: string; label: string }[]> = 
     { href: "/messages", label: "Messages" },
     { href: "/sessions", label: "Sessions" },
     { href: "/wellness", label: "Wellness" },
-    { href: "/learn", label: "Learn" },
     { href: "/homework", label: "Homework" },
     { href: "/reports", label: "Reports" },
     { href: "/find", label: "Therapist" },
-    { href: "/settings", label: "Settings" },
   ],
   THERAPIST: [
     { href: "/dashboard", label: "Home" },
@@ -33,7 +31,6 @@ const NAV: Record<"PATIENT" | "THERAPIST", { href: string; label: string }[]> = 
     { href: "/practice/protocols", label: "Protocols" },
     { href: "/practice/assignments", label: "Assignments" },
     { href: "/reports", label: "Reports" },
-    { href: "/settings", label: "Settings" },
   ],
 };
 
@@ -93,24 +90,16 @@ export function AppShell({
             </Link>
             <nav
               aria-label="Primary navigation"
-              className="hidden max-w-[58vw] items-center gap-1 overflow-x-auto rounded-lg border border-border/70 bg-foreground/[0.025] p-1 lg:flex [&::-webkit-scrollbar]:hidden"
+              className="hidden items-center gap-1 overflow-x-auto rounded-lg border border-border/70 bg-foreground/[0.025] p-1 lg:flex [&::-webkit-scrollbar]:hidden"
               style={{ scrollbarWidth: "none" }}
             >
               {renderLinks("desktop")}
             </nav>
           </div>
           <div className="flex items-center gap-3">
-            <span className="flex items-center gap-2.5">
-              <Avatar size="lg">
-                <AvatarFallback className="bg-foreground/10 text-xs font-medium text-foreground">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
-              <span className="hidden text-sm text-muted-foreground md:inline">{display}</span>
-            </span>
-            <span className="hidden sm:inline-flex">
-              <SignOutButton />
-            </span>
+            <div className="hidden lg:block">
+              <AccountMenu display={display} initials={initials} email={email} />
+            </div>
             <Button
               type="button"
               variant="outline"
@@ -129,9 +118,23 @@ export function AppShell({
           <nav id="mobile-app-navigation" aria-label="Mobile navigation" className="border-t border-border lg:hidden">
             <div className="mx-auto grid max-w-6xl gap-1 px-4 py-3 sm:px-6">
               {renderLinks("mobile")}
-              <div className="mt-2 flex items-center justify-between gap-3 border-t border-border pt-3 sm:hidden">
-                <span className="min-w-0 truncate text-sm text-muted-foreground">{display}</span>
-                <SignOutButton />
+              <div className="mt-2 grid gap-1 border-t border-border pt-3">
+                <Link
+                  href="/settings"
+                  onClick={() => setMobileOpen(false)}
+                  aria-current={pathname.startsWith("/settings") ? "page" : undefined}
+                  className={`block rounded-md px-3 py-3 text-base transition-colors ${
+                    pathname.startsWith("/settings")
+                      ? "bg-accent text-foreground"
+                      : "text-muted-foreground hover:bg-accent/55 hover:text-foreground"
+                  }`}
+                >
+                  Settings
+                </Link>
+                <div className="flex items-center justify-between gap-3 px-3 pt-1">
+                  <span className="min-w-0 truncate text-sm text-muted-foreground">{display}</span>
+                  <SignOutButton />
+                </div>
               </div>
             </div>
           </nav>

@@ -28,8 +28,9 @@ describe("AppShell", () => {
     const mobileNav = screen.getByRole("navigation", { name: /mobile navigation/i });
     expect(within(mobileNav).getByRole("link", { name: "Reflections" }).getAttribute("aria-current")).toBe("page");
     expect(within(mobileNav).getByRole("link", { name: "Sessions" }).getAttribute("href")).toBe("/sessions");
-    expect(within(mobileNav).getByRole("link", { name: "Learn" }).getAttribute("href")).toBe("/learn");
+    expect(within(mobileNav).getByRole("link", { name: "Wellness" }).getAttribute("href")).toBe("/wellness");
     expect(within(mobileNav).getByRole("link", { name: "Therapist" }).getAttribute("href")).toBe("/find");
+    expect(within(mobileNav).getByRole("link", { name: "Settings" }).getAttribute("href")).toBe("/settings");
     expect(screen.getByRole("button", { name: /close navigation menu/i }).getAttribute("aria-expanded")).toBe("true");
   });
 
@@ -50,5 +51,19 @@ describe("AppShell", () => {
     expect(within(mobileNav).getByRole("link", { name: "Protocols" }).getAttribute("href")).toBe(
       "/practice/protocols",
     );
+  });
+
+  it("opens account actions from the desktop avatar menu", () => {
+    render(
+      <AppShell firstName="Mina" lastName="Kaya" email="mina@example.com" role="PATIENT">
+        <p>Patient content</p>
+      </AppShell>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /account menu/i }));
+
+    const menu = screen.getByRole("menu");
+    expect(within(menu).getByText("Mina Kaya")).toBeDefined();
+    expect(within(menu).getByRole("menuitem", { name: /settings/i }).getAttribute("href")).toBe("/settings");
   });
 });
