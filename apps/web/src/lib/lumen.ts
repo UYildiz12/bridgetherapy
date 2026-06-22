@@ -28,6 +28,49 @@ export interface LumenContext {
   recentMoods?: { score: number; tags: string[] }[];
 }
 
+const SUPPORTED_AUDIO_MIME_TYPES = new Set([
+  "audio/wav",
+  "audio/mp3",
+  "audio/aiff",
+  "audio/aac",
+  "audio/ogg",
+  "audio/flac",
+  "audio/mpeg",
+  "audio/m4a",
+  "audio/l16",
+  "audio/opus",
+  "audio/alaw",
+  "audio/mulaw",
+]);
+
+function baseMimeType(mimeType: string) {
+  return mimeType.split(";")[0].trim().toLowerCase();
+}
+
+function voiceNoteInput(voiceNote: NonNullable<LumenContext["voiceNote"]>) {
+  const originalMimeType = baseMimeType(voiceNote.mimeType);
+  const mimeType =
+    originalMimeType === "audio/x-wav"
+      ? "audio/wav"
+      : originalMimeType === "audio/x-m4a" || originalMimeType === "audio/mp4"
+        ? "audio/m4a"
+        : originalMimeType;
+
+  if (mimeType === "audio/webm" || mimeType === "video/webm") {
+    return {
+      type: "video" as const,
+      data: voiceNote.dataBase64,
+      mime_type: "video/webm",
+    };
+  }
+
+  return {
+    type: "audio" as const,
+    data: voiceNote.dataBase64,
+    mime_type: SUPPORTED_AUDIO_MIME_TYPES.has(mimeType) ? mimeType : originalMimeType,
+  };
+}
+
 const SYSTEM = `You are Lumen, a warm, grounded reflection companion inside Exhale, a CBT-based therapy app.
 
 Your role:
@@ -81,11 +124,7 @@ export async function askLumen(ctx: LumenContext, thread: LumenTurn[]): Promise<
   const interactionInput = ctx.voiceNote
     ? [
         { type: "text" as const, text: input },
-        {
-          type: "audio" as const,
-          data: ctx.voiceNote.dataBase64,
-          mime_type: ctx.voiceNote.mimeType,
-        },
+        voiceNoteInput(ctx.voiceNote),
       ]
     : input;
 

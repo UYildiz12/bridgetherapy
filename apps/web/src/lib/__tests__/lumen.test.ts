@@ -40,7 +40,7 @@ describe("lumen", () => {
     expect(reply).toBe("What feels most important to look at first?");
   });
 
-  it("sends an attached voice note to Gemini as audio input", async () => {
+  it("sends browser WebM voice notes to Gemini as WebM media input", async () => {
     genai.create.mockResolvedValue({ output_text: "What did you notice in your body while saying that?" });
 
     const { askLumen } = await import("../lumen");
@@ -57,7 +57,29 @@ describe("lumen", () => {
       expect.objectContaining({
         input: expect.arrayContaining([
           expect.objectContaining({ type: "text", text: expect.stringContaining("attached voice note") }),
-          { type: "audio", data: "AQID", mime_type: "audio/webm" },
+          { type: "video", data: "AQID", mime_type: "video/webm" },
+        ]),
+      }),
+    );
+  });
+
+  it("keeps supported audio voice notes as audio input", async () => {
+    genai.create.mockResolvedValue({ output_text: "What feels useful to name from the recording?" });
+
+    const { askLumen } = await import("../lumen");
+    await askLumen(
+      {
+        entryContent: "",
+        voiceNote: { mimeType: "audio/wav", dataBase64: "BAUG" },
+      },
+      [{ role: "USER", content: "Please help me reflect on the recording." }],
+    );
+
+    expect(genai.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        input: expect.arrayContaining([
+          expect.objectContaining({ type: "text" }),
+          { type: "audio", data: "BAUG", mime_type: "audio/wav" },
         ]),
       }),
     );
