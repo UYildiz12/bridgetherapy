@@ -313,7 +313,26 @@ export default function Home() {
   useEffect(() => {
     const pickActive = () => {
       const isMobile = window.matchMedia("(max-width: 860px)").matches;
-      const targetY = window.innerHeight * (isMobile ? 0.78 : 0.5);
+      if (isMobile) {
+        // The phone is pinned at the top. The active step is the topmost one still
+        // peeking out below it, so as soon as a step tucks behind the phone the next
+        // one takes over (rather than waiting for that next step to reach behind it).
+        const phone = document.querySelector(".how-phone-wrap");
+        const phoneBottom = phone
+          ? phone.getBoundingClientRect().bottom
+          : window.innerHeight * 0.6;
+        let best = stepRefs.current.length - 1;
+        for (let i = 0; i < stepRefs.current.length; i++) {
+          const el = stepRefs.current[i];
+          if (el && el.getBoundingClientRect().bottom > phoneBottom + 40) {
+            best = i;
+            break;
+          }
+        }
+        setActiveStep(best);
+        return;
+      }
+      const targetY = window.innerHeight * 0.5;
       let best = 0;
       let bestDist = Infinity;
       stepRefs.current.forEach((el, i) => {
