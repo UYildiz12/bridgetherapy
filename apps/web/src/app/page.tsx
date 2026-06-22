@@ -307,25 +307,33 @@ export default function Home() {
     setActiveStep(0);
   };
 
-  // Sync the phone screen to the active step. On mobile the phone is pinned at the
-  // top, so a step must become active in the visible band BELOW it (viewport center
-  // sits behind the phone there); on desktop it tracks the viewport center.
+  // Sync the phone to the step nearest a target line: viewport center on desktop,
+  // and lower on mobile (~78%) so the active step sits in the visible band BELOW the
+  // pinned phone rather than behind it.
   useEffect(() => {
-    const isMobile =
-      typeof window !== "undefined" && window.matchMedia("(max-width: 860px)").matches;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const idx = Number((entry.target as HTMLElement).dataset.step);
-            if (!Number.isNaN(idx)) setActiveStep(idx);
-          }
-        });
-      },
-      { rootMargin: isMobile ? "-76% 0px -18% 0px" : "-45% 0px -45% 0px", threshold: 0 },
-    );
-    stepRefs.current.forEach((el) => el && observer.observe(el));
-    return () => observer.disconnect();
+    const pickActive = () => {
+      const isMobile = window.matchMedia("(max-width: 860px)").matches;
+      const targetY = window.innerHeight * (isMobile ? 0.78 : 0.5);
+      let best = 0;
+      let bestDist = Infinity;
+      stepRefs.current.forEach((el, i) => {
+        if (!el) return;
+        const r = el.getBoundingClientRect();
+        const dist = Math.abs(r.top + r.height / 2 - targetY);
+        if (dist < bestDist) {
+          bestDist = dist;
+          best = i;
+        }
+      });
+      setActiveStep(best);
+    };
+    pickActive();
+    window.addEventListener("scroll", pickActive, { passive: true });
+    window.addEventListener("resize", pickActive);
+    return () => {
+      window.removeEventListener("scroll", pickActive);
+      window.removeEventListener("resize", pickActive);
+    };
   }, [role]);
 
   const toggleRitual = (index: number) => {
