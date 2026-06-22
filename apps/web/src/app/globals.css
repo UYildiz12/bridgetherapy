@@ -150,6 +150,10 @@
   z-index: 1;
 }
 
+.app-shell > header {
+  z-index: 40;
+}
+
 .app-shell h1,
 .app-shell h2 {
   font-family: var(--font-instrument-serif), serif;
