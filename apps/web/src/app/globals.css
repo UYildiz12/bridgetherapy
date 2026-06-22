@@ -244,4 +244,17 @@
   .cbt-flash {
     animation: cbt-flash 0.7s ease-out both;
   }
+
+  @keyframes bp-rotate {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* Slowly turning ring marks for the blueprint frame; the motif stays still. */
+  .bp-rotate {
+    animation: bp-rotate 80s linear infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
 }

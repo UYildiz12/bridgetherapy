@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { LESSONS, THINKING_TRAPS } from "@/lib/lessons";
 import { CbtLoop } from "./cbt-loop";
+import { BlueprintFrame } from "./blueprint-frame";
 
 const TRAP_ICONS: Record<string, LucideIcon> = {
   contrast: Contrast,
@@ -136,6 +137,14 @@ export function LearnModules() {
 
                 {open && (
                   <div className="grid gap-5 pb-7 sm:max-w-2xl">
+                    <BlueprintFrame className="mx-auto w-44 sm:w-52">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={`/illustrations/${lesson.id}.png`}
+                        alt=""
+                        className="h-auto w-full"
+                      />
+                    </BlueprintFrame>
                     {lesson.sections.map((s) => (
                       <div key={s.heading} className="grid gap-1.5">
                         <h5 className="text-sm font-medium text-foreground">{s.heading}</h5>
