@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { JITSI_DOMAIN } from "@/lib/video";
 
 type JitsiApi = { dispose: () => void };
+let jitsiScriptPromise: Promise<void> | null = null;
 
 declare global {
   interface Window {
@@ -22,17 +23,21 @@ declare global {
 }
 
 function loadJitsiScript() {
+  if (window.JitsiMeetExternalAPI) return Promise.resolve();
+  if (jitsiScriptPromise) return jitsiScriptPromise;
+
   const existing = document.getElementById("jitsi-external-api");
   if (existing) {
-    return existing.hasAttribute("data-loaded")
+    jitsiScriptPromise = existing.hasAttribute("data-loaded")
       ? Promise.resolve()
       : new Promise<void>((resolve, reject) => {
           existing.addEventListener("load", () => resolve(), { once: true });
           existing.addEventListener("error", () => reject(new Error("Jitsi failed to load.")), { once: true });
         });
+    return jitsiScriptPromise;
   }
 
-  return new Promise<void>((resolve, reject) => {
+  jitsiScriptPromise = new Promise<void>((resolve, reject) => {
     const script = document.createElement("script");
     script.id = "jitsi-external-api";
     script.src = `https://${JITSI_DOMAIN}/external_api.js`;
@@ -45,9 +50,18 @@ function loadJitsiScript() {
       },
       { once: true },
     );
-    script.addEventListener("error", () => reject(new Error("Jitsi failed to load.")), { once: true });
+    script.addEventListener(
+      "error",
+      () => {
+        script.remove();
+        jitsiScriptPromise = null;
+        reject(new Error("Jitsi failed to load."));
+      },
+      { once: true },
+    );
     document.body.appendChild(script);
   });
+  return jitsiScriptPromise;
 }
 
 export function JitsiMeeting({

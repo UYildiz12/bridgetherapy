@@ -12,5 +12,6 @@ export default defineConfig({
     environment: "node",
     include: ["src/**/*.test.{ts,tsx}"],
     clearMocks: true,
+    maxWorkers: 2,
   },
 });
