@@ -307,8 +307,12 @@ export default function Home() {
     setActiveStep(0);
   };
 
-  // Sync the phone screen to whichever step is nearest the viewport center.
+  // Sync the phone screen to the active step. On mobile the phone is pinned at the
+  // top, so a step must become active in the visible band BELOW it (viewport center
+  // sits behind the phone there); on desktop it tracks the viewport center.
   useEffect(() => {
+    const isMobile =
+      typeof window !== "undefined" && window.matchMedia("(max-width: 860px)").matches;
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -318,7 +322,7 @@ export default function Home() {
           }
         });
       },
-      { rootMargin: "-45% 0px -45% 0px", threshold: 0 },
+      { rootMargin: isMobile ? "-76% 0px -18% 0px" : "-45% 0px -45% 0px", threshold: 0 },
     );
     stepRefs.current.forEach((el) => el && observer.observe(el));
     return () => observer.disconnect();

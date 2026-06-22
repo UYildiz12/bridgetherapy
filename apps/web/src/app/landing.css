@@ -1318,6 +1318,10 @@
         top: 68px;
         z-index: 5;
         padding-bottom: 6px;
+        /* Opaque backing + soft fade so steps slip out of sight under the phone
+           instead of ghosting around it as they scroll. */
+        background: var(--paper);
+        box-shadow: 0 16px 16px 0 var(--paper);
     }
 
     .landing-page .phone {
@@ -1568,6 +1572,7 @@
 
     .landing-page .nav-actions {
         gap: 8px;
+        margin-right: -4px;
     }
 
     .landing-page .hero {
@@ -1575,7 +1580,7 @@
     }
 
     .landing-page .hero-copy h1 {
-        line-height: 1.13;
+        line-height: 1.18;
     }
 
     .landing-page .hero-visual {
