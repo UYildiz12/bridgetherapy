@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Settings } from "lucide-react";
+import { ChevronDown, Settings } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { SignOutButton } from "./sign-out-button";
 
@@ -40,14 +40,16 @@ export function AccountMenu({
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label="Account menu"
-        className="flex items-center rounded-full outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring/60"
+        aria-label={`${display} account menu`}
+        className="flex max-w-52 items-center gap-2 rounded-full border border-border/70 bg-foreground/[0.025] py-1 pl-1 pr-2 outline-none transition-colors hover:bg-accent/55 focus-visible:ring-2 focus-visible:ring-ring/60"
       >
         <Avatar size="lg">
           <AvatarFallback className="bg-foreground/10 text-xs font-medium text-foreground">
             {initials}
           </AvatarFallback>
         </Avatar>
+        <span className="hidden min-w-0 truncate text-sm text-muted-foreground xl:block">{display}</span>
+        <ChevronDown size={14} className="text-muted-foreground" aria-hidden />
       </button>
 
       {open && (
@@ -70,9 +72,11 @@ export function AccountMenu({
             >
               <Settings size={15} aria-hidden /> Settings
             </Link>
-            <div className="[&>button]:w-full [&>button]:justify-start [&>button]:px-3 [&>button]:text-muted-foreground [&>button]:hover:text-foreground">
-              <SignOutButton />
-            </div>
+            <SignOutButton
+              menuItem
+              onSignedOut={() => setOpen(false)}
+              className="w-full justify-start px-3 text-muted-foreground hover:text-foreground"
+            />
           </div>
         </div>
       )}

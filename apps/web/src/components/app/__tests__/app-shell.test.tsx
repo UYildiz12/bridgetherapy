@@ -3,16 +3,30 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { AppShell } from "../app-shell";
 
+const { push, refresh, replace, signOut } = vi.hoisted(() => ({
+  push: vi.fn(),
+  refresh: vi.fn(),
+  replace: vi.fn(),
+  signOut: vi.fn(),
+}));
+
 vi.mock("next/navigation", () => ({
   usePathname: () => "/notes",
   useRouter: () => ({
-    refresh: vi.fn(),
-    push: vi.fn(),
+    push,
+    refresh,
+    replace,
   }),
+}));
+vi.mock("@/lib/supabase/client", () => ({
+  createSupabaseBrowserClient: () => ({ auth: { signOut } }),
 }));
 
 describe("AppShell", () => {
-  afterEach(cleanup);
+  afterEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+  });
 
   it("opens patient navigation in a mobile dropdown", () => {
     render(
@@ -60,10 +74,26 @@ describe("AppShell", () => {
       </AppShell>,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /account menu/i }));
+    fireEvent.click(screen.getByRole("button", { name: /mina kaya account menu/i }));
 
     const menu = screen.getByRole("menu");
     expect(within(menu).getByText("Mina Kaya")).toBeDefined();
     expect(within(menu).getByRole("menuitem", { name: /settings/i }).getAttribute("href")).toBe("/settings");
+  });
+
+  it("signs out from the desktop account menu and redirects to login", async () => {
+    signOut.mockResolvedValue({ error: null });
+    render(
+      <AppShell firstName="Mina" lastName="Kaya" email="mina@example.com" role="PATIENT">
+        <p>Patient content</p>
+      </AppShell>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /mina kaya account menu/i }));
+    fireEvent.click(within(screen.getByRole("menu")).getByRole("menuitem", { name: /sign out/i }));
+
+    expect(signOut).toHaveBeenCalledTimes(1);
+    await vi.waitFor(() => expect(replace).toHaveBeenCalledWith("/login"));
+    expect(refresh).toHaveBeenCalledTimes(1);
   });
 });
