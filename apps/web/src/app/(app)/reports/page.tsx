@@ -46,26 +46,60 @@ export default function ReportsPage() {
       {!report && !error && <p className="text-sm text-muted-foreground">Loading progress report...</p>}
 
       {report?.role === "PATIENT" && (
-        <div className="grid gap-4 md:grid-cols-4">
-          {[
-            ["Mood average", formatMetric(report.mood.average)],
-            ["Mood change", formatMetric(report.mood.delta)],
-            ["Homework completion", formatMetric(report.homework.completionRate, "%")],
-            ["Reflections", String(report.reflections.total)],
-          ].map(([label, value]) => (
-            <section key={label} className="border-t border-border pt-4">
-              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{label}</p>
-              <p className="mt-2 text-2xl font-semibold tracking-tight">{value}</p>
-            </section>
-          ))}
-        </div>
+        <>
+          <div className="grid gap-4 md:grid-cols-5">
+            {[
+              ["Mood average", formatMetric(report.mood.average)],
+              ["Mood change", formatMetric(report.mood.delta)],
+              ["Homework completion", formatMetric(report.homework.completionRate, "%")],
+              ["Session attendance", formatMetric(report.sessions.attendanceRate, "%")],
+              ["Reflections", String(report.reflections.total)],
+            ].map(([label, value]) => (
+              <section key={label} className="border-t border-border pt-4">
+                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{label}</p>
+                <p className="mt-2 text-2xl font-semibold tracking-tight">{value}</p>
+              </section>
+            ))}
+          </div>
+
+          <section className="grid gap-5 border-y border-border py-5 md:grid-cols-[13rem_1fr]">
+            <div>
+              <h2 className="text-sm font-medium">Formal measures</h2>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                Self-report measures give session work a clearer baseline and trend.
+              </p>
+            </div>
+            <div className="divide-y divide-border">
+              {report.measures.map((measure) => (
+                <div key={measure.name} className="grid gap-3 py-4 first:pt-0 last:pb-0 sm:grid-cols-[1fr_7rem_7rem_8rem]">
+                  <div>
+                    <p className="font-medium">{measure.name}</p>
+                    <p className="text-sm text-muted-foreground">{measure.trend}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Current</p>
+                    <p className="mt-1 font-medium">{formatMetric(measure.current)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Baseline</p>
+                    <p className="mt-1 font-medium">{formatMetric(measure.baseline)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Change</p>
+                    <p className="mt-1 font-medium">{formatMetric(measure.changeFromBaseline)}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        </>
       )}
 
       {report?.role === "THERAPIST" && (
         <div className="divide-y divide-border border-y border-border">
           {report.patients.length === 0 && <p className="py-6 text-sm text-muted-foreground">No active patients yet.</p>}
           {report.patients.map((patient) => (
-            <section key={patient.patientId} className="grid gap-4 py-5 md:grid-cols-[1fr_10rem_10rem_10rem]">
+            <section key={patient.patientId} className="grid gap-4 py-5 md:grid-cols-[1fr_8rem_8rem_8rem_10rem]">
               <div>
                 <h2 className="font-medium tracking-tight">{patient.patientName}</h2>
                 <p className="text-sm text-muted-foreground">{patient.patientEmail}</p>
@@ -77,6 +111,14 @@ export default function ReportsPage() {
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Homework</p>
                 <p className="mt-1 font-medium">{patient.homeworkCompletionRate}%</p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Session</p>
+                <p className="mt-1 font-medium">{patient.sessionAttendanceRate}%</p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Measure</p>
+                <p className="mt-1 font-medium">{patient.measureTrend}</p>
               </div>
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />

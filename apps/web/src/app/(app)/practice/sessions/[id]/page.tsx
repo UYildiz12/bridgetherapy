@@ -1,20 +1,25 @@
 "use client";
 import { useEffect, useState, type FormEvent } from "react";
 import { useParams } from "next/navigation";
-import { CheckCircle2, ExternalLink, FileText, Sparkles, Video } from "lucide-react";
+import { CheckCircle2, ExternalLink, FileText, History, Sparkles, Video } from "lucide-react";
 import { JitsiMeeting } from "@/components/sessions/jitsi-meeting";
+import { SessionWhiteboard } from "@/components/sessions/session-whiteboard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   addSessionNote,
   ensureSessionVideo,
   fetchSession,
+  fetchTherapistSessionWorkspace,
   generateSessionSummary,
   updateSession,
+  updateTherapistSessionWorkspace,
   type SessionDetail,
   type SessionNote,
   type SessionStatus,
   type SessionSummary,
+  type SessionWorkspace,
+  type WhiteboardState,
 } from "@/lib/sessions-client";
 
 function formatSessionDate(value: string) {
@@ -30,16 +35,23 @@ export default function SessionDetailPage() {
   const params = useParams<{ id: string }>();
   const sessionId = Array.isArray(params.id) ? params.id[0] : params.id;
   const [session, setSession] = useState<SessionDetail | null>(null);
+  const [workspace, setWorkspace] = useState<SessionWorkspace | null>(null);
+  const [workspaceNoteDraft, setWorkspaceNoteDraft] = useState("");
   const [noteDraft, setNoteDraft] = useState("");
   const [savingNote, setSavingNote] = useState(false);
+  const [savingWorkspace, setSavingWorkspace] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [creatingVideo, setCreatingVideo] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchSession(sessionId)
-      .then(setSession)
+    Promise.all([fetchSession(sessionId), fetchTherapistSessionWorkspace(sessionId)])
+      .then(([sessionData, workspaceData]) => {
+        setSession(sessionData);
+        setWorkspace(workspaceData);
+        setWorkspaceNoteDraft(workspaceData.patientNote);
+      })
       .catch(() => setError("Couldn't load that session."));
   }, [sessionId]);
 
@@ -77,11 +89,38 @@ export default function SessionDetailPage() {
     setError(null);
     try {
       const updated = await ensureSessionVideo(sessionId);
-      setSession(updated);
+      setSession((prev) => (prev ? { ...updated, history: updated.history?.length ? updated.history : prev.history } : updated));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't create the video room.");
     } finally {
       setCreatingVideo(false);
+    }
+  }
+
+  async function saveWorkspaceNote() {
+    setSavingWorkspace(true);
+    setError(null);
+    try {
+      const updated = await updateTherapistSessionWorkspace(sessionId, { patientNote: workspaceNoteDraft });
+      setWorkspace(updated);
+      setWorkspaceNoteDraft(updated.patientNote);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Couldn't save the workspace note.");
+    } finally {
+      setSavingWorkspace(false);
+    }
+  }
+
+  async function saveWhiteboard(whiteboard: WhiteboardState) {
+    setSavingWorkspace(true);
+    setError(null);
+    try {
+      const updated = await updateTherapistSessionWorkspace(sessionId, { whiteboard });
+      setWorkspace(updated);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Couldn't save the whiteboard.");
+    } finally {
+      setSavingWorkspace(false);
     }
   }
 
@@ -90,7 +129,7 @@ export default function SessionDetailPage() {
     setError(null);
     try {
       const updated = await updateSession(sessionId, { status });
-      setSession(updated);
+      setSession((prev) => (prev ? { ...updated, history: updated.history?.length ? updated.history : prev.history } : updated));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't update the session.");
     } finally {
@@ -127,7 +166,7 @@ export default function SessionDetailPage() {
               {formatSessionDate(session.scheduledAt)} - {session.patientEmail}
             </p>
           </div>
-          <div className="self-end border-l border-border pl-6">
+          <div className="self-end lg:border-l lg:border-border lg:pl-6">
             <p className="text-sm text-muted-foreground">Status</p>
             <select
               className="mt-3 h-10 w-full border border-input bg-background px-3 text-sm"
@@ -190,6 +229,73 @@ export default function SessionDetailPage() {
           </div>
         )}
       </section>
+
+      <section className="grid gap-6 border-b border-border py-8 lg:grid-cols-[12rem_1fr]">
+        <div>
+          <div className="inline-flex items-center gap-2 text-sm font-medium">
+            <FileText className="size-4" aria-hidden="true" />
+            Shared workspace
+          </div>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            Patient-visible session note and whiteboard for agenda setting, diagrams, and homework planning.
+          </p>
+        </div>
+        <div className="grid gap-5">
+          <div className="grid gap-2">
+            <label htmlFor="patient-session-note" className="text-sm font-medium">
+              Patient session note
+            </label>
+            <textarea
+              id="patient-session-note"
+              aria-label="Patient session note"
+              className="min-h-28 w-full resize-y border border-input bg-background p-3 text-sm leading-6"
+              value={workspaceNoteDraft}
+              onChange={(e) => setWorkspaceNoteDraft(e.target.value)}
+              placeholder="Keep a patient-visible agenda note or between-session reminder here."
+            />
+            <Button
+              type="button"
+              className="w-fit gap-2"
+              onClick={saveWorkspaceNote}
+              disabled={savingWorkspace}
+            >
+              <CheckCircle2 className="size-4" aria-hidden="true" />
+              Save workspace note
+            </Button>
+          </div>
+          <SessionWhiteboard value={workspace?.whiteboard ?? { strokes: [] }} onSave={saveWhiteboard} />
+        </div>
+      </section>
+
+      {session.history.length > 0 && (
+        <section className="grid gap-6 border-b border-border py-8 lg:grid-cols-[12rem_1fr]">
+          <div>
+            <div className="inline-flex items-center gap-2 text-sm font-medium">
+              <History className="size-4" aria-hidden="true" />
+              Previous sessions
+            </div>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              Quick context from earlier sessions with this patient.
+            </p>
+          </div>
+          <div className="border-y border-border">
+            {session.history.map((previous) => (
+              <article key={previous.id} className="border-b border-border/70 py-4 last:border-b-0">
+                <p className="text-sm font-medium">
+                  {formatSessionDate(previous.scheduledAt)} - {previous.status.replaceAll("_", " ").toLowerCase()}
+                </p>
+                {previous.summary ? (
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{previous.summary.summary}</p>
+                ) : (
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    {previous.notes[0]?.content ?? "No previous notes captured."}
+                  </p>
+                )}
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="grid gap-10 py-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(18rem,0.55fr)]">
         <form onSubmit={addNote} className="relative border-l border-border pl-5 md:pl-8">

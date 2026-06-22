@@ -6,15 +6,19 @@ const {
   addSessionNote,
   ensureSessionVideo,
   fetchSession,
+  fetchTherapistSessionWorkspace,
   generateSessionSummary,
   updateSession,
+  updateTherapistSessionWorkspace,
   useParams,
 } = vi.hoisted(() => ({
   addSessionNote: vi.fn(),
   ensureSessionVideo: vi.fn(),
   fetchSession: vi.fn(),
+  fetchTherapistSessionWorkspace: vi.fn(),
   generateSessionSummary: vi.fn(),
   updateSession: vi.fn(),
+  updateTherapistSessionWorkspace: vi.fn(),
   useParams: vi.fn(),
 }));
 
@@ -23,11 +27,20 @@ vi.mock("@/lib/sessions-client", () => ({
   addSessionNote,
   ensureSessionVideo,
   fetchSession,
+  fetchTherapistSessionWorkspace,
   generateSessionSummary,
   updateSession,
+  updateTherapistSessionWorkspace,
 }));
 vi.mock("@/components/sessions/jitsi-meeting", () => ({
   JitsiMeeting: () => <div>Embedded video room</div>,
+}));
+vi.mock("@/components/sessions/session-whiteboard", () => ({
+  SessionWhiteboard: ({ onSave }: { onSave: (state: { strokes: unknown[] }) => void }) => (
+    <button type="button" onClick={() => onSave({ strokes: [] })}>
+      Save whiteboard
+    </button>
+  ),
 }));
 
 import SessionDetailPage from "../page";
@@ -44,6 +57,23 @@ const DETAIL = {
   videoProvider: "jitsi",
   videoRoomId: "exhale-room",
   videoUrl: "https://meet.jit.si/exhale-room",
+  history: [
+    {
+      id: "s0",
+      scheduledAt: "2026-06-15T15:00:00.000Z",
+      status: "COMPLETED",
+      noteCount: 1,
+      notes: [{ id: "n0", content: "Reviewed exposure hierarchy." }],
+      summary: {
+        id: "sum0",
+        sessionId: "s0",
+        summary: "Client reviewed exposure hierarchy.",
+        keyPoints: ["Avoidance dropped"],
+        nextSteps: ["Repeat step one"],
+        createdAt: "2026-06-15T16:00:00.000Z",
+      },
+    },
+  ],
   notes: [],
   summary: null,
 };
@@ -52,10 +82,26 @@ describe("SessionDetailPage", () => {
   beforeEach(() => {
     useParams.mockReturnValue({ id: "s1" });
     fetchSession.mockReset().mockResolvedValue(DETAIL);
+    fetchTherapistSessionWorkspace.mockReset().mockResolvedValue({
+      id: "sw1",
+      sessionId: "s1",
+      patientNote: "Patient wants to revisit homework.",
+      whiteboard: { strokes: [] },
+      createdAt: "2026-06-22T15:00:00.000Z",
+      updatedAt: "2026-06-22T15:05:00.000Z",
+    });
     addSessionNote.mockReset();
     ensureSessionVideo.mockReset();
     generateSessionSummary.mockReset();
     updateSession.mockReset();
+    updateTherapistSessionWorkspace.mockReset().mockResolvedValue({
+      id: "sw1",
+      sessionId: "s1",
+      patientNote: "Patient wants to revisit homework.",
+      whiteboard: { strokes: [] },
+      createdAt: "2026-06-22T15:00:00.000Z",
+      updatedAt: "2026-06-22T15:10:00.000Z",
+    });
   });
 
   afterEach(cleanup);
@@ -65,13 +111,41 @@ describe("SessionDetailPage", () => {
 
     await waitFor(() => screen.getByText(/sam lee/i));
 
-    expect(screen.getByRole("textbox", { name: /session note/i })).toBeDefined();
+    expect(screen.getByRole("textbox", { name: /^session note$/i })).toBeDefined();
     expect(screen.getByRole("link", { name: /join video/i }).getAttribute("href")).toBe(
       "https://meet.jit.si/exhale-room",
     );
     expect(screen.getByText(/embedded video room/i)).toBeDefined();
+    expect(screen.getByText(/previous sessions/i)).toBeDefined();
+    expect(screen.getByText(/client reviewed exposure hierarchy/i)).toBeDefined();
+    expect(screen.getByDisplayValue(/patient wants to revisit homework/i)).toBeDefined();
     const addButton = screen.getByRole("button", { name: /add note/i }) as HTMLButtonElement;
     expect(addButton.disabled).toBe(true);
+  });
+
+  it("saves therapist-visible workspace updates", async () => {
+    render(<SessionDetailPage />);
+    await waitFor(() => screen.getByDisplayValue(/patient wants to revisit homework/i));
+
+    fireEvent.change(screen.getByRole("textbox", { name: /patient session note/i }), {
+      target: { value: "Patient wants to revisit sleep homework." },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /save workspace note/i }));
+
+    await waitFor(() =>
+      expect(updateTherapistSessionWorkspace).toHaveBeenCalledWith(
+        "s1",
+        expect.objectContaining({ patientNote: "Patient wants to revisit sleep homework." }),
+      ),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /save whiteboard/i }));
+    await waitFor(() =>
+      expect(updateTherapistSessionWorkspace).toHaveBeenCalledWith(
+        "s1",
+        expect.objectContaining({ whiteboard: { strokes: [] } }),
+      ),
+    );
   });
 
   it("creates a free video room when an older session does not have one", async () => {
@@ -83,6 +157,7 @@ describe("SessionDetailPage", () => {
     });
     ensureSessionVideo.mockResolvedValue({
       ...DETAIL,
+      history: [],
       videoProvider: "jitsi",
       videoRoomId: "exhale-new",
       videoUrl: "https://meet.jit.si/exhale-new",
@@ -99,6 +174,7 @@ describe("SessionDetailPage", () => {
         "https://meet.jit.si/exhale-new",
       ),
     );
+    expect(screen.getByText(/client reviewed exposure hierarchy/i)).toBeDefined();
   });
 
   it("adds a note and can generate a summary", async () => {
@@ -120,7 +196,7 @@ describe("SessionDetailPage", () => {
     render(<SessionDetailPage />);
     await waitFor(() => screen.getByText(/sam lee/i));
 
-    fireEvent.change(screen.getByRole("textbox", { name: /session note/i }), {
+    fireEvent.change(screen.getByRole("textbox", { name: /^session note$/i }), {
       target: { value: "Client practiced grounding." },
     });
     fireEvent.click(screen.getByRole("button", { name: /add note/i }));

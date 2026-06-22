@@ -97,8 +97,14 @@
 
 .auth-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 12px;
+}
+
+@media (min-width: 420px) {
+  .auth-row {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .auth-field {

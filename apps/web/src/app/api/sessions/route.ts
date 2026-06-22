@@ -24,6 +24,7 @@ export const GET = withErrorHandling(async (req: Request) => {
       status: true,
       videoProvider: true,
       videoRoomId: true,
+      summary: true,
     },
   });
 

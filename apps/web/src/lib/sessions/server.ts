@@ -62,7 +62,21 @@ export function toSessionListItem(session: SessionWithRelations) {
   };
 }
 
-export function toSessionDetail(session: SessionWithRelations) {
+export function toSessionHistoryItem(session: SessionWithRelations) {
+  return {
+    id: session.id,
+    scheduledAt: session.scheduledAt,
+    status: session.status,
+    noteCount: session.notes.length,
+    notes: session.notes.slice(0, 3).map((note) => ({
+      id: note.id,
+      content: note.content,
+    })),
+    summary: summaryDto(session.summary),
+  };
+}
+
+export function toSessionDetail(session: SessionWithRelations, history: SessionWithRelations[] = []) {
   return {
     ...toSessionListItem(session),
     notes: session.notes.map((note) => ({
@@ -72,5 +86,6 @@ export function toSessionDetail(session: SessionWithRelations) {
       updatedAt: note.updatedAt,
     })),
     summary: summaryDto(session.summary),
+    history: history.map(toSessionHistoryItem),
   };
 }

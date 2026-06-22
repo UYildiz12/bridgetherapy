@@ -24,7 +24,23 @@ export const GET = withErrorHandling(async (req: Request, ctx: Ctx) => {
   });
 
   if (!session) return json({ error: "Session not found" }, 404);
-  return json({ data: toSessionDetail(session) }, 200);
+
+  const history = await prisma.session.findMany({
+    where: {
+      patientId: session.patientId,
+      id: { not: id },
+      patient: {
+        therapists: {
+          some: { therapistId, isActive: true, status: "ACTIVE" },
+        },
+      },
+    },
+    orderBy: { scheduledAt: "desc" },
+    take: 5,
+    include: sessionInclude(therapistId),
+  });
+
+  return json({ data: toSessionDetail(session, history) }, 200);
 });
 
 export const PATCH = withErrorHandling(async (req: Request, ctx: Ctx) => {

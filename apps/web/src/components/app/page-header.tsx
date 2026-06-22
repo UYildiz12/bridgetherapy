@@ -14,7 +14,7 @@ export function PageHeader({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex items-end justify-between gap-4 border-b border-border pb-5">
+    <div className="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-5">
       <div className="grid gap-1.5">
         <h1 className="text-3xl leading-tight">{title}</h1>
         {sub && <p className="max-w-prose text-sm text-muted-foreground">{sub}</p>}

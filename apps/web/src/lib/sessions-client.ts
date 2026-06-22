@@ -9,6 +9,23 @@ export interface SessionSummary {
   createdAt: string;
 }
 
+export interface WhiteboardState {
+  strokes: {
+    points: { x: number; y: number }[];
+    color: string;
+    size: number;
+  }[];
+}
+
+export interface SessionWorkspace {
+  id: string | null;
+  sessionId: string;
+  patientNote: string;
+  whiteboard: WhiteboardState;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
 export interface SessionListItem {
   id: string;
   patientId: string;
@@ -35,6 +52,16 @@ export interface SessionNote {
 export interface SessionDetail extends SessionListItem {
   notes: SessionNote[];
   summary: SessionSummary | null;
+  history: SessionHistoryItem[];
+}
+
+export interface SessionHistoryItem {
+  id: string;
+  scheduledAt: string;
+  status: SessionStatus;
+  noteCount: number;
+  notes: { id: string; content: string }[];
+  summary: SessionSummary | null;
 }
 
 export interface PatientSessionItem {
@@ -46,6 +73,7 @@ export interface PatientSessionItem {
   videoProvider: string | null;
   videoRoomId: string | null;
   videoUrl: string | null;
+  summary: SessionSummary | null;
 }
 
 async function getJson<T>(url: string): Promise<T> {
@@ -81,6 +109,17 @@ export const fetchSession = (id: string) => getJson<SessionDetail>(`/api/therapi
 export const updateSession = (id: string, body: { status?: SessionStatus; scheduledAt?: string }) =>
   send<SessionDetail>(`/api/therapist/sessions/${id}`, "PATCH", body);
 export const ensureSessionVideo = (id: string) => send<SessionDetail>(`/api/therapist/sessions/${id}/video`, "POST");
+export const fetchPatientSessionWorkspace = (id: string) => getJson<SessionWorkspace>(`/api/sessions/${id}/workspace`);
+export const updatePatientSessionWorkspace = (
+  id: string,
+  body: { patientNote?: string; whiteboard?: WhiteboardState },
+) => send<SessionWorkspace>(`/api/sessions/${id}/workspace`, "PATCH", body);
+export const fetchTherapistSessionWorkspace = (id: string) =>
+  getJson<SessionWorkspace>(`/api/therapist/sessions/${id}/workspace`);
+export const updateTherapistSessionWorkspace = (
+  id: string,
+  body: { patientNote?: string; whiteboard?: WhiteboardState },
+) => send<SessionWorkspace>(`/api/therapist/sessions/${id}/workspace`, "PATCH", body);
 export const addSessionNote = (id: string, content: string) =>
   send<SessionNote>(`/api/therapist/sessions/${id}/notes`, "POST", { content });
 export const generateSessionSummary = (id: string) =>

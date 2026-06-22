@@ -8,6 +8,8 @@ const sessionFindMany = vi.fn();
 const sessionFindFirst = vi.fn();
 const sessionCreate = vi.fn();
 const sessionUpdate = vi.fn();
+const sessionWorkspaceFindUnique = vi.fn();
+const sessionWorkspaceUpsert = vi.fn();
 const linkFindFirst = vi.fn();
 const noteCreate = vi.fn();
 
@@ -21,6 +23,10 @@ vi.mock("@exhale/db", () => ({
       findFirst: sessionFindFirst,
       create: sessionCreate,
       update: sessionUpdate,
+    },
+    sessionWorkspace: {
+      findUnique: sessionWorkspaceFindUnique,
+      upsert: sessionWorkspaceUpsert,
     },
     patientTherapist: { findFirst: linkFindFirst },
     sessionNote: { create: noteCreate },
@@ -163,7 +169,7 @@ describe("/api/therapist/sessions", () => {
 describe("/api/therapist/sessions/[id]", () => {
   beforeEach(() => {
     vi.resetModules();
-    [requireApprovedTherapist, sessionFindFirst, sessionUpdate].forEach((f) => f.mockReset());
+    [requireApprovedTherapist, sessionFindFirst, sessionFindMany, sessionUpdate].forEach((f) => f.mockReset());
   });
 
   it("GET returns 404 for sessions outside the active panel", async () => {
@@ -179,6 +185,64 @@ describe("/api/therapist/sessions/[id]", () => {
         where: expect.objectContaining({ id: "s1", ...linkedWhere }),
       }),
     );
+  });
+
+  it("GET includes previous session history for quick review", async () => {
+    requireApprovedTherapist.mockResolvedValue(okTherapist);
+    sessionFindFirst.mockResolvedValue({
+      id: "s1",
+      patientId: "pp1",
+      scheduledAt: new Date("2026-06-22T15:00:00.000Z"),
+      startedAt: null,
+      endedAt: null,
+      status: "SCHEDULED",
+      videoProvider: "jitsi",
+      videoRoomId: "exhale-room",
+      patient: { user: { firstName: "Sam", lastName: "Lee", email: "sam@example.com" } },
+      notes: [],
+      summary: null,
+    });
+    sessionFindMany.mockResolvedValue([
+      {
+        id: "s0",
+        patientId: "pp1",
+        scheduledAt: new Date("2026-06-15T15:00:00.000Z"),
+        startedAt: null,
+        endedAt: null,
+        status: "COMPLETED",
+        videoProvider: "jitsi",
+        videoRoomId: "exhale-previous",
+        patient: { user: { firstName: "Sam", lastName: "Lee", email: "sam@example.com" } },
+        notes: [{ id: "n0", content: "Reviewed exposure hierarchy.", createdAt: new Date(), updatedAt: new Date() }],
+        summary: {
+          id: "sum0",
+          sessionId: "s0",
+          summary: "Client reviewed exposure hierarchy.",
+          keyPoints: ["Avoidance dropped"],
+          nextSteps: ["Repeat step one"],
+          createdAt: new Date("2026-06-15T16:00:00.000Z"),
+        },
+      },
+    ]);
+
+    const { GET } = await import("../therapist/sessions/[id]/route");
+    const res = await GET(req("/api/therapist/sessions/s1"), ctx("s1"));
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(sessionFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ patientId: "pp1", id: { not: "s1" }, ...linkedWhere }),
+        orderBy: { scheduledAt: "desc" },
+        take: 5,
+      }),
+    );
+    expect(body.data.history[0]).toMatchObject({
+      id: "s0",
+      noteCount: 1,
+      notes: [{ content: "Reviewed exposure hierarchy." }],
+      summary: { summary: "Client reviewed exposure hierarchy." },
+    });
   });
 
   it("PATCH updates status only for linked sessions", async () => {
@@ -279,6 +343,67 @@ describe("/api/therapist/sessions/[id]/video", () => {
   });
 });
 
+describe("/api/therapist/sessions/[id]/workspace", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    [requireApprovedTherapist, sessionFindFirst, sessionWorkspaceFindUnique, sessionWorkspaceUpsert].forEach((f) =>
+      f.mockReset(),
+    );
+  });
+
+  it("PATCH saves whiteboard state for a linked therapist session", async () => {
+    requireApprovedTherapist.mockResolvedValue(okTherapist);
+    sessionFindFirst.mockResolvedValue({ id: "s1" });
+    sessionWorkspaceUpsert.mockResolvedValue({
+      id: "sw1",
+      sessionId: "s1",
+      patientNote: "Client wants to revisit exposure ladder.",
+      whiteboard: { strokes: [{ points: [{ x: 1, y: 2 }], color: "#111827", size: 3 }] },
+      createdAt: new Date("2026-06-22T15:00:00.000Z"),
+      updatedAt: new Date("2026-06-22T15:05:00.000Z"),
+    });
+
+    const { PATCH } = await import("../therapist/sessions/[id]/workspace/route");
+    const res = await PATCH(
+      req(
+        "/api/therapist/sessions/s1/workspace",
+        {
+          patientNote: "  Client wants to revisit exposure ladder.  ",
+          whiteboard: { strokes: [{ points: [{ x: 1, y: 2 }], color: "#111827", size: 3 }] },
+        },
+        "PATCH",
+      ),
+      ctx("s1"),
+    );
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(sessionFindFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ id: "s1", ...linkedWhere }),
+      }),
+    );
+    expect(sessionWorkspaceUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { sessionId: "s1" },
+        update: expect.objectContaining({
+          patientNote: "Client wants to revisit exposure ladder.",
+          whiteboard: expect.objectContaining({ strokes: expect.any(Array) }),
+        }),
+        create: expect.objectContaining({
+          sessionId: "s1",
+          patientNote: "Client wants to revisit exposure ladder.",
+        }),
+      }),
+    );
+    expect(body.data).toMatchObject({
+      sessionId: "s1",
+      patientNote: "Client wants to revisit exposure ladder.",
+      whiteboard: { strokes: [{ points: [{ x: 1, y: 2 }], color: "#111827", size: 3 }] },
+    });
+  });
+});
+
 describe("/api/therapist/sessions/[id]/notes", () => {
   beforeEach(() => {
     vi.resetModules();
@@ -342,6 +467,14 @@ describe("/api/sessions", () => {
         status: "SCHEDULED",
         videoProvider: "jitsi",
         videoRoomId: "exhale-room",
+        summary: {
+          id: "sum1",
+          sessionId: "s1",
+          summary: "Practice paced breathing before sleep.",
+          keyPoints: ["Breathing helped"],
+          nextSteps: ["Practice nightly"],
+          createdAt: new Date("2026-06-22T16:00:00.000Z"),
+        },
       },
     ]);
 
@@ -359,11 +492,68 @@ describe("/api/sessions", () => {
       expect.objectContaining({
         where: { patientId: "pp1" },
         orderBy: { scheduledAt: "desc" },
+        select: expect.objectContaining({ summary: true }),
       }),
     );
     expect(body.data[0]).toMatchObject({
       id: "s1",
       videoUrl: "https://meet.jit.si/exhale-room",
+      summary: { summary: "Practice paced breathing before sleep." },
     });
+  });
+});
+
+describe("/api/sessions/[id]/workspace", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    [getAuthUser, userFindUnique, sessionFindFirst, sessionWorkspaceFindUnique, sessionWorkspaceUpsert].forEach((f) =>
+      f.mockReset(),
+    );
+  });
+
+  it("PATCH saves a patient note and whiteboard only for the patient's own session", async () => {
+    getAuthUser.mockResolvedValue({ authId: "u1", email: "sam@example.com" });
+    userFindUnique.mockResolvedValue({ patientProfile: { id: "pp1" } });
+    sessionFindFirst.mockResolvedValue({ id: "s1" });
+    sessionWorkspaceUpsert.mockResolvedValue({
+      id: "sw1",
+      sessionId: "s1",
+      patientNote: "I want to remember the breathing plan.",
+      whiteboard: { strokes: [{ points: [{ x: 4, y: 8 }], color: "#0f766e", size: 4 }] },
+      createdAt: new Date("2026-06-22T15:00:00.000Z"),
+      updatedAt: new Date("2026-06-22T15:05:00.000Z"),
+    });
+
+    const { PATCH } = await import("../sessions/[id]/workspace/route");
+    const res = await PATCH(
+      req(
+        "/api/sessions/s1/workspace",
+        {
+          patientNote: "  I want to remember the breathing plan.  ",
+          whiteboard: { strokes: [{ points: [{ x: 4, y: 8 }], color: "#0f766e", size: 4 }] },
+        },
+        "PATCH",
+      ),
+      ctx("s1"),
+    );
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(sessionFindFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: "s1", patientId: "pp1" },
+        select: { id: true },
+      }),
+    );
+    expect(sessionWorkspaceUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { sessionId: "s1" },
+        update: expect.objectContaining({
+          patientNote: "I want to remember the breathing plan.",
+          whiteboard: expect.objectContaining({ strokes: expect.any(Array) }),
+        }),
+      }),
+    );
+    expect(body.data.patientNote).toBe("I want to remember the breathing plan.");
   });
 });

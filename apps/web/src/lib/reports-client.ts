@@ -14,6 +14,21 @@ export interface PatientProgressReport {
   };
   homework: { completed: number; total: number; completionRate: number };
   reflections: { total: number };
+  sessions: {
+    attended: number;
+    missed: number;
+    scheduled: number;
+    total: number;
+    attendanceRate: number;
+  };
+  measures: {
+    name: string;
+    current: number | null;
+    baseline: number | null;
+    average: number | null;
+    changeFromBaseline: number | null;
+    trend: string;
+  }[];
   exportRows: ExportRow[];
 }
 
@@ -24,6 +39,8 @@ export interface TherapistPatientProgress {
   moodAverage: number | null;
   moodDelta: number | null;
   homeworkCompletionRate: number;
+  sessionAttendanceRate: number;
+  measureTrend: string;
   reflectionCount: number;
 }
 

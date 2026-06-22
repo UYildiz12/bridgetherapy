@@ -474,7 +474,17 @@ export default function Home() {
                   ref={(el) => {
                     stepRefs.current[i] = el;
                   }}
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={activeStep === i}
                   onMouseEnter={() => setActiveStep(i)}
+                  onClick={() => setActiveStep(i)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setActiveStep(i);
+                    }
+                  }}
                 >
                   <span className="how-num">0{i + 1}</span>
                   <div className="how-step-body">

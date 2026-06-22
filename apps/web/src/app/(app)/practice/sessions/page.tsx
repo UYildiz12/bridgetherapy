@@ -74,7 +74,7 @@ export default function TherapistSessionsPage() {
               Schedule patient sessions, write therapist notes, and generate concise summaries.
             </p>
           </div>
-          <div className="self-end border-l border-border pl-6">
+          <div className="self-end lg:border-l lg:border-border lg:pl-6">
             <p className="text-5xl font-semibold tracking-tight">{upcomingCount}</p>
             <p className="mt-2 text-sm text-muted-foreground">Upcoming or active</p>
           </div>

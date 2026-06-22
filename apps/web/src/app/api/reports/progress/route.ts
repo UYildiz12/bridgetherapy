@@ -4,6 +4,7 @@ import { json, withErrorHandling } from "@/lib/http";
 
 type MoodPoint = { moodScore: number; createdAt: Date; tags?: string[] };
 type Assignment = { status: string };
+type SessionPoint = { status: string };
 type UserLabel = { firstName: string; lastName: string; email: string };
 
 function displayName(user: UserLabel) {
@@ -35,6 +36,44 @@ function homeworkSummary(assignments: Assignment[]) {
   };
 }
 
+function sessionSummary(sessions: SessionPoint[]) {
+  const total = sessions.length;
+  const attended = sessions.filter((session) => session.status === "COMPLETED" || session.status === "IN_PROGRESS").length;
+  const missed = sessions.filter((session) => session.status === "NO_SHOW").length;
+  const scheduled = sessions.filter((session) => session.status === "SCHEDULED").length;
+
+  return {
+    attended,
+    missed,
+    scheduled,
+    total,
+    attendanceRate: total ? Math.round((attended / total) * 100) : 0,
+  };
+}
+
+function trendLabel(delta: number | null) {
+  if (delta === null) return "Needs more data";
+  if (delta > 0) return "Improving";
+  if (delta < 0) return "Declining";
+  return "Stable";
+}
+
+function measureSummary(mood: ReturnType<typeof moodSummary>) {
+  const baseline = mood.entries.at(0)?.moodScore ?? null;
+  const changeFromBaseline = mood.current !== null && baseline !== null ? round1(mood.current - baseline) : null;
+
+  return [
+    {
+      name: "Daily mood rating",
+      current: mood.current,
+      baseline,
+      average: mood.average,
+      changeFromBaseline,
+      trend: trendLabel(changeFromBaseline),
+    },
+  ];
+}
+
 export const GET = withErrorHandling(async (req: Request) => {
   const auth = await getAuthUser(req);
   if (!auth) return json({ error: "Unauthorized" }, 401);
@@ -52,7 +91,7 @@ export const GET = withErrorHandling(async (req: Request) => {
 
   if (user.role === "PATIENT" && user.patientProfile) {
     const patientId = user.patientProfile.id;
-    const [moods, assignments, reflectionCount] = await Promise.all([
+    const [moods, assignments, reflectionCount, sessions] = await Promise.all([
       prisma.moodEntry.findMany({
         where: { patientId },
         orderBy: { createdAt: "asc" },
@@ -64,9 +103,15 @@ export const GET = withErrorHandling(async (req: Request) => {
         select: { status: true },
       }),
       prisma.patientNote.count({ where: { patientId } }),
+      prisma.session.findMany({
+        where: { patientId },
+        select: { status: true },
+      }),
     ]);
     const mood = moodSummary(moods);
     const homework = homeworkSummary(assignments);
+    const session = sessionSummary(sessions);
+    const measures = measureSummary(mood);
     return json(
       {
         data: {
@@ -74,11 +119,18 @@ export const GET = withErrorHandling(async (req: Request) => {
           mood,
           homework,
           reflections: { total: reflectionCount },
+          sessions: session,
+          measures,
           exportRows: [
             { metric: "Mood average", value: mood.average === null ? "n/a" : String(mood.average) },
             { metric: "Mood change", value: mood.delta === null ? "n/a" : String(mood.delta) },
             { metric: "Homework completion", value: `${homework.completionRate}%` },
             { metric: "Reflections", value: String(reflectionCount) },
+            { metric: "Session attendance", value: `${session.attendanceRate}%` },
+            {
+              metric: "Daily mood rating change",
+              value: measures[0].changeFromBaseline === null ? "n/a" : String(measures[0].changeFromBaseline),
+            },
           ],
         },
       },
@@ -101,6 +153,7 @@ export const GET = withErrorHandling(async (req: Request) => {
               select: { moodScore: true, createdAt: true },
             },
             homeworkAssignments: { select: { status: true } },
+            sessions: { select: { status: true } },
             _count: { select: { patientNotes: true } },
           },
         },
@@ -110,6 +163,8 @@ export const GET = withErrorHandling(async (req: Request) => {
     const patients = links.map((link) => {
       const mood = moodSummary(link.patient.moodEntries);
       const homework = homeworkSummary(link.patient.homeworkAssignments);
+      const sessions = sessionSummary(link.patient.sessions);
+      const measures = measureSummary(mood);
       return {
         patientId: link.patient.id,
         patientName: displayName(link.patient.user),
@@ -117,6 +172,8 @@ export const GET = withErrorHandling(async (req: Request) => {
         moodAverage: mood.average,
         moodDelta: mood.delta,
         homeworkCompletionRate: homework.completionRate,
+        sessionAttendanceRate: sessions.attendanceRate,
+        measureTrend: measures[0].trend,
         reflectionCount: link.patient._count.patientNotes,
       };
     });

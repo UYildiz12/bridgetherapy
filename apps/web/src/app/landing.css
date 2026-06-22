@@ -36,7 +36,7 @@
         repeating-linear-gradient(0deg, var(--grid-major) 0 1px, transparent 1px 180px),
         radial-gradient(900px 520px at 80% -10%, #08090d 0%, transparent 60%),
         linear-gradient(180deg, #050608 0%, #0a0b0f 100%);
-    overflow-x: hidden;
+    overflow-x: clip;
     min-height: 100vh;
     position: relative;
 }
@@ -1049,7 +1049,14 @@
     padding: 32px 20px;
     border-radius: 16px;
     opacity: 0.42;
+    cursor: pointer;
     transition: opacity 0.4s ease, background 0.4s ease;
+    outline: none;
+}
+
+.landing-page .how-step:focus-visible {
+    outline: 1px solid var(--line-strong);
+    outline-offset: 2px;
 }
 
 .landing-page .how-step.active {
@@ -1314,11 +1321,17 @@
     }
 
     .landing-page .phone {
-        width: 208px;
+        width: 236px;
+    }
+
+    /* Tighter inner padding on mobile shows more of the screen vignette. */
+    .landing-page .phone-screen-inner {
+        padding: 26px 18px 16px;
+        gap: 11px;
     }
 
     .landing-page .how-step {
-        padding: 20px 4px;
+        padding: 18px 4px;
         border-bottom: 1px solid var(--line);
         border-radius: 0;
         opacity: 0.45;
@@ -1559,6 +1572,10 @@
 
     .landing-page .hero {
         padding-top: 40px;
+    }
+
+    .landing-page .hero-copy h1 {
+        line-height: 1.13;
     }
 
     .landing-page .hero-visual {

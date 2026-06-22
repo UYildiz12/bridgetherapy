@@ -58,4 +58,26 @@ describe("SettingsPage", () => {
     expect(screen.getByText(/reflections stay private/i)).toBeDefined();
     expect(screen.getByText(/crisis tools are not a substitute/i)).toBeDefined();
   });
+
+  it("lets therapists set their urgent access preference locally", async () => {
+    fetchAccountSettings.mockResolvedValue({
+      id: "u2",
+      email: "dr@example.com",
+      firstName: "Dr",
+      lastName: "Can",
+      role: "THERAPIST",
+      isActive: true,
+      createdAt: "2026-06-21T00:00:00.000Z",
+      updatedAt: "2026-06-21T00:00:00.000Z",
+    });
+
+    render(<SettingsPage />);
+    await waitFor(() => screen.getByText("dr@example.com"));
+
+    const select = screen.getByLabelText(/urgent access preference/i) as HTMLSelectElement;
+    fireEvent.change(select, { target: { value: "sameDay" } });
+
+    expect(select.value).toBe("sameDay");
+    expect(localStorage.getItem("exhale.settings.urgentAccessPreference")).toBe("sameDay");
+  });
 });

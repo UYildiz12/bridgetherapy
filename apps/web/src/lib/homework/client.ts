@@ -57,6 +57,15 @@ export interface ReviewDetail {
   patientName: string;
 }
 
+export interface HomeworkSetDraft {
+  title: string;
+  description?: string;
+  content: HomeworkSetContent;
+  model?: string;
+  reviewRequired: boolean;
+  guidance?: string;
+}
+
 async function getJson<T>(url: string): Promise<T> {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`GET ${url} failed: ${res.status}`);
@@ -102,6 +111,8 @@ export const createSet = (body: {
   description?: string;
   content: HomeworkSetContent;
 }) => send<HomeworkSet>("/api/therapist/homework", "POST", body);
+export const draftSetWithAI = (body: { prompt: string; patientContext?: string }) =>
+  send<HomeworkSetDraft>("/api/therapist/homework/draft", "POST", body);
 export const updateSet = (
   id: string,
   body: { title?: string; description?: string; content?: HomeworkSetContent },

@@ -2,9 +2,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { WandSparkles } from "lucide-react";
 import type { HomeworkItem, ItemKind } from "@/lib/homework/schema";
 import { ITEM_KINDS, ITEM_KIND_LABELS } from "@/lib/homework/schema";
-import { createSet } from "@/lib/homework/client";
+import { createSet, draftSetWithAI } from "@/lib/homework/client";
 import { ItemEditor } from "@/components/homework/item-editor";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,6 +35,9 @@ export default function NewSetPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [items, setItems] = useState<HomeworkItem[]>([]);
+  const [draftPrompt, setDraftPrompt] = useState("");
+  const [draftNotice, setDraftNotice] = useState<string | null>(null);
+  const [drafting, setDrafting] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,6 +53,27 @@ export default function NewSetPage() {
       [next[i], next[j]] = [next[j], next[i]];
       return next;
     });
+
+  async function draftWithAI() {
+    setError(null);
+    setDraftNotice(null);
+    if (draftPrompt.trim().length < 12) return setError("Describe the homework you want to draft.");
+    setDrafting(true);
+    try {
+      const draft = await draftSetWithAI({
+        prompt: draftPrompt.trim(),
+        patientContext: description.trim() || undefined,
+      });
+      setTitle(draft.title);
+      setDescription(draft.description ?? "");
+      setItems(draft.content.items);
+      setDraftNotice(draft.guidance ?? "Therapist review required before assigning this set.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Couldn't draft the set.");
+    } finally {
+      setDrafting(false);
+    }
+  }
 
   async function save() {
     setError(null);
@@ -79,6 +104,26 @@ export default function NewSetPage() {
         <h1 className="mt-2 text-2xl font-semibold">New homework set</h1>
         <p className="text-sm text-muted-foreground">Compose a set of items. A set can mix any kinds.</p>
       </div>
+
+      <section className="grid gap-4 border-y border-border py-5">
+        <div className="grid gap-2">
+          <Label htmlFor="draft-brief">Draft brief</Label>
+          <textarea
+            id="draft-brief"
+            value={draftPrompt}
+            onChange={(e) => setDraftPrompt(e.target.value)}
+            className="min-h-28 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+            placeholder="Example: Create a CBT thought-record practice for panic before driving."
+          />
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <Button type="button" variant="outline" onClick={draftWithAI} disabled={drafting}>
+            <WandSparkles className="h-4 w-4" aria-hidden="true" />
+            {drafting ? "Drafting..." : "Draft with AI"}
+          </Button>
+          {draftNotice && <p className="text-sm text-muted-foreground">{draftNotice}</p>}
+        </div>
+      </section>
 
       <Card>
         <CardContent className="grid gap-4 pt-6">

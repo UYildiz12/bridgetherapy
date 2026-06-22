@@ -4,10 +4,14 @@ import {
   createSession,
   ensureSessionVideo,
   fetchPatientSessions,
+  fetchPatientSessionWorkspace,
   fetchSession,
   fetchSessions,
+  fetchTherapistSessionWorkspace,
   generateSessionSummary,
   updateSession,
+  updatePatientSessionWorkspace,
+  updateTherapistSessionWorkspace,
 } from "../sessions-client";
 
 describe("sessions-client", () => {
@@ -120,6 +124,70 @@ describe("sessions-client", () => {
     expect(fetchMock).toHaveBeenCalledWith(
       "/api/therapist/sessions/s1/video",
       expect.objectContaining({ method: "POST" }),
+    );
+  });
+
+  it("reads and updates patient session workspace", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ data: { sessionId: "s1", patientNote: "Remember breathing." } }), {
+          status: 200,
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ data: { sessionId: "s1", patientNote: "Practice breathing." } }), {
+          status: 200,
+        }),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(fetchPatientSessionWorkspace("s1")).resolves.toMatchObject({ patientNote: "Remember breathing." });
+    await updatePatientSessionWorkspace("s1", {
+      patientNote: "Practice breathing.",
+      whiteboard: { strokes: [] },
+    });
+
+    expect(fetchMock).toHaveBeenNthCalledWith(1, "/api/sessions/s1/workspace");
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      "/api/sessions/s1/workspace",
+      expect.objectContaining({
+        method: "PATCH",
+        body: JSON.stringify({ patientNote: "Practice breathing.", whiteboard: { strokes: [] } }),
+      }),
+    );
+  });
+
+  it("reads and updates therapist session workspace", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ data: { sessionId: "s1", patientNote: "Exposure ladder." } }), {
+          status: 200,
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ data: { sessionId: "s1", patientNote: "Updated ladder." } }), {
+          status: 200,
+        }),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(fetchTherapistSessionWorkspace("s1")).resolves.toMatchObject({ patientNote: "Exposure ladder." });
+    await updateTherapistSessionWorkspace("s1", {
+      patientNote: "Updated ladder.",
+      whiteboard: { strokes: [] },
+    });
+
+    expect(fetchMock).toHaveBeenNthCalledWith(1, "/api/therapist/sessions/s1/workspace");
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      "/api/therapist/sessions/s1/workspace",
+      expect.objectContaining({
+        method: "PATCH",
+        body: JSON.stringify({ patientNote: "Updated ladder.", whiteboard: { strokes: [] } }),
+      }),
     );
   });
 });
