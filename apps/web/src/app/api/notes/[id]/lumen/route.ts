@@ -4,6 +4,7 @@ import { requirePatient } from "@/lib/patient";
 import { json, withErrorHandling } from "@/lib/http";
 import { parseBody } from "@/lib/validation";
 import { askLumen, lumenConfigured } from "@/lib/lumen";
+import { downloadMedia } from "@/lib/storage";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -14,8 +15,22 @@ const SendMessage = z.object({
 async function ownedNote(patientId: string, id: string) {
   return prisma.patientNote.findFirst({
     where: { id, patientId },
-    select: { id: true, title: true, content: true },
+    select: { id: true, title: true, content: true, voiceMediaId: true },
   });
+}
+
+async function voiceContext(voiceMediaId: string | null, userId: string) {
+  if (!voiceMediaId) return undefined;
+  const media = await prisma.media.findFirst({
+    where: { id: voiceMediaId, uploaderId: userId, type: "VOICE_NOTE" },
+    select: { s3Key: true, mimeType: true },
+  });
+  if (!media) return undefined;
+  const bytes = await downloadMedia(media.s3Key);
+  return {
+    mimeType: media.mimeType,
+    dataBase64: Buffer.from(bytes).toString("base64"),
+  };
 }
 
 export const GET = withErrorHandling(async (req: Request, ctx: Ctx) => {
@@ -73,6 +88,7 @@ export const POST = withErrorHandling(async (req: Request, ctx: Ctx) => {
       {
         entryTitle: note.title,
         entryContent: note.content,
+        voiceNote: await voiceContext(note.voiceMediaId, p.userId),
         concerns: profile?.concerns ?? [],
         recentMoods: moods.map((m) => ({ score: m.moodScore, tags: m.tags })),
       },

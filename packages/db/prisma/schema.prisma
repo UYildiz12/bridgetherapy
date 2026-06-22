@@ -261,6 +261,7 @@ model PatientNote {
   patient     PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
   title       String?
   content     String
+  voiceMediaId String?
   visibility  NoteVisibility @default(PRIVATE)
   sharedAt    DateTime?      // first time this entry was shared with the therapist
   lumenMessages LumenMessage[]

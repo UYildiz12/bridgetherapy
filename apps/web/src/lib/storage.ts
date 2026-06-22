@@ -38,3 +38,9 @@ export async function signedMediaUrl(path: string, expiresIn = 120): Promise<str
   if (error || !data) throw error ?? new Error("Could not sign media URL");
   return data.signedUrl;
 }
+
+export async function downloadMedia(path: string): Promise<Uint8Array> {
+  const { data, error } = await supabaseAdmin().storage.from(BUCKET).download(path);
+  if (error || !data) throw error ?? new Error("Could not download media");
+  return new Uint8Array(await data.arrayBuffer());
+}

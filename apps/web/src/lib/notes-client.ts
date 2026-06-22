@@ -5,6 +5,7 @@ export interface JournalEntry {
   id: string;
   title: string | null;
   content: string;
+  voiceMediaId: string | null;
   visibility: NoteVisibility;
   sharedAt: string | null;
   lumenCount: number;
@@ -20,6 +21,7 @@ export interface SharedEntry {
   patientEmail: string;
   title: string | null;
   content: string;
+  voiceMediaId: string | null;
   sharedAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -66,11 +68,11 @@ async function send<T>(
 
 // Patient workspace
 export const fetchEntries = () => getJson<JournalEntry[]>("/api/notes");
-export const createEntry = (input: { title?: string; content: string }) =>
+export const createEntry = (input: { title?: string; content: string; voiceMediaId?: string }) =>
   send<JournalEntry>("/api/notes", "POST", input);
 export const updateEntry = (
   id: string,
-  patch: { title?: string | null; content?: string; visibility?: NoteVisibility },
+  patch: { title?: string | null; content?: string; voiceMediaId?: string | null; visibility?: NoteVisibility },
 ) => send<JournalEntry>(`/api/notes/${id}`, "PATCH", patch);
 export const deleteEntry = (id: string) => send<{ id: string }>(`/api/notes/${id}`, "DELETE");
 

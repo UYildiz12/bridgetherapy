@@ -23,6 +23,7 @@ export interface LumenTurn {
 export interface LumenContext {
   entryTitle?: string | null;
   entryContent: string;
+  voiceNote?: { mimeType: string; dataBase64: string };
   concerns?: string[];
   recentMoods?: { score: number; tags: string[] }[];
 }
@@ -53,6 +54,9 @@ export async function askLumen(ctx: LumenContext, thread: LumenTurn[]): Promise<
   const contextBlock = [
     ctx.entryTitle ? `Entry title: ${ctx.entryTitle}` : null,
     `The entry I am reflecting on:\n${ctx.entryContent || "(still blank)"}`,
+    ctx.voiceNote
+      ? "The reflection also includes an attached voice note. Listen to the audio and use it as part of the reflection context."
+      : null,
     ctx.concerns?.length ? `Focus areas from my intake: ${ctx.concerns.join(", ")}.` : null,
     ctx.recentMoods?.length
       ? `My recent mood check-ins: ${ctx.recentMoods
@@ -74,10 +78,21 @@ export async function askLumen(ctx: LumenContext, thread: LumenTurn[]): Promise<
     .filter(Boolean)
     .join("\n\n");
 
+  const interactionInput = ctx.voiceNote
+    ? [
+        { type: "text" as const, text: input },
+        {
+          type: "audio" as const,
+          data: ctx.voiceNote.dataBase64,
+          mime_type: ctx.voiceNote.mimeType,
+        },
+      ]
+    : input;
+
   const ai = new GoogleGenAI({ apiKey });
   const interaction = await ai.interactions.create({
     model: MODEL,
-    input,
+    input: interactionInput,
     system_instruction: SYSTEM,
     response_modalities: ["text"],
     generation_config: {

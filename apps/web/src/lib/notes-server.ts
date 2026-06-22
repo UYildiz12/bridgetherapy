@@ -5,6 +5,7 @@ export interface NoteRow {
   id: string;
   title: string | null;
   content: string;
+  voiceMediaId: string | null;
   visibility: string;
   sharedAt: Date | null;
   createdAt: Date;
@@ -18,6 +19,7 @@ export function serializeNote(n: NoteRow) {
     id: n.id,
     title: n.title,
     content: n.content,
+    voiceMediaId: n.voiceMediaId,
     visibility: n.visibility,
     sharedAt: n.sharedAt,
     lumenCount: n._count.lumenMessages,

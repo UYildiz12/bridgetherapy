@@ -22,6 +22,14 @@ vi.mock("@/lib/notes-client", () => ({
   sendLumen,
 }));
 
+vi.mock("@/components/homework/voice-recorder", () => ({
+  VoiceRecorder: ({ onChange }: { onChange: (mediaId: string) => void }) => (
+    <button type="button" onClick={() => onChange("voice-1")}>
+      Record voice
+    </button>
+  ),
+}));
+
 import NotesPage from "../page";
 
 describe("NotesPage (reflections workspace)", () => {
@@ -42,6 +50,7 @@ describe("NotesPage (reflections workspace)", () => {
       id: "n1",
       title: null,
       content: "Sleep spiral again.",
+      voiceMediaId: null,
       visibility: "PRIVATE",
       sharedAt: null,
       lumenCount: 0,
@@ -64,5 +73,37 @@ describe("NotesPage (reflections workspace)", () => {
       ),
     );
     await waitFor(() => screen.getByRole("button", { name: /sleep spiral/i }));
+  });
+
+  it("creates a voice-only reflection from the composer", async () => {
+    createEntry.mockResolvedValue({
+      id: "n1",
+      title: "Voice note",
+      content: "",
+      voiceMediaId: "voice-1",
+      visibility: "PRIVATE",
+      sharedAt: null,
+      lumenCount: 0,
+      createdAt: "2026-06-21T12:00:00Z",
+      updatedAt: "2026-06-21T12:00:00Z",
+    });
+
+    render(<NotesPage />);
+    await waitFor(() => screen.getByText(/no reflections yet/i));
+
+    fireEvent.click(screen.getByRole("button", { name: /new/i }));
+    fireEvent.change(screen.getByLabelText("Reflection title"), {
+      target: { value: "Voice note" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /record voice/i }));
+    fireEvent.click(screen.getByRole("button", { name: /save reflection/i }));
+
+    await waitFor(() =>
+      expect(createEntry).toHaveBeenCalledWith({
+        title: "Voice note",
+        content: "",
+        voiceMediaId: "voice-1",
+      }),
+    );
   });
 });

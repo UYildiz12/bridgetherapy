@@ -31,6 +31,17 @@ describe("notes-client", () => {
     );
   });
 
+  it("createEntry can POST a voice-only reflection", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(ok({ id: "n2", voiceMediaId: "m1" }, 201));
+    vi.stubGlobal("fetch", fetchMock);
+    const e = await createEntry({ content: "", voiceMediaId: "m1" });
+    expect(e.voiceMediaId).toBe("m1");
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/notes",
+      expect.objectContaining({ method: "POST", body: JSON.stringify({ content: "", voiceMediaId: "m1" }) }),
+    );
+  });
+
   it("updateEntry PATCHes visibility", async () => {
     const fetchMock = vi.fn().mockResolvedValue(ok({ id: "n1", visibility: "SHARED" }));
     vi.stubGlobal("fetch", fetchMock);

@@ -37,6 +37,7 @@ export const GET = withErrorHandling(async (req: Request) => {
     patientEmail: note.patient.user.email,
     title: note.title,
     content: note.content,
+    voiceMediaId: note.voiceMediaId,
     sharedAt: note.sharedAt,
     createdAt: note.createdAt,
     updatedAt: note.updatedAt,

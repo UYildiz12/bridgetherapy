@@ -9,7 +9,7 @@ const PROMPTS = [
   "What could I bring to my next session?",
 ];
 
-export function LumenPanel({ noteId }: { noteId: string }) {
+export function LumenPanel({ noteId, hasVoiceNote = false }: { noteId: string; hasVoiceNote?: boolean }) {
   const [messages, setMessages] = useState<LumenMessage[] | null>(null);
   const [configured, setConfigured] = useState(true);
   const [input, setInput] = useState("");
@@ -68,6 +68,7 @@ export function LumenPanel({ noteId }: { noteId: string }) {
   }
 
   const empty = messages !== null && messages.length === 0;
+  const prompts = hasVoiceNote ? ["Help me reflect on the voice note.", ...PROMPTS] : PROMPTS;
 
   return (
     <div className="flex min-h-0 flex-col rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl">
@@ -79,17 +80,17 @@ export function LumenPanel({ noteId }: { noteId: string }) {
 
       <div ref={threadRef} className="flex-1 space-y-4 overflow-y-auto px-4 py-4" style={{ maxHeight: "26rem" }}>
         {messages === null && !error && (
-          <p className="text-sm text-muted-foreground">Loading…</p>
+          <p className="text-sm text-muted-foreground">Loading...</p>
         )}
         {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
 
         {empty && (
           <div className="grid gap-3">
             <p className="text-sm text-muted-foreground">
-              Talk it through. Lumen reads this entry (and your recent check-ins) to help you go deeper. It stays private to you.
+              Talk it through. Lumen reads this entry{hasVoiceNote ? " and listens to the attached voice note" : ""} (and your recent check-ins) to help you go deeper. It stays private to you.
             </p>
             <div className="flex flex-wrap gap-2">
-              {PROMPTS.map((p) => (
+              {prompts.map((p) => (
                 <button
                   key={p}
                   type="button"
@@ -125,7 +126,7 @@ export function LumenPanel({ noteId }: { noteId: string }) {
 
         {sending && (
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Sparkles size={12} strokeWidth={2} aria-hidden /> Lumen is thinking…
+            <Sparkles size={12} strokeWidth={2} aria-hidden /> Lumen is thinking...
           </div>
         )}
       </div>
@@ -144,7 +145,7 @@ export function LumenPanel({ noteId }: { noteId: string }) {
                 if (e.key === "Enter" && !e.shiftKey) submit(input, e);
               }}
               rows={1}
-              placeholder="Reply to Lumen…"
+              placeholder="Reply to Lumen..."
               className="max-h-32 min-h-9 flex-1 resize-none rounded-xl border border-input bg-transparent px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/40"
             />
             <button

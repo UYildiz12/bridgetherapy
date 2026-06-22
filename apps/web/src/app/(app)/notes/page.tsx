@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { Plus, Lock, Share2, Trash2 } from "lucide-react";
+import { Plus, Lock, Share2, Trash2, Mic } from "lucide-react";
 import {
   fetchEntries,
   createEntry,
@@ -13,9 +13,11 @@ import { PageHeader } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LumenPanel } from "@/components/notes/lumen-panel";
+import { VoiceRecorder } from "@/components/homework/voice-recorder";
+import { mediaUrl } from "@/lib/homework/client";
 
 function preview(e: JournalEntry) {
-  return e.title?.trim() || e.content.split("\n").find((l) => l.trim()) || "Untitled reflection";
+  return e.title?.trim() || e.content.split("\n").find((l) => l.trim()) || (e.voiceMediaId ? "Voice reflection" : "Untitled reflection");
 }
 function shortDate(s: string) {
   return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(new Date(s));
@@ -111,6 +113,14 @@ export default function NotesPage() {
                       <span>Lumen {e.lumenCount}</span>
                     </>
                   )}
+                  {e.voiceMediaId && (
+                    <>
+                      <span aria-hidden>Â·</span>
+                      <span className="inline-flex items-center gap-1">
+                        <Mic size={11} aria-hidden /> Voice
+                      </span>
+                    </>
+                  )}
                 </span>
               </button>
             );
@@ -152,6 +162,7 @@ function Editor({
   const isNew = entry === null;
   const [title, setTitle] = useState(entry?.title ?? "");
   const [content, setContent] = useState(entry?.content ?? "");
+  const [voiceMediaId, setVoiceMediaId] = useState(entry?.voiceMediaId ?? undefined);
   const [visibility, setVisibility] = useState<NoteVisibility>(entry?.visibility ?? "PRIVATE");
   const [saving, setSaving] = useState(false);
   const [busyVis, setBusyVis] = useState(false);
@@ -159,22 +170,28 @@ function Editor({
   const [error, setError] = useState<string | null>(null);
 
   const dirty = isNew
-    ? content.trim().length > 0 || title.trim().length > 0
-    : title !== (entry?.title ?? "") || content !== entry?.content;
+    ? content.trim().length > 0 || title.trim().length > 0 || Boolean(voiceMediaId)
+    : title !== (entry?.title ?? "") || content !== entry?.content || voiceMediaId !== (entry?.voiceMediaId ?? undefined);
+  const canSave = content.trim().length > 0 || Boolean(voiceMediaId);
 
   async function save(e?: FormEvent) {
     e?.preventDefault();
-    if (!content.trim() || saving) return;
+    if (!canSave || saving) return;
     setSaving(true);
     setError(null);
     try {
       if (isNew) {
-        const created = await createEntry({ title: title.trim() || undefined, content: content.trim() });
+        const created = await createEntry({
+          title: title.trim() || undefined,
+          content: content.trim(),
+          ...(voiceMediaId ? { voiceMediaId } : {}),
+        });
         onSaved(created, true);
       } else {
         const updated = await updateEntry(entry.id, {
           title: title.trim() || null,
           content: content.trim(),
+          voiceMediaId: voiceMediaId ?? null,
         });
         onSaved(updated, false);
       }
@@ -234,9 +251,18 @@ function Editor({
           aria-label="Reflection"
           className="min-h-64 w-full resize-y border-0 border-t border-border bg-transparent pt-4 text-base leading-7 outline-none placeholder:text-muted-foreground"
         />
+        <div className="grid gap-2 rounded-2xl border border-border/80 bg-foreground/[0.025] p-3">
+          <div className="flex items-center gap-2 text-sm font-medium">
+            <Mic size={15} aria-hidden /> Voice note
+          </div>
+          <VoiceRecorder value={voiceMediaId} onChange={setVoiceMediaId} />
+          <p className="text-xs text-muted-foreground">
+            Voice reflections can be shared with your therapist and are included when Lumen helps you follow up.
+          </p>
+        </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button type="submit" disabled={!content.trim() || saving || (!isNew && !dirty)}>
-            {saving ? "Saving…" : isNew ? "Save reflection" : "Save"}
+          <Button type="submit" disabled={!canSave || saving || (!isNew && !dirty)}>
+            {saving ? "Saving..." : isNew ? "Save reflection" : "Save"}
           </Button>
           {!isNew && (
             <>
@@ -273,7 +299,7 @@ function Editor({
         </div>
         {!isNew && visibility === "SHARED" && (
           <p className="text-xs text-muted-foreground">
-            Your therapist can read this entry. Your Lumen conversation always stays private to you.
+            Your therapist can read this entry{entry.voiceMediaId ? " and play its voice note" : ""}. Your Lumen conversation always stays private to you.
           </p>
         )}
         {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
@@ -284,7 +310,17 @@ function Editor({
           Save this entry to start thinking it through with Lumen.
         </p>
       ) : (
-        <LumenPanel noteId={entry.id} />
+        <div className="grid gap-4">
+          {entry.voiceMediaId && (
+            <div className="grid gap-2 rounded-2xl border border-border/80 bg-foreground/[0.025] p-3">
+              <p className="flex items-center gap-2 text-sm font-medium">
+                <Mic size={15} aria-hidden /> Saved voice reflection
+              </p>
+              <audio controls src={mediaUrl(entry.voiceMediaId)} className="w-full" />
+            </div>
+          )}
+          <LumenPanel noteId={entry.id} hasVoiceNote={Boolean(entry.voiceMediaId)} />
+        </div>
       )}
     </div>
   );

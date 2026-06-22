@@ -8,14 +8,17 @@ const noteCreate = vi.fn();
 const noteFindMany = vi.fn();
 const noteFindFirst = vi.fn();
 const noteUpdate = vi.fn();
+const mediaFindFirst = vi.fn();
 const lumenCreate = vi.fn();
 const lumenFindMany = vi.fn();
 const moodFindMany = vi.fn();
 const profileFindUnique = vi.fn();
+const downloadMedia = vi.fn();
 
 vi.mock("@/lib/patient", () => ({ requirePatient }));
 vi.mock("@/lib/authz", () => ({ requireApprovedTherapist }));
 vi.mock("@/lib/lumen", () => ({ lumenConfigured, askLumen }));
+vi.mock("@/lib/storage", () => ({ downloadMedia }));
 vi.mock("@exhale/db", () => ({
   prisma: {
     patientNote: {
@@ -24,6 +27,7 @@ vi.mock("@exhale/db", () => ({
       findFirst: noteFindFirst,
       update: noteUpdate,
     },
+    media: { findFirst: mediaFindFirst },
     lumenMessage: { create: lumenCreate, findMany: lumenFindMany },
     moodEntry: { findMany: moodFindMany },
     patientProfile: { findUnique: profileFindUnique },
@@ -45,6 +49,7 @@ const row = (over: Record<string, unknown> = {}) => ({
   id: "n1",
   title: null,
   content: "Question",
+  voiceMediaId: null,
   visibility: "PRIVATE",
   sharedAt: null,
   createdAt: new Date("2026-06-21T00:00:00.000Z"),
@@ -56,7 +61,7 @@ const row = (over: Record<string, unknown> = {}) => ({
 describe("/api/notes", () => {
   beforeEach(() => {
     vi.resetModules();
-    [requirePatient, noteCreate, noteFindMany].forEach((f) => f.mockReset());
+    [requirePatient, noteCreate, noteFindMany, mediaFindFirst].forEach((f) => f.mockReset());
   });
 
   it("GET propagates the patient auth response", async () => {
@@ -76,6 +81,7 @@ describe("/api/notes", () => {
     const data = (await res.json()).data;
     expect(data[0].id).toBe("n1");
     expect(data[0].lumenCount).toBe(3);
+    expect(data[0].voiceMediaId).toBeNull();
     expect(noteFindMany).toHaveBeenCalledWith(
       expect.objectContaining({ where: { patientId: "pp1" }, orderBy: { updatedAt: "desc" } }),
     );
@@ -89,16 +95,43 @@ describe("/api/notes", () => {
     expect(res.status).toBe(201);
     expect(noteCreate).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: { patientId: "pp1", title: null, content: "Can we discuss sleep?" },
+        data: expect.objectContaining({ patientId: "pp1", title: null, content: "Can we discuss sleep?" }),
       }),
     );
   });
 
-  it("POST rejects empty entries", async () => {
+  it("POST creates a voice-only reflection when the voice media belongs to the patient", async () => {
+    requirePatient.mockResolvedValue({ ok: true, patientId: "pp1", userId: "u1" });
+    mediaFindFirst.mockResolvedValue({ id: "m1" });
+    noteCreate.mockResolvedValue(row({ id: "n2", content: "", voiceMediaId: "m1" }));
+    const { POST } = await import("../notes/route");
+    const res = await POST(req("/api/notes", { title: "Morning check-in", voiceMediaId: "m1" }));
+    expect(res.status).toBe(201);
+    expect(mediaFindFirst).toHaveBeenCalledWith({
+      where: { id: "m1", uploaderId: "u1", type: "VOICE_NOTE" },
+      select: { id: true },
+    });
+    expect(noteCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: { patientId: "pp1", title: "Morning check-in", content: "", voiceMediaId: "m1" },
+      }),
+    );
+  });
+
+  it("POST rejects entries without text or voice media", async () => {
     requirePatient.mockResolvedValue({ ok: true, patientId: "pp1" });
     const { POST } = await import("../notes/route");
     const res = await POST(req("/api/notes", { content: "   " }));
     expect(res.status).toBe(400);
+    expect(noteCreate).not.toHaveBeenCalled();
+  });
+
+  it("POST rejects a voice media id the patient does not own", async () => {
+    requirePatient.mockResolvedValue({ ok: true, patientId: "pp1", userId: "u1" });
+    mediaFindFirst.mockResolvedValue(null);
+    const { POST } = await import("../notes/route");
+    const res = await POST(req("/api/notes", { content: "Voice context", voiceMediaId: "other" }));
+    expect(res.status).toBe(403);
     expect(noteCreate).not.toHaveBeenCalled();
   });
 });
@@ -106,12 +139,12 @@ describe("/api/notes", () => {
 describe("/api/notes/[id] PATCH", () => {
   beforeEach(() => {
     vi.resetModules();
-    [requirePatient, noteFindFirst, noteUpdate].forEach((f) => f.mockReset());
+    [requirePatient, noteFindFirst, noteUpdate, mediaFindFirst].forEach((f) => f.mockReset());
   });
 
   it("shares an entry and stamps sharedAt the first time", async () => {
     requirePatient.mockResolvedValue({ ok: true, patientId: "pp1" });
-    noteFindFirst.mockResolvedValue({ id: "n1", sharedAt: null });
+    noteFindFirst.mockResolvedValue({ id: "n1", sharedAt: null, content: "Question", voiceMediaId: null });
     noteUpdate.mockResolvedValue(row({ visibility: "SHARED", sharedAt: new Date() }));
     const { PATCH } = await import("../notes/[id]/route");
     const res = await PATCH(
@@ -124,6 +157,22 @@ describe("/api/notes/[id] PATCH", () => {
         where: { id: "n1" },
         data: expect.objectContaining({ visibility: "SHARED", sharedAt: expect.any(Date) }),
       }),
+    );
+  });
+
+  it("updates the attached voice media when the media belongs to the patient", async () => {
+    requirePatient.mockResolvedValue({ ok: true, patientId: "pp1", userId: "u1" });
+    noteFindFirst.mockResolvedValue({ id: "n1", sharedAt: null, content: "Question", voiceMediaId: null });
+    mediaFindFirst.mockResolvedValue({ id: "m1" });
+    noteUpdate.mockResolvedValue(row({ voiceMediaId: "m1" }));
+    const { PATCH } = await import("../notes/[id]/route");
+    const res = await PATCH(
+      new Request("http://t/api/notes/n1", { method: "PATCH", body: JSON.stringify({ voiceMediaId: "m1" }) }),
+      ctx("n1"),
+    );
+    expect(res.status).toBe(200);
+    expect(noteUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: "n1" }, data: { voiceMediaId: "m1" } }),
     );
   });
 
@@ -143,7 +192,18 @@ describe("/api/notes/[id] PATCH", () => {
 describe("/api/notes/[id]/lumen POST", () => {
   beforeEach(() => {
     vi.resetModules();
-    [requirePatient, noteFindFirst, lumenConfigured, lumenCreate].forEach((f) => f.mockReset());
+    [
+      requirePatient,
+      noteFindFirst,
+      lumenConfigured,
+      lumenCreate,
+      lumenFindMany,
+      mediaFindFirst,
+      moodFindMany,
+      profileFindUnique,
+      askLumen,
+      downloadMedia,
+    ].forEach((f) => f.mockReset());
   });
 
   it("503s when Lumen has no API key configured", async () => {
@@ -157,6 +217,40 @@ describe("/api/notes/[id]/lumen POST", () => {
     );
     expect(res.status).toBe(503);
     expect(lumenCreate).not.toHaveBeenCalled();
+  });
+
+  it("includes the reflection voice note when asking Lumen for follow-up", async () => {
+    requirePatient.mockResolvedValue({ ok: true, patientId: "pp1", userId: "u1" });
+    noteFindFirst.mockResolvedValue({ id: "n1", title: "Morning", content: "", voiceMediaId: "m1" });
+    lumenConfigured.mockReturnValue(true);
+    lumenCreate.mockResolvedValueOnce({ id: "u", noteId: "n1", role: "USER", content: "help" });
+    lumenCreate.mockResolvedValueOnce({ id: "l", noteId: "n1", role: "LUMEN", content: "reply" });
+    lumenFindMany.mockResolvedValue([{ role: "USER", content: "help" }]);
+    profileFindUnique.mockResolvedValue({ concerns: ["anxiety"] });
+    moodFindMany.mockResolvedValue([]);
+    mediaFindFirst.mockResolvedValue({
+      id: "m1",
+      uploaderId: "u1",
+      type: "VOICE_NOTE",
+      s3Key: "u1/m1.webm",
+      mimeType: "audio/webm",
+    });
+    downloadMedia.mockResolvedValue(new Uint8Array([1, 2, 3]));
+    askLumen.mockResolvedValue("reply");
+
+    const { POST } = await import("../notes/[id]/lumen/route");
+    const res = await POST(
+      new Request("http://t/api/notes/n1/lumen", { method: "POST", body: JSON.stringify({ message: "help" }) }),
+      ctx("n1"),
+    );
+
+    expect(res.status).toBe(201);
+    expect(askLumen).toHaveBeenCalledWith(
+      expect.objectContaining({
+        voiceNote: { mimeType: "audio/webm", dataBase64: "AQID" },
+      }),
+      expect.any(Array),
+    );
   });
 });
 
@@ -187,6 +281,7 @@ describe("/api/therapist/notes", () => {
         sharedAt: new Date("2026-06-21T00:00:00.000Z"),
         createdAt: new Date("2026-06-21T00:00:00.000Z"),
         updatedAt: new Date("2026-06-21T00:00:00.000Z"),
+        voiceMediaId: "m1",
         patient: { user: { firstName: "Sam", lastName: "Lee", email: "sam@example.com" } },
       },
     ]);
@@ -206,6 +301,7 @@ describe("/api/therapist/notes", () => {
       patientName: "Sam Lee",
       patientEmail: "sam@example.com",
       title: "Panic loop",
+      voiceMediaId: "m1",
     });
   });
 });

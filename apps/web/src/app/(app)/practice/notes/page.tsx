@@ -5,6 +5,7 @@ import { fetchSharedEntries, type SharedEntry } from "@/lib/notes-client";
 import { PageHeader } from "@/components/app/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/app/empty-state";
+import { mediaUrl } from "@/lib/homework/client";
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat(undefined, {
@@ -29,7 +30,7 @@ export default function TherapistNotesPage() {
     <div className="grid gap-8">
       <PageHeader
         title="Shared reflections"
-        sub="Journal entries your active patients chose to share. Read-only — this is their space."
+        sub="Journal entries your active patients chose to share. Read-only - this is their space."
       />
 
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
@@ -65,7 +66,15 @@ export default function TherapistNotesPage() {
                 </time>
               </div>
               {e.title && <h2 className="text-lg leading-snug">{e.title}</h2>}
-              <p className="whitespace-pre-wrap text-sm leading-7 text-muted-foreground">{e.content}</p>
+              {e.content && <p className="whitespace-pre-wrap text-sm leading-7 text-muted-foreground">{e.content}</p>}
+              {e.voiceMediaId && (
+                <audio
+                  controls
+                  src={mediaUrl(e.voiceMediaId)}
+                  aria-label={`Voice reflection from ${e.patientName}`}
+                  className="w-full max-w-2xl"
+                />
+              )}
             </article>
           ))}
         </div>

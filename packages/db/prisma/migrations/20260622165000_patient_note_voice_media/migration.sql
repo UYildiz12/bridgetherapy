@@ -1,0 +1,1 @@
+ALTER TABLE "PatientNote" ADD COLUMN IF NOT EXISTS "voiceMediaId" TEXT;
