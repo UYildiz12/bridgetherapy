@@ -5,8 +5,6 @@ import {
   Footprints,
   HeartPulse,
   MapPin,
-  Pause,
-  Play,
   RotateCw,
   Unlink,
   Zap,
@@ -108,37 +106,24 @@ export function CbtLoop() {
         </p>
       </div>
 
-      {/* Controls: phase tabs + play/pause */}
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="flex flex-wrap gap-1.5">
-          {LOOP_PHASES.map((p, i) => (
-            <button
-              key={p.id}
-              type="button"
-              onClick={() => selectPhase(i)}
-              aria-pressed={i === phaseIndex}
-              className={`rounded-full border px-3.5 py-1.5 text-sm transition-colors ${
-                i === phaseIndex
-                  ? "border-foreground bg-foreground text-background"
-                  : "border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground"
-              }`}
-            >
-              <span className="tabular-nums text-xs opacity-60">{i + 1}</span>{" "}
-              {p.tab}
-            </button>
-          ))}
-        </div>
-        {!reduced && (
+      {/* Phase tabs */}
+      <div className="flex flex-wrap gap-1.5">
+        {LOOP_PHASES.map((p, i) => (
           <button
+            key={p.id}
             type="button"
-            onClick={() => setPlaying((p) => !p)}
-            aria-label={playing ? "Pause" : "Play"}
-            className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground"
+            onClick={() => selectPhase(i)}
+            aria-pressed={i === phaseIndex}
+            className={`rounded-full border px-3.5 py-1.5 text-sm transition-colors ${
+              i === phaseIndex
+                ? "border-foreground bg-foreground text-background"
+                : "border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground"
+            }`}
           >
-            {playing ? <Pause size={13} aria-hidden /> : <Play size={13} aria-hidden />}
-            {playing ? "Pause" : "Play"}
+            <span className="tabular-nums text-xs opacity-60">{i + 1}</span>{" "}
+            {p.tab}
           </button>
-        )}
+        ))}
       </div>
 
       {/* Diagram + narrative */}
