@@ -1,8 +1,15 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
-import { Download, TrendingUp } from "lucide-react";
+import { useMemo } from "react";
+import { Download, TrendingDown, TrendingUp } from "lucide-react";
 import { fetchProgressReport, type ExportRow, type ProgressReport } from "@/lib/reports-client";
+import { useSwrLite } from "@/lib/swr-lite";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/app/page-header";
+import { BlueprintTrend } from "@/components/app/blueprint-trend";
+import { StatBand } from "@/components/app/stat-band";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const SERIF = { fontFamily: "var(--font-instrument-serif), serif" } as const;
 
 function csvHref(rows: ExportRow[]) {
   const csv = ["Metric,Value", ...rows.map((row) => `"${row.metric}","${row.value}"`)].join("\n");
@@ -13,80 +20,172 @@ function formatMetric(value: number | null, suffix = "") {
   return value === null ? "n/a" : `${value}${suffix}`;
 }
 
-export default function ReportsPage() {
-  const [report, setReport] = useState<ProgressReport | null>(null);
-  const [error, setError] = useState<string | null>(null);
+/** Baseline-to-current rail: hollow marker for where you started, filled for now. */
+function MeasureRail({ baseline, current }: { baseline: number | null; current: number | null }) {
+  if (baseline === null || current === null) return null;
+  const max = Math.max(baseline, current, 1) * 1.25;
+  const pos = (v: number) => `${(v / max) * 100}%`;
+  return (
+    <div aria-hidden className="relative mt-4 h-px w-full bg-foreground/15 sm:max-w-md">
+      {[0, 25, 50, 75, 100].map((p) => (
+        <span
+          key={p}
+          className="absolute top-[-2px] h-[5px] w-px bg-foreground/20"
+          style={{ left: `${p}%` }}
+        />
+      ))}
+      <span
+        className="absolute top-1/2 size-[9px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-foreground/70 bg-background"
+        style={{ left: pos(baseline) }}
+      />
+      <span
+        className="absolute top-1/2 size-[9px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground"
+        style={{ left: pos(current) }}
+      />
+    </div>
+  );
+}
 
-  useEffect(() => {
-    fetchProgressReport()
-      .then(setReport)
-      .catch((err) => setError(err instanceof Error ? err.message : "Couldn't load reports."));
-  }, []);
+export default function ReportsPage() {
+  const { data: report, error } = useSwrLite<ProgressReport>(
+    "progress-report",
+    fetchProgressReport,
+  );
 
   const patientRows = useMemo(() => (report?.role === "PATIENT" ? report.exportRows : []), [report]);
 
-  return (
-    <section className="space-y-8">
-      <div className="flex flex-col gap-4 border-b border-border pb-6 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">Outcomes</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight">Progress reports</h1>
-        </div>
-        {patientRows.length > 0 && (
-          <Button asChild variant="outline">
-            <a href={csvHref(patientRows)} download="exhale-progress.csv">
-              <Download className="h-4 w-4" />
-              Export CSV
-            </a>
-          </Button>
-        )}
-      </div>
+  const trendPoints = useMemo(() => {
+    if (report?.role !== "PATIENT" || report.mood.entries.length < 2) return [];
+    const asc = [...report.mood.entries].sort(
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+    );
+    const recent = asc.slice(-14);
+    return recent.map((e, i) => ({
+      value: e.moodScore,
+      label:
+        i === 0 || i === recent.length - 1
+          ? new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(
+              new Date(e.createdAt),
+            )
+          : undefined,
+    }));
+  }, [report]);
 
-      {error && <p className="rounded-md border border-destructive/30 px-3 py-2 text-sm text-destructive">{error}</p>}
-      {!report && !error && <p className="text-sm text-muted-foreground">Loading progress report...</p>}
+  return (
+    <div className="grid gap-10">
+      <PageHeader
+        title="Progress reports"
+        sub="How the work is adding up: mood, homework, and formal measures."
+        action={
+          patientRows.length > 0 ? (
+            <Button asChild variant="outline">
+              <a href={csvHref(patientRows)} download="exhale-progress.csv">
+                <Download className="h-4 w-4" />
+                Export CSV
+              </a>
+            </Button>
+          ) : undefined
+        }
+      />
+
+      {error && !report && (
+        <p role="alert" className="rounded-md border border-destructive/30 px-3 py-2 text-sm text-destructive">
+          {error}
+        </p>
+      )}
+
+      {!report && !error && (
+        <div className="grid gap-8" aria-busy="true">
+          <Skeleton className="h-24 w-full rounded-2xl" />
+          <Skeleton className="h-48 w-full rounded-2xl" />
+          <Skeleton className="h-40 w-full rounded-2xl" />
+        </div>
+      )}
 
       {report?.role === "PATIENT" && (
         <>
-          <div className="grid gap-4 md:grid-cols-5">
-            {[
-              ["Mood average", formatMetric(report.mood.average)],
-              ["Mood change", formatMetric(report.mood.delta)],
-              ["Homework completion", formatMetric(report.homework.completionRate, "%")],
-              ["Session attendance", formatMetric(report.sessions.attendanceRate, "%")],
-              ["Reflections", String(report.reflections.total)],
-            ].map(([label, value]) => (
-              <section key={label} className="border-t border-border pt-4">
-                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{label}</p>
-                <p className="mt-2 text-2xl font-semibold tracking-tight">{value}</p>
-              </section>
-            ))}
-          </div>
+          <StatBand
+            ariaLabel="Key metrics"
+            items={[
+              { label: "Mood average", value: formatMetric(report.mood.average) },
+              {
+                label: "Mood change",
+                value: formatMetric(
+                  report.mood.delta === null ? null : Math.abs(report.mood.delta),
+                ),
+                icon:
+                  report.mood.delta === null || report.mood.delta === 0 ? undefined : report.mood.delta > 0 ? (
+                    <TrendingUp className="size-4" aria-hidden />
+                  ) : (
+                    <TrendingDown className="size-4" aria-hidden />
+                  ),
+              },
+              {
+                label: "Homework completion",
+                value: formatMetric(report.homework.completionRate, "%"),
+              },
+              { label: "Reflections", value: String(report.reflections.total) },
+            ]}
+          />
 
-          <section className="grid gap-5 border-y border-border py-5 md:grid-cols-[13rem_1fr]">
-            <div>
-              <h2 className="text-sm font-medium">Formal measures</h2>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Self-report measures give session work a clearer baseline and trend.
+          {trendPoints.length >= 2 && (
+            <section className="grid gap-4">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h2 className="text-xl">Mood over time</h2>
+                <p className="text-xs text-muted-foreground">
+                  Last {trendPoints.length} check-ins, scored 1 to 10
+                </p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 sm:p-6">
+                <BlueprintTrend points={trendPoints} />
+              </div>
+            </section>
+          )}
+
+          <section className="grid gap-4">
+            <div className="grid gap-1">
+              <h2 className="text-xl">Formal measures</h2>
+              <p className="max-w-prose text-sm text-muted-foreground">
+                Self-report measures give session work a clearer baseline and trend. The hollow
+                marker is where you started; the filled one is where you are now.
               </p>
             </div>
-            <div className="divide-y divide-border">
-              {report.measures.map((measure) => (
-                <div key={measure.name} className="grid gap-3 py-4 first:pt-0 last:pb-0 sm:grid-cols-[1fr_7rem_7rem_8rem]">
+            <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
+              {report.measures.map((measure, i) => (
+                <div
+                  key={measure.name}
+                  className={`grid gap-4 px-5 py-5 sm:grid-cols-[1fr_auto] sm:items-center ${
+                    i > 0 ? "border-t border-white/10" : ""
+                  }`}
+                >
                   <div>
-                    <p className="font-medium">{measure.name}</p>
-                    <p className="text-sm text-muted-foreground">{measure.trend}</p>
+                    <div className="flex items-baseline gap-3">
+                      <p className="font-medium">{measure.name}</p>
+                      <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                        {measure.trend}
+                      </p>
+                    </div>
+                    <MeasureRail baseline={measure.baseline} current={measure.current} />
                   </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Current</p>
-                    <p className="mt-1 font-medium">{formatMetric(measure.current)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Baseline</p>
-                    <p className="mt-1 font-medium">{formatMetric(measure.baseline)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Change</p>
-                    <p className="mt-1 font-medium">{formatMetric(measure.changeFromBaseline)}</p>
+                  <div className="flex gap-8">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Baseline</p>
+                      <p className="mt-1 text-xl leading-none tabular-nums" style={SERIF}>
+                        {formatMetric(measure.baseline)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Current</p>
+                      <p className="mt-1 text-xl leading-none tabular-nums" style={SERIF}>
+                        {formatMetric(measure.current)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Change</p>
+                      <p className="mt-1 text-xl leading-none tabular-nums" style={SERIF}>
+                        {formatMetric(measure.changeFromBaseline)}
+                      </p>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -96,38 +195,47 @@ export default function ReportsPage() {
       )}
 
       {report?.role === "THERAPIST" && (
-        <div className="divide-y divide-border border-y border-border">
-          {report.patients.length === 0 && <p className="py-6 text-sm text-muted-foreground">No active patients yet.</p>}
-          {report.patients.map((patient) => (
-            <section key={patient.patientId} className="grid gap-4 py-5 md:grid-cols-[1fr_8rem_8rem_8rem_10rem]">
-              <div>
-                <h2 className="font-medium tracking-tight">{patient.patientName}</h2>
-                <p className="text-sm text-muted-foreground">{patient.patientEmail}</p>
+        <section className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
+          {report.patients.length === 0 && (
+            <p className="px-5 py-6 text-sm text-muted-foreground">No active patients yet.</p>
+          )}
+          {report.patients.map((patient, i) => (
+            <div
+              key={patient.patientId}
+              className={`grid gap-4 px-5 py-5 md:grid-cols-[1fr_7rem_7rem_9rem_9rem] ${
+                i > 0 ? "border-t border-white/10" : ""
+              }`}
+            >
+              <div className="min-w-0">
+                <h2 className="truncate text-base font-medium">{patient.patientName}</h2>
+                <p className="truncate text-sm text-muted-foreground">{patient.patientEmail}</p>
               </div>
               <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Mood</p>
-                <p className="mt-1 font-medium">{formatMetric(patient.moodAverage)}</p>
+                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Mood</p>
+                <p className="mt-1 text-xl leading-none tabular-nums" style={SERIF}>
+                  {formatMetric(patient.moodAverage)}
+                </p>
               </div>
               <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Homework</p>
-                <p className="mt-1 font-medium">{patient.homeworkCompletionRate}%</p>
+                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Homework</p>
+                <p className="mt-1 text-xl leading-none tabular-nums" style={SERIF}>
+                  {patient.homeworkCompletionRate}%
+                </p>
               </div>
               <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Session</p>
-                <p className="mt-1 font-medium">{patient.sessionAttendanceRate}%</p>
+                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Measure</p>
+                <p className="mt-1 text-sm">{patient.measureTrend}</p>
               </div>
               <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Measure</p>
-                <p className="mt-1 font-medium">{patient.measureTrend}</p>
+                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Reflections</p>
+                <p className="mt-1 text-xl leading-none tabular-nums" style={SERIF}>
+                  {patient.reflectionCount}
+                </p>
               </div>
-              <div className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{patient.reflectionCount} reflections</span>
-              </div>
-            </section>
+            </div>
           ))}
-        </div>
+        </section>
       )}
-    </section>
+    </div>
   );
 }

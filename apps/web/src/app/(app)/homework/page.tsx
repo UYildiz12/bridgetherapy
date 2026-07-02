@@ -1,7 +1,7 @@
 "use client";
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { fetchMyHomework, type PatientAssignment } from "@/lib/homework/client";
+import { useSwrLite } from "@/lib/swr-lite";
 import { countComplete } from "@/lib/homework/schema";
 import { ClipboardList } from "lucide-react";
 import { StatusBadge } from "@/components/homework/status-badge";
@@ -11,14 +11,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/app/page-header";
 
 export default function HomeworkListPage() {
-  const [items, setItems] = useState<PatientAssignment[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchMyHomework()
-      .then(setItems)
-      .catch(() => setError("Couldn't load your homework."));
-  }, []);
+  const { data: items, error: loadError } = useSwrLite<PatientAssignment[]>(
+    "my-homework",
+    fetchMyHomework,
+  );
+  const error = items === null && loadError ? "Couldn't load your homework." : null;
 
   return (
     <div className="grid gap-6">

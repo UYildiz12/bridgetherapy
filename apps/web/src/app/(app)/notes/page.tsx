@@ -12,6 +12,7 @@ import {
 import { PageHeader } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useSwrLite } from "@/lib/swr-lite";
 import { LumenPanel } from "@/components/notes/lumen-panel";
 import { VoiceRecorder } from "@/components/homework/voice-recorder";
 import { mediaUrl } from "@/lib/homework/client";
@@ -24,28 +25,28 @@ function shortDate(s: string) {
 }
 
 export default function NotesPage() {
-  const [entries, setEntries] = useState<JournalEntry[] | null>(null);
+  const { data: entries, error: loadError, update } = useSwrLite<JournalEntry[]>(
+    "reflections",
+    fetchEntries,
+  );
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [composing, setComposing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const error = entries === null && loadError ? "Couldn't load your reflections." : null;
 
+  // Open a specific entry when arriving from a seeded hand-off (e.g. a quick practice).
   useEffect(() => {
-    fetchEntries()
-      .then((loaded) => {
-        setEntries(loaded);
-        try {
-          const open = sessionStorage.getItem("exhale:notes-open");
-          if (open && loaded.some((e) => e.id === open)) {
-            setSelectedId(open);
-            setComposing(false);
-            sessionStorage.removeItem("exhale:notes-open");
-          }
-        } catch {
-          // ignore storage access errors
-        }
-      })
-      .catch(() => setError("Couldn't load your reflections."));
-  }, []);
+    if (!entries) return;
+    try {
+      const open = sessionStorage.getItem("exhale:notes-open");
+      if (open && entries.some((e) => e.id === open)) {
+        setSelectedId(open);
+        setComposing(false);
+        sessionStorage.removeItem("exhale:notes-open");
+      }
+    } catch {
+      // ignore storage access errors
+    }
+  }, [entries]);
 
   const selected = useMemo(
     () => entries?.find((e) => e.id === selectedId) ?? null,
@@ -53,14 +54,14 @@ export default function NotesPage() {
   );
 
   function onSaved(saved: JournalEntry, isNew: boolean) {
-    setEntries((list) => [saved, ...(list ?? []).filter((e) => e.id !== saved.id)]);
+    update((list) => [saved, ...(list ?? []).filter((e) => e.id !== saved.id)]);
     if (isNew) {
       setComposing(false);
       setSelectedId(saved.id);
     }
   }
   function onDeleted(id: string) {
-    setEntries((list) => (list ?? []).filter((e) => e.id !== id));
+    update((list) => (list ?? []).filter((e) => e.id !== id));
     setSelectedId(null);
   }
 

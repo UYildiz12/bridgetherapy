@@ -46,8 +46,8 @@ describe("ReportsPage", () => {
     expect(screen.getByRole("heading", { name: /progress reports/i })).toBeDefined();
     expect(screen.getByText("5.5")).toBeDefined();
     expect(screen.getByText("50%")).toBeDefined();
-    expect(screen.getByText(/session attendance/i)).toBeDefined();
-    expect(screen.getByText("67%")).toBeDefined();
+    // Session attendance was intentionally removed from the visible report.
+    expect(screen.queryByText(/session attendance/i)).toBeNull();
     expect(screen.getByText(/daily mood rating/i)).toBeDefined();
     expect(screen.getByText(/improving/i)).toBeDefined();
     expect(screen.getByRole("link", { name: /export csv/i })).toBeDefined();

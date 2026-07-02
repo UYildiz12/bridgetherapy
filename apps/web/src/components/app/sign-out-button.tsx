@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { clearSwrCache } from "@/lib/swr-lite";
 import { Button } from "@/components/ui/button";
 
 export function SignOutButton({
@@ -26,6 +27,7 @@ export function SignOutButton({
       setPending(false);
       return;
     }
+    clearSwrCache();
     onSignedOut?.();
     router.replace("/login");
     router.refresh();

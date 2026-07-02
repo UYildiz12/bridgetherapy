@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { MailOpen, MessageSquareText } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import {
   openConversation,
   type ConversationListItem,
 } from "@/lib/messages-client";
+import { useSwrLite } from "@/lib/swr-lite";
 
 function formatDate(value: string | null) {
   if (!value) return "No messages yet";
@@ -21,15 +22,14 @@ function formatDate(value: string | null) {
 
 export default function MessagesPage() {
   const router = useRouter();
-  const [conversations, setConversations] = useState<ConversationListItem[] | null>(null);
+  const { data: conversations, error: loadError } = useSwrLite(
+    "conversations",
+    fetchConversations,
+  );
   const [openingId, setOpeningId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchConversations()
-      .then(setConversations)
-      .catch((err) => setError(err instanceof Error ? err.message : "Couldn't load messages."));
-  }, []);
+  const shownError = error ?? (conversations === null ? loadError : null);
 
   async function open(item: ConversationListItem) {
     setOpeningId(item.id ?? `${item.patientId}:${item.therapistId}`);
@@ -59,9 +59,13 @@ export default function MessagesPage() {
         </div>
       </div>
 
-      {error && <p className="rounded-md border border-destructive/30 px-3 py-2 text-sm text-destructive">{error}</p>}
+      {shownError && (
+        <p className="rounded-md border border-destructive/30 px-3 py-2 text-sm text-destructive">{shownError}</p>
+      )}
 
-      {!conversations && <p className="text-sm text-muted-foreground">Loading conversations...</p>}
+      {!conversations && !loadError && (
+        <p className="text-sm text-muted-foreground">Loading conversations...</p>
+      )}
       {conversations?.length === 0 && (
         <div className="flex min-h-64 items-center justify-center border border-dashed border-border">
           <p className="text-sm text-muted-foreground">No active conversations yet.</p>
