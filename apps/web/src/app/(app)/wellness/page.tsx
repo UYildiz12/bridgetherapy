@@ -1,12 +1,35 @@
 "use client";
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { AlertTriangle, BookOpen, CircleHelp, Clapperboard, Waves } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/app/page-header";
-import { VideoLibrary } from "@/components/wellness/video-library";
-import { BreathingGuide } from "@/components/wellness/breathing-guide";
-import { LearnModules } from "@/components/wellness/learn-modules";
-import { QuickPractices } from "@/components/wellness/quick-practices";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Each tab loads its own chunk on demand, so opening Wellness ships only the
+// active view's code instead of all four at once.
+const tabLoading = () => (
+  <div className="grid gap-4">
+    <Skeleton className="h-40 w-full rounded-2xl" />
+    <Skeleton className="h-40 w-full rounded-2xl" />
+  </div>
+);
+const VideoLibrary = dynamic(
+  () => import("@/components/wellness/video-library").then((m) => m.VideoLibrary),
+  { loading: tabLoading },
+);
+const BreathingGuide = dynamic(
+  () => import("@/components/wellness/breathing-guide").then((m) => m.BreathingGuide),
+  { loading: tabLoading },
+);
+const LearnModules = dynamic(
+  () => import("@/components/wellness/learn-modules").then((m) => m.LearnModules),
+  { loading: tabLoading },
+);
+const QuickPractices = dynamic(
+  () => import("@/components/wellness/quick-practices").then((m) => m.QuickPractices),
+  { loading: tabLoading },
+);
 
 type View = "watch" | "practice" | "learn" | "crisis";
 

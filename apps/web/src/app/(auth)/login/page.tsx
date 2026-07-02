@@ -18,7 +18,11 @@ export default function LoginPage() {
     const supabase = createSupabaseBrowserClient();
     const { error: signErr } = await supabase.auth.signInWithPassword({ email, password });
     if (signErr) {
-      setError(signErr.message);
+      setError(
+        /invalid login credentials/i.test(signErr.message)
+          ? "That email and password don't match. Check for typos, or reset your password below."
+          : signErr.message,
+      );
       setLoading(false);
       return;
     }
@@ -68,6 +72,9 @@ export default function LoginPage() {
         </button>
       </form>
 
+      <p className="auth-alt">
+        <Link href="/forgot-password">Forgot your password?</Link>
+      </p>
       <p className="auth-alt">
         New to Exhale? <Link href="/signup">Create an account</Link>
       </p>

@@ -296,6 +296,23 @@ export default function Home() {
   const nextRitualIndex = rituals.findIndex((r) => !r.done);
   const [activeStep, setActiveStep] = useState(0);
   const stepRefs = useRef<(HTMLElement | null)[]>([]);
+  const [signedIn, setSignedIn] = useState(false);
+
+  // Returning users with a live session get "Open app" instead of the sign-in CTA.
+  useEffect(() => {
+    let cancelled = false;
+    import("@/lib/supabase/client")
+      .then(({ createSupabaseBrowserClient }) =>
+        createSupabaseBrowserClient().auth.getSession(),
+      )
+      .then(({ data }) => {
+        if (!cancelled && data.session) setSignedIn(true);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const signupHref = `/signup?role=${role}`;
 
@@ -423,8 +440,8 @@ export default function Home() {
                 Therapist
               </button>
             </div>
-            <Link href="/login" className="nav-login no-underline">
-              Sign in / Register
+            <Link href={signedIn ? "/dashboard" : "/login"} className="nav-login no-underline">
+              {signedIn ? "Open app" : "Sign in / Register"}
             </Link>
           </div>
         </nav>

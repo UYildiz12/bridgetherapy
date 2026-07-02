@@ -62,7 +62,11 @@ function SignupForm() {
       router.refresh(); // ensure server components see the new session before navigating
       router.push("/dashboard");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Provisioning failed");
+      setError(
+        err instanceof Error && err.message !== "Provisioning failed"
+          ? err.message
+          : "We couldn't finish setting up your account. Give it another try.",
+      );
     } finally {
       setLoading(false);
     }

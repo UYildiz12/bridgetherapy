@@ -1,10 +1,14 @@
 "use client";
 import { useEffect, useState } from "react";
+import { preconnect } from "react-dom";
 import { Play, X } from "lucide-react";
 import { VIDEO_CATEGORIES, type WellnessVideo } from "@/lib/wellness-content";
 
 export function VideoLibrary() {
   const [active, setActive] = useState<WellnessVideo | null>(null);
+
+  // Warm the thumbnail CDN connection before the grid of images hits it.
+  preconnect("https://i.ytimg.com");
 
   useEffect(() => {
     if (!active) return;

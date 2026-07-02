@@ -197,7 +197,7 @@ export function BreathingGuide() {
                 key={`${ph.label}-${i}`}
                 className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground"
               >
-                {ph.label} - {ph.seconds}s
+                {ph.label} · {ph.seconds}s
               </span>
             ))}
           </div>

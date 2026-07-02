@@ -6,32 +6,34 @@ import WellnessPage from "../page";
 describe("WellnessPage", () => {
   afterEach(cleanup);
 
-  it("opens with a video library", () => {
+  // Tab panels are code-split via next/dynamic, so the first assertion inside a
+  // panel awaits the chunk with findBy*; everything after can read synchronously.
+  it("opens with a video library", async () => {
     render(<WellnessPage />);
 
     expect(screen.getByRole("heading", { name: /wellness/i })).toBeDefined();
-    expect(screen.getByRole("heading", { name: /calm anxiety/i })).toBeDefined();
+    expect(await screen.findByRole("heading", { name: /calm anxiety/i })).toBeDefined();
     expect(screen.getByText(/how to break the anxiety cycle/i)).toBeDefined();
   });
 
-  it("shows guided breathing and switches breathing patterns", () => {
+  it("shows guided breathing and switches breathing patterns", async () => {
     render(<WellnessPage />);
 
     fireEvent.click(screen.getByRole("button", { name: /practice/i }));
     expect(screen.getByRole("heading", { name: /guided breathing/i })).toBeDefined();
 
-    fireEvent.click(screen.getByRole("button", { name: /4-7-8 breathing/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /4-7-8 breathing/i }));
 
     expect(screen.getByText(/long exhale signals/i)).toBeDefined();
-    expect(screen.getByText(/Breathe out - 8s/i)).toBeDefined();
+    expect(screen.getByText(/Breathe out · 8s/i)).toBeDefined();
   });
 
-  it("shows CBT learning support", () => {
+  it("shows CBT learning support", async () => {
     render(<WellnessPage />);
 
     fireEvent.click(screen.getByRole("button", { name: /learn/i }));
 
-    expect(screen.getByText(/the CBT loop/i)).toBeDefined();
+    expect(await screen.findByText(/the CBT loop/i)).toBeDefined();
     expect(screen.getByText(/thinking traps/i)).toBeDefined();
     expect(screen.getByText(/thought records/i)).toBeDefined();
   });
