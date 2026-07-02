@@ -1,8 +1,7 @@
 import { prisma } from "@exhale/db";
 import { requireApprovedTherapist } from "@/lib/authz";
 import { json, withErrorHandling } from "@/lib/http";
-import { toSetDTO, toTherapistAssignmentDTO } from "@/lib/homework/server";
-import { parseResponse } from "@/lib/homework/schema";
+import { parseAnyResponse, toSetDTO, toTherapistAssignmentDTO } from "@/lib/homework/server";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -31,7 +30,7 @@ export const GET = withErrorHandling(async (req: Request, ctx: Ctx) => {
       data: {
         assignment: toTherapistAssignmentDTO(a),
         set: toSetDTO(a.homework),
-        response: parseResponse(a.response),
+        response: parseAnyResponse(a.response),
         patientName,
       },
     },

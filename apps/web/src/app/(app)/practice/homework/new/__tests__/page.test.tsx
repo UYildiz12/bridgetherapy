@@ -10,11 +10,14 @@ const { createSet, draftSetWithAI } = vi.hoisted(() => ({
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
+  useSearchParams: () => ({ get: () => null }),
 }));
 
 vi.mock("@/lib/homework/client", () => ({
   createSet,
   draftSetWithAI,
+  fetchSet: vi.fn(),
+  updateSet: vi.fn(),
 }));
 
 import NewSetPage from "../page";

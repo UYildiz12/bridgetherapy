@@ -18,7 +18,15 @@ describe("homework AI draft helpers", () => {
     expect(isRiskyHomeworkPrompt("Create a sleep routine worksheet.")).toBe(false);
   });
 
-  it("parses Gemini JSON into a homework set draft", () => {
+  it("mentions the v2 block palette and cadence semantics", () => {
+    const prompt = buildHomeworkDraftPrompt({ prompt: "A week-long sleep diary with a morning rating." });
+    for (const type of ["heading", "input.text", "input.scale", "input.choice", "input.checklist", "input.table", "input.media", "input.activity"]) {
+      expect(prompt).toContain(type);
+    }
+    expect(prompt).toContain('"cadence": "once" | "daily" | "weekly"');
+  });
+
+  it("parses Gemini JSON into a v2 homework document draft", () => {
     const draft = parseGeminiHomeworkDraft({
       candidates: [
         {
@@ -29,13 +37,12 @@ describe("homework AI draft helpers", () => {
                   title: "Panic thought record",
                   description: "A brief between-session practice.",
                   content: {
-                    items: [
-                      {
-                        id: "item-1",
-                        kind: "writing",
-                        title: "Catch the automatic thought",
-                        prompt: "Write the thought and one alternative response.",
-                      },
+                    version: 2,
+                    schedule: { cadence: "once" },
+                    blocks: [
+                      { type: "text", id: "intro", body: "Catch one sticky thought." },
+                      { type: "input.text", id: "thought", label: "Catch the automatic thought", multiline: true },
+                      { type: "input.scale", id: "suds", label: "How strong?", min: 0, max: 100 },
                     ],
                   },
                 }),
@@ -47,6 +54,15 @@ describe("homework AI draft helpers", () => {
     });
 
     expect(draft.title).toBe("Panic thought record");
-    expect(draft.content.items[0]).toMatchObject({ kind: "writing", title: "Catch the automatic thought" });
+    expect(draft.content.version).toBe(2);
+    expect(draft.content.blocks.map((b) => b.type)).toEqual(["text", "input.text", "input.scale"]);
+  });
+
+  it("rejects drafts that fail the v2 schema", () => {
+    expect(() =>
+      parseGeminiHomeworkDraft(
+        JSON.stringify({ title: "Bad", content: { version: 2, schedule: { cadence: "once" }, blocks: [] } }),
+      ),
+    ).toThrow();
   });
 });

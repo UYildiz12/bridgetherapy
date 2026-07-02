@@ -214,13 +214,12 @@ describe("/api/therapist/homework/draft POST", () => {
         title: "CBT panic practice",
         description: "Therapist-reviewed practice for the week.",
         content: {
-          items: [
-            {
-              id: "item-1",
-              kind: "task",
-              title: "Track one panic loop",
-              detail: "Note the situation, thought, body signal, and response.",
-            },
+          version: 2,
+          schedule: { cadence: "once" },
+          blocks: [
+            { type: "text", id: "intro", body: "Track one panic loop this week." },
+            { type: "input.text", id: "loop", label: "Track one panic loop", multiline: true },
+            { type: "input.scale", id: "suds", label: "How strong was it?", min: 0, max: 100 },
           ],
         },
       }),
@@ -281,6 +280,7 @@ describe("/api/therapist/homework/draft POST", () => {
       reviewRequired: true,
       model: "gemini-3.1-flash-lite",
     });
-    expect(body.data.content.items[0].title).toBe("Track one panic loop");
+    expect(body.data.content.version).toBe(2);
+    expect(body.data.content.blocks[1].label).toBe("Track one panic loop");
   });
 });

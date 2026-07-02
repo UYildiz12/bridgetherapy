@@ -1,4 +1,4 @@
-import type { HomeworkResponse, ItemResponse } from "./schema";
+import type { ItemResponse } from "./schema";
 import type { BlockResponse } from "./blocks";
 
 export type AssignmentStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED" | "OVERDUE";
@@ -57,7 +57,8 @@ export interface TherapistAssignment {
 export interface ReviewDetail {
   assignment: TherapistAssignment;
   set: HomeworkSet;
-  response: HomeworkResponse;
+  /** v1 response or v2 entries doc; parse with parseResponseDoc from adapt.ts. */
+  response: unknown;
   patientName: string;
 }
 
@@ -134,10 +135,10 @@ export const fetchReviewDetail = (id: string) =>
   getJson<ReviewDetail>(`/api/therapist/assignments/${id}`);
 export const assignSet = (body: { homeworkId: string; patientId: string; dueDate?: string }) =>
   send<TherapistAssignment>("/api/therapist/assignments", "POST", body);
-export const reviewAssignment = (id: string, feedback: string) =>
-  send<{ id: string; reviewedAt: string }>(`/api/therapist/assignments/${id}/review`, "PUT", {
-    feedback,
-  });
+export const reviewAssignment = (
+  id: string,
+  review: { feedback?: string; comments?: Record<string, string>; requestRevision?: boolean },
+) => send<{ id: string; reviewedAt: string }>(`/api/therapist/assignments/${id}/review`, "PUT", review);
 
 // ---- Media (voice / drawing) ----
 export async function uploadMedia(blob: Blob, kind: "voice" | "drawing"): Promise<string> {

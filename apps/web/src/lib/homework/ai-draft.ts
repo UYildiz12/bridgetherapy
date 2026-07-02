@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { GoogleGenAI } from "@google/genai";
-import { ITEM_KINDS, setContentSchema, type HomeworkSetContent } from "./schema";
+import { ACTIVITY_KINDS, docSchema, type HomeworkDoc } from "./blocks";
 
 export const HOMEWORK_DRAFT_MODEL = process.env.GEMINI_HOMEWORK_MODEL?.trim() || "gemini-3.1-flash-lite";
 
@@ -13,13 +13,13 @@ export type HomeworkDraftRequest = z.infer<typeof homeworkDraftRequestSchema>;
 export interface HomeworkSetDraft {
   title: string;
   description?: string;
-  content: HomeworkSetContent;
+  content: HomeworkDoc;
 }
 
 const draftSchema = z.object({
   title: z.string().trim().min(1).max(160),
   description: z.string().trim().max(1000).optional().nullable(),
-  content: setContentSchema,
+  content: docSchema,
 });
 
 const geminiResponseSchema = z.object({
@@ -61,20 +61,26 @@ Guardrails:
 - Output must be therapist-reviewed before assignment.
 - Do not diagnose, prescribe medication, create crisis plans, or give emergency instructions.
 - Keep tasks modest, concrete, and between-session appropriate.
-- Prefer CBT skills such as situation-thought-feeling-response mapping, behavioral activation, exposure planning when therapist-led, psychoeducation, or reflection.
+- Prefer CBT skills such as thought records, behavioral activation, exposure practice logs, psychoeducation, and reflection.
 
-Return JSON only with this shape:
-{
-  "title": "short set title",
-  "description": "patient-facing description",
-  "content": {
-    "items": [
-      { "id": "item-1", "kind": "task|reading|writing|quiz|voice|drawing", "title": "..." }
-    ]
-  }
-}
+Return JSON only: a homework document with "title", optional "description", and "content" = { "version": 2, "schedule": { "cadence": "once" | "daily" | "weekly" }, "blocks": [...] }.
+Recurring homework (daily/weekly) means the patient fills the whole block list once per day/week until the due date.
 
-Valid item kinds: ${ITEM_KINDS.join(", ")}.
+Block types (every block needs a unique short "id"):
+- { "type": "heading", "id", "text" } - section title.
+- { "type": "text", "id", "body", "requireAck"? } - instructions/psychoeducation; requireAck makes the patient mark it read.
+- { "type": "input.text", "id", "label", "multiline"?, "placeholder"?, "optional"? } - free writing.
+- { "type": "input.scale", "id", "label", "min", "max", "step"?, "minLabel"?, "maxLabel"?, "optional"? } - ratings such as SUDS 0-100 or mood 1-10.
+- { "type": "input.choice", "id", "label", "options": ["..."], "multi"?, "correctIndex"?, "scored"?, "optional"? } - single choice by default; scored means option order = points (measures); never combine scored with multi.
+- { "type": "input.checklist", "id", "label"?, "items": [{ "id", "text" }], "optional"? } - steps to tick off.
+- { "type": "input.table", "id", "label", "columns": [{ "id", "header", "kind": "text" | "scale", "min"?, "max"? }], "minRows"?, "optional"? } - logs the patient adds rows to (exposure logs, activity schedules); scale columns need min and max.
+- { "type": "input.media", "id", "label", "mode": "voice" | "drawing", "prompt"?, "optional"? } - recordings or sketches.
+- { "type": "input.activity", "id", "label", "activity": ${ACTIVITY_KINDS.map((k) => `"${k}"`).join(" | ")}, "count"?, "optional"? } - real in-app actions; use only these activity values.
+
+Composition rules:
+- 2 to 12 blocks. Lead with a short "text" intro in plain, warm language.
+- Use scales for any rating, tables for repeated logs, headings to split long worksheets.
+- Keep labels short; put explanation in a "text" block instead.
 ${context}
 Therapist brief:
 ${input.prompt.trim()}`;
@@ -111,6 +117,73 @@ function parseDraftJson(text: string): HomeworkSetDraft {
   };
 }
 
+const blockJsonSchema = {
+  type: "object",
+  additionalProperties: true,
+  required: ["type", "id"],
+  properties: {
+    type: {
+      type: "string",
+      enum: [
+        "heading",
+        "text",
+        "input.text",
+        "input.scale",
+        "input.choice",
+        "input.checklist",
+        "input.table",
+        "input.media",
+        "input.activity",
+      ],
+    },
+    id: { type: "string" },
+    text: { type: "string" },
+    body: { type: "string" },
+    requireAck: { type: "boolean" },
+    label: { type: "string" },
+    optional: { type: "boolean" },
+    multiline: { type: "boolean" },
+    placeholder: { type: "string" },
+    min: { type: "integer" },
+    max: { type: "integer" },
+    step: { type: "number" },
+    minLabel: { type: "string" },
+    maxLabel: { type: "string" },
+    options: { type: "array", items: { type: "string" } },
+    multi: { type: "boolean" },
+    correctIndex: { type: "integer" },
+    scored: { type: "boolean" },
+    items: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["id", "text"],
+        properties: { id: { type: "string" }, text: { type: "string" } },
+      },
+    },
+    columns: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["id", "header", "kind"],
+        properties: {
+          id: { type: "string" },
+          header: { type: "string" },
+          kind: { type: "string", enum: ["text", "scale"] },
+          min: { type: "integer" },
+          max: { type: "integer" },
+        },
+      },
+    },
+    minRows: { type: "integer" },
+    mode: { type: "string", enum: ["voice", "drawing"] },
+    prompt: { type: "string" },
+    activity: { type: "string", enum: [...ACTIVITY_KINDS] },
+    count: { type: "integer" },
+    target: { type: "string" },
+  },
+};
+
 const jsonSchema = {
   type: "object",
   additionalProperties: false,
@@ -120,27 +193,14 @@ const jsonSchema = {
     description: { type: "string" },
     content: {
       type: "object",
-      required: ["items"],
+      required: ["version", "blocks"],
       properties: {
-        items: {
-          type: "array",
-          items: {
-            type: "object",
-            additionalProperties: true,
-            required: ["id", "kind", "title"],
-            properties: {
-              id: { type: "string" },
-              kind: { type: "string", enum: ITEM_KINDS },
-              title: { type: "string" },
-              detail: { type: "string" },
-              body: { type: "string" },
-              prompt: { type: "string" },
-              question: { type: "string" },
-              choices: { type: "array", items: { type: "string" } },
-              answerIndex: { type: "integer" },
-            },
-          },
+        version: { type: "integer", enum: [2] },
+        schedule: {
+          type: "object",
+          properties: { cadence: { type: "string", enum: ["once", "daily", "weekly"] } },
         },
+        blocks: { type: "array", items: blockJsonSchema },
       },
     },
   },
@@ -163,12 +223,12 @@ export async function draftHomeworkWithGemini(
     model: HOMEWORK_DRAFT_MODEL,
     input: buildHomeworkDraftPrompt(input),
     system_instruction:
-      "You draft CBT-informed homework sets for therapist review. Return valid JSON only. Do not diagnose, prescribe, create crisis plans, or give emergency instructions.",
+      "You draft CBT-informed homework block documents for therapist review. Return valid JSON only. Do not diagnose, prescribe, create crisis plans, or give emergency instructions.",
     response_format: responseFormat,
     response_modalities: ["text"],
     generation_config: {
       temperature: 0.35,
-      max_output_tokens: 1400,
+      max_output_tokens: 2200,
     },
     store: false,
   });
