@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { fetchReviewDetail, reviewAssignment, type ReviewDetail } from "@/lib/homework/client";
+import { parseContent } from "@/lib/homework/schema";
 import { ItemReview } from "@/components/homework/item-review";
 import { StatusBadge } from "@/components/homework/status-badge";
 import { Button } from "@/components/ui/button";
@@ -81,7 +82,7 @@ export default function ReviewPage() {
       </div>
 
       <div className="grid gap-4">
-        {set.content.items.map((item) => (
+        {parseContent(set.content).items.map((item) => (
           <ItemReview key={item.id} item={item} response={response.items[item.id]} />
         ))}
       </div>

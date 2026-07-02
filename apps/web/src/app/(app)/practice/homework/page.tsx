@@ -8,6 +8,7 @@ import {
   type HomeworkSet,
   type LinkedPatient,
 } from "@/lib/homework/client";
+import { parseDoc } from "@/lib/homework/adapt";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -81,7 +82,10 @@ export default function HomeworkSetsPage() {
               </CardHeader>
               <CardContent className="grid gap-3">
                 <span className="text-sm text-muted-foreground">
-                  {s.content.items.length} item{s.content.items.length === 1 ? "" : "s"}
+                  {(() => {
+                    const n = parseDoc(s.content).blocks.length;
+                    return `${n} block${n === 1 ? "" : "s"}`;
+                  })()}
                 </span>
                 {openId === s.id && (
                   <AssignForm set={s} patients={patients} onDone={() => setOpenId(null)} />

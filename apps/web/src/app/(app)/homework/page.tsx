@@ -2,7 +2,8 @@
 import Link from "next/link";
 import { fetchMyHomework, type PatientAssignment } from "@/lib/homework/client";
 import { useSwrLite } from "@/lib/swr-lite";
-import { countComplete } from "@/lib/homework/schema";
+import { parseDoc, parseResponseDoc } from "@/lib/homework/adapt";
+import { docProgress, expectedEntries } from "@/lib/homework/completion";
 import { ClipboardList } from "lucide-react";
 import { StatusBadge } from "@/components/homework/status-badge";
 import { EmptyState } from "@/components/app/empty-state";
@@ -41,8 +42,20 @@ export default function HomeworkListPage() {
       {items && items.length > 0 && (
         <div className="grid gap-3">
           {items.map((a) => {
-            const total = a.set.content.items.length;
-            const done = countComplete(a.set.content, a.response);
+            const doc = parseDoc(a.set.content);
+            const rd = parseResponseDoc(a.set.content, a.response);
+            const recurring = doc.schedule.cadence !== "once";
+            const expected = expectedEntries(
+              doc,
+              a.createdAt ? new Date(a.createdAt) : new Date(),
+              a.dueDate ? new Date(a.dueDate) : null,
+            );
+            const p = docProgress(doc, rd.entries, expected);
+            const progressLine = recurring
+              ? `${p.complete} of ${p.expected ?? "ongoing"} entries`
+              : p.complete >= 1
+                ? "Complete"
+                : "In progress";
             return (
               <Link key={a.id} href={`/homework/${a.id}`} className="group block no-underline">
                 <Card className="transition-colors hover:border-foreground/30">
@@ -57,7 +70,7 @@ export default function HomeworkListPage() {
                   </CardHeader>
                   <CardContent className="flex items-center justify-between text-sm text-muted-foreground">
                     <span>
-                      {done} of {total} done
+                      {progressLine}
                       {a.dueDate ? ` · due ${new Date(a.dueDate).toLocaleDateString()}` : ""}
                     </span>
                     <span

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { WandSparkles } from "lucide-react";
 import type { HomeworkItem, ItemKind } from "@/lib/homework/schema";
-import { ITEM_KINDS, ITEM_KIND_LABELS } from "@/lib/homework/schema";
+import { ITEM_KINDS, ITEM_KIND_LABELS, parseContent } from "@/lib/homework/schema";
 import { createSet, draftSetWithAI } from "@/lib/homework/client";
 import { ItemEditor } from "@/components/homework/item-editor";
 import { Input } from "@/components/ui/input";
@@ -66,7 +66,7 @@ export default function NewSetPage() {
       });
       setTitle(draft.title);
       setDescription(draft.description ?? "");
-      setItems(draft.content.items);
+      setItems(parseContent(draft.content).items);
       setDraftNotice(draft.guidance ?? "Therapist review required before assigning this set.");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Couldn't draft the set.");

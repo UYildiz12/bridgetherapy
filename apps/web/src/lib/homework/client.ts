@@ -1,4 +1,5 @@
-import type { HomeworkSetContent, HomeworkResponse, ItemResponse } from "./schema";
+import type { HomeworkResponse, ItemResponse } from "./schema";
+import type { BlockResponse } from "./blocks";
 
 export type AssignmentStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED" | "OVERDUE";
 
@@ -6,7 +7,8 @@ export interface HomeworkSet {
   id: string;
   title: string;
   description: string | null;
-  content: HomeworkSetContent;
+  /** v1 item set or v2 block document; parse with parseDoc from adapt.ts. */
+  content: unknown;
   isTemplate: boolean;
   createdAt: string;
   updatedAt: string;
@@ -33,8 +35,10 @@ export interface PatientAssignment {
   status: AssignmentStatus;
   dueDate: string | null;
   completedAt: string | null;
+  createdAt: string | null;
   set: HomeworkSet;
-  response: HomeworkResponse;
+  /** v1 response or v2 entries doc; parse with parseResponseDoc from adapt.ts. */
+  response: unknown;
 }
 
 /** Therapist-facing roll-up of an assignment across the practice. */
@@ -60,7 +64,8 @@ export interface ReviewDetail {
 export interface HomeworkSetDraft {
   title: string;
   description?: string;
-  content: HomeworkSetContent;
+  /** v1 item set or v2 block document; parse with parseDoc from adapt.ts. */
+  content: unknown;
   model?: string;
   reviewRequired: boolean;
   guidance?: string;
@@ -98,6 +103,12 @@ export const saveMyResponse = (
   id: string,
   body: { items: Record<string, ItemResponse>; submit?: boolean },
 ) => send<PatientAssignment>(`/api/homework/${id}`, "PUT", body);
+/** v2 block assignments: upsert one dated entry's block responses. */
+export const saveMyEntry = (
+  id: string,
+  entry: { date: string; blocks: Record<string, BlockResponse> },
+  submit?: boolean,
+) => send<PatientAssignment>(`/api/homework/${id}`, "PUT", { entry, submit });
 
 // ---- Therapist ----
 export const fetchPatients = () => getJson<LinkedPatient[]>("/api/therapist/patients");
@@ -109,13 +120,13 @@ export const fetchSet = (id: string) => getJson<HomeworkSet>(`/api/therapist/hom
 export const createSet = (body: {
   title: string;
   description?: string;
-  content: HomeworkSetContent;
+  content: unknown;
 }) => send<HomeworkSet>("/api/therapist/homework", "POST", body);
 export const draftSetWithAI = (body: { prompt: string; patientContext?: string }) =>
   send<HomeworkSetDraft>("/api/therapist/homework/draft", "POST", body);
 export const updateSet = (
   id: string,
-  body: { title?: string; description?: string; content?: HomeworkSetContent },
+  body: { title?: string; description?: string; content?: unknown },
 ) => send<HomeworkSet>(`/api/therapist/homework/${id}`, "PUT", body);
 
 export const fetchAssignments = () => getJson<TherapistAssignment[]>("/api/therapist/assignments");
