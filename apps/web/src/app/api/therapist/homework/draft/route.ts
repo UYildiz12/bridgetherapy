@@ -30,7 +30,18 @@ export const POST = withErrorHandling(async (req: Request) => {
     return json({ error: "AI_key is not configured." }, 503);
   }
 
-  const draft = await draftHomeworkWithGemini(parsed.data, apiKey);
+  let draft;
+  try {
+    draft = await draftHomeworkWithGemini(parsed.data, apiKey);
+  } catch (err) {
+    // Model output that fails validation (or a transient API hiccup) is not a
+    // server fault worth a 500; tell the therapist to simply try again.
+    console.error("homework draft failed", err);
+    return json(
+      { error: "The draft came back incomplete. Rephrase the brief slightly and try again." },
+      502,
+    );
+  }
 
   return json(
     {
