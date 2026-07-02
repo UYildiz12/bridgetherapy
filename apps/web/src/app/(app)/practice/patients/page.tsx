@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Users } from "lucide-react";
 import { EmptyState } from "@/components/app/empty-state";
 import { PageHeader } from "@/components/app/page-header";
+import { SubNav } from "@/components/app/sub-nav";
 
 export default function PatientsPage() {
   const [patients, setPatients] = useState<LinkedPatient[] | null>(null);
@@ -43,6 +44,12 @@ export default function PatientsPage() {
   return (
     <div className="grid gap-6">
       <PageHeader title="Patients" sub="Invite a patient by the email they signed up with." />
+      <SubNav
+        links={[
+          { href: "/practice/patients", label: "Patients" },
+          { href: "/practice/requests", label: "Requests" },
+        ]}
+      />
 
       <Card>
         <CardContent className="pt-6">

@@ -9,6 +9,7 @@ import {
   type LinkedPatient,
 } from "@/lib/homework/client";
 import { parseDoc } from "@/lib/homework/adapt";
+import { SubNav } from "@/components/app/sub-nav";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -38,13 +39,19 @@ export default function HomeworkSetsPage() {
   return (
     <div className="grid gap-6">
       <PageHeader
-        title="Homework sets"
-        sub="Reusable sets you can assign to patients."
+        title="Homework"
+        sub="Reusable sets you can assign, and the assignments they turn into."
         action={
           <Button asChild>
             <Link href="/practice/homework/new">New set</Link>
           </Button>
         }
+      />
+      <SubNav
+        links={[
+          { href: "/practice/homework", label: "Sets" },
+          { href: "/practice/assignments", label: "Assignments" },
+        ]}
       />
 
       {error && <p className="text-sm text-destructive">{error}</p>}

@@ -7,7 +7,10 @@ import { Button } from "@/components/ui/button";
 import { SignOutButton } from "./sign-out-button";
 import { AccountMenu } from "./account-menu";
 
-const NAV: Record<"PATIENT" | "THERAPIST", { href: string; label: string }[]> = {
+const NAV: Record<
+  "PATIENT" | "THERAPIST",
+  { href: string; label: string; also?: string[] }[]
+> = {
   PATIENT: [
     { href: "/dashboard", label: "Home" },
     { href: "/mood", label: "Mood" },
@@ -19,17 +22,16 @@ const NAV: Record<"PATIENT" | "THERAPIST", { href: string; label: string }[]> = 
     { href: "/reports", label: "Reports" },
     { href: "/find", label: "Therapist" },
   ],
+  // Requests lives under Patients, and Assignments under Homework, as page tabs.
   THERAPIST: [
     { href: "/dashboard", label: "Home" },
-    { href: "/practice/patients", label: "Patients" },
+    { href: "/practice/patients", label: "Patients", also: ["/practice/requests"] },
     { href: "/practice/sessions", label: "Sessions" },
     { href: "/messages", label: "Messages" },
-    { href: "/wellness", label: "Wellness" },
-    { href: "/practice/requests", label: "Requests" },
+    { href: "/practice/homework", label: "Homework", also: ["/practice/assignments"] },
     { href: "/practice/notes", label: "Reflections" },
-    { href: "/practice/homework", label: "Sets" },
     { href: "/practice/protocols", label: "Protocols" },
-    { href: "/practice/assignments", label: "Assignments" },
+    { href: "/wellness", label: "Wellness" },
     { href: "/reports", label: "Reports" },
   ],
 };
@@ -58,7 +60,10 @@ export function AppShell({
 
   const renderLinks = (variant: "desktop" | "mobile") =>
     links.map((l) => {
-      const active = l.href === "/dashboard" ? pathname === l.href : pathname.startsWith(l.href);
+      const active =
+        l.href === "/dashboard"
+          ? pathname === l.href
+          : pathname.startsWith(l.href) || (l.also?.some((p) => pathname.startsWith(p)) ?? false);
       return (
         <Link
           key={l.href}

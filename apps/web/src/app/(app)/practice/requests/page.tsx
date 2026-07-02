@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/app/empty-state";
 import { PageHeader } from "@/components/app/page-header";
+import { SubNav } from "@/components/app/sub-nav";
 
 export default function RequestsPage() {
   const [items, setItems] = useState<IncomingRequest[] | null>(null);
@@ -43,7 +44,13 @@ export default function RequestsPage() {
 
   return (
     <div className="grid gap-6">
-      <PageHeader title="Requests" sub="Patients asking to connect with you." />
+      <PageHeader title="Patients" sub="Patients asking to connect with you." />
+      <SubNav
+        links={[
+          { href: "/practice/patients", label: "Patients" },
+          { href: "/practice/requests", label: "Requests" },
+        ]}
+      />
 
       {error && <p className="text-sm text-destructive">{error}</p>}
       {items === null && !error && <Skeleton className="h-28 w-full rounded-xl" />}

@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Inbox } from "lucide-react";
 import { EmptyState } from "@/components/app/empty-state";
 import { PageHeader } from "@/components/app/page-header";
+import { SubNav } from "@/components/app/sub-nav";
 
 export default function AssignmentsPage() {
   const [items, setItems] = useState<TherapistAssignment[] | null>(null);
@@ -21,7 +22,13 @@ export default function AssignmentsPage() {
 
   return (
     <div className="grid gap-6">
-      <PageHeader title="Assignments" sub="Track and review what you have assigned." />
+      <PageHeader title="Homework" sub="Track and review what you have assigned." />
+      <SubNav
+        links={[
+          { href: "/practice/homework", label: "Sets" },
+          { href: "/practice/assignments", label: "Assignments" },
+        ]}
+      />
 
       {error && <p className="text-sm text-destructive">{error}</p>}
       {items === null && !error && <Skeleton className="h-24 w-full rounded-xl" />}

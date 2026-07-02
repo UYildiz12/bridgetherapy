@@ -119,7 +119,6 @@ function parseDraftJson(text: string): HomeworkSetDraft {
 
 const blockJsonSchema = {
   type: "object",
-  additionalProperties: true,
   required: ["type", "id"],
   properties: {
     type: {
@@ -184,9 +183,10 @@ const blockJsonSchema = {
   },
 };
 
-const jsonSchema = {
+// The Interactions API takes a JSON Schema directly as response_format (root
+// type "object"); wrapping it in { type: "json_schema" } is rejected with 400.
+const responseFormat = {
   type: "object",
-  additionalProperties: false,
   required: ["title", "content"],
   properties: {
     title: { type: "string" },
@@ -195,7 +195,7 @@ const jsonSchema = {
       type: "object",
       required: ["version", "blocks"],
       properties: {
-        version: { type: "integer", enum: [2] },
+        version: { type: "integer" },
         schedule: {
           type: "object",
           properties: { cadence: { type: "string", enum: ["once", "daily", "weekly"] } },
@@ -203,14 +203,6 @@ const jsonSchema = {
         blocks: { type: "array", items: blockJsonSchema },
       },
     },
-  },
-};
-
-const responseFormat = {
-  type: "json_schema",
-  json_schema: {
-    name: "homework_draft",
-    schema: jsonSchema,
   },
 };
 

@@ -59,9 +59,12 @@ describe("AppShell", () => {
 
     const mobileNav = screen.getByRole("navigation", { name: /mobile navigation/i });
     expect(within(mobileNav).getByRole("link", { name: "Patients" }).getAttribute("href")).toBe("/practice/patients");
-    expect(within(mobileNav).getByRole("link", { name: "Assignments" }).getAttribute("href")).toBe(
-      "/practice/assignments",
+    // Assignments and Requests fold into Homework and Patients as page tabs.
+    expect(within(mobileNav).getByRole("link", { name: "Homework" }).getAttribute("href")).toBe(
+      "/practice/homework",
     );
+    expect(within(mobileNav).queryByRole("link", { name: "Assignments" })).toBeNull();
+    expect(within(mobileNav).queryByRole("link", { name: "Requests" })).toBeNull();
     expect(within(mobileNav).getByRole("link", { name: "Protocols" }).getAttribute("href")).toBe(
       "/practice/protocols",
     );
