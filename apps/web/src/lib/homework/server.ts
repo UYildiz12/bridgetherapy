@@ -12,7 +12,7 @@ import {
   type HomeworkDoc,
   type ResponseDoc,
 } from "./blocks";
-import { parseDoc, parseResponseDoc } from "./adapt";
+import { parseResponseDoc } from "./adapt";
 import { docProgress, expectedEntries } from "./completion";
 
 export type DerivedStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED" | "OVERDUE";
@@ -162,7 +162,8 @@ export function upsertEntry(doc: HomeworkDoc, current: ResponseDoc, patch: Entry
   const clean: ResponseDoc["entries"][number]["blocks"] = {};
   for (const [id, r] of Object.entries(patch.blocks)) {
     if (!knownIds.has(id)) continue;
-    const { verifiedIds: _serverOwned, ...rest } = r;
+    const rest = { ...r };
+    delete rest.verifiedIds; // server-owned; patients cannot assert verification
     clean[id] = rest;
   }
 

@@ -46,7 +46,11 @@ export function useSwrLite<T>(key: string, fetcher: () => Promise<T>) {
   );
   const [error, setError] = useState<string | null>(null);
   const fetcherRef = useRef(fetcher);
-  fetcherRef.current = fetcher;
+  // Latest-ref pattern: sync in an effect (declared first so it runs before the
+  // fetch effect below), never during render.
+  useEffect(() => {
+    fetcherRef.current = fetcher;
+  });
 
   useEffect(() => {
     let cancelled = false;

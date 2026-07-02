@@ -33,19 +33,28 @@ export default function NotesPage() {
   const [composing, setComposing] = useState(false);
   const error = entries === null && loadError ? "Couldn't load your reflections." : null;
 
-  // Open a specific entry when arriving from a seeded hand-off (e.g. a quick practice).
+  // Open a specific entry when arriving from a seeded hand-off (e.g. a quick
+  // practice). Deferred to a microtask so the effect body stays free of
+  // synchronous setState (react-hooks/set-state-in-effect).
   useEffect(() => {
     if (!entries) return;
-    try {
-      const open = sessionStorage.getItem("exhale:notes-open");
-      if (open && entries.some((e) => e.id === open)) {
-        setSelectedId(open);
-        setComposing(false);
-        sessionStorage.removeItem("exhale:notes-open");
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      try {
+        const open = sessionStorage.getItem("exhale:notes-open");
+        if (open && entries.some((e) => e.id === open)) {
+          setSelectedId(open);
+          setComposing(false);
+          sessionStorage.removeItem("exhale:notes-open");
+        }
+      } catch {
+        // ignore storage access errors
       }
-    } catch {
-      // ignore storage access errors
-    }
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [entries]);
 
   const selected = useMemo(

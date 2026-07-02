@@ -80,10 +80,13 @@ export default function MoodPage() {
     }
   }
 
+  // One stable "now" per mount keeps the memo pure; week buckets don't need to
+  // tick live.
+  const [now] = useState(() => Date.now());
+
   // Week-over-week reading, computed from whatever history exists.
   const stats = useMemo(() => {
     if (!entries || entries.length === 0) return null;
-    const now = Date.now();
     const thisWeek = entries.filter((e) => now - new Date(e.createdAt).getTime() < 7 * DAY);
     const lastWeek = entries.filter((e) => {
       const age = now - new Date(e.createdAt).getTime();
@@ -97,7 +100,7 @@ export default function MoodPage() {
       weekCount: thisWeek.length,
       total: entries.length,
     };
-  }, [entries]);
+  }, [entries, now]);
 
   const trendPoints = useMemo(() => {
     if (!entries || entries.length < 2) return [];

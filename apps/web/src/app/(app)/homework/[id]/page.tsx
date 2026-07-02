@@ -27,8 +27,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const SERIF = { fontFamily: "var(--font-instrument-serif), serif" } as const;
-
 /** Local-time YYYY-MM-DD, since entries are dated in the patient's day. */
 function localDate(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
