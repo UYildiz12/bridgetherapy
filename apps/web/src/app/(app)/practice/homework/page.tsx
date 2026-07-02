@@ -71,13 +71,18 @@ export default function HomeworkSetsPage() {
                     <CardTitle className="text-base">{s.title}</CardTitle>
                     {s.description && <CardDescription>{s.description}</CardDescription>}
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setOpenId(openId === s.id ? null : s.id)}
-                  >
-                    Assign
-                  </Button>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <Button asChild variant="ghost" size="sm">
+                      <Link href={`/practice/homework/new?edit=${s.id}`}>Edit</Link>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setOpenId(openId === s.id ? null : s.id)}
+                    >
+                      Assign
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="grid gap-3">
