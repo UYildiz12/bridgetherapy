@@ -14,7 +14,7 @@ Billing, insurance, and HIPAA/legal compliance deliverables remain explicitly ou
 | Patient can add notes during/after session | 3.8 | Implemented | Session workspace patient note |
 | Therapist can add notes during/after session | 3.8 | Implemented | Therapist session notes |
 | Client progress on one screen | 3.8 | Implemented | Reports include mood, homework, reflections, sessions, and CSV export |
-| Homework assignment and completion tracking | 3.6 | Implemented | Homework sets, assignments, review |
+| Homework assignment and completion tracking | 3.6 | Implemented | Block-document homework (worksheets, scales, logs, app activities), one-shot or recurring entries, per-block review |
 | Mood tracking between sessions | 3.6 | Implemented | Mood check-ins and charts |
 | Symptom/progress measurement graphs | 3.6 | Implemented | Mood trends plus formal measure-style progress summary |
 | Biometric security measures | 3.6 | Implemented | Browser passkey/biometric availability check + local lock preference |

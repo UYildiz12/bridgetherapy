@@ -1,5 +1,6 @@
 import { prisma } from "@exhale/db";
 import { json, withErrorHandling } from "@/lib/http";
+import { parseDoc } from "@/lib/homework/adapt";
 import { deliverPushNotification } from "@/lib/push";
 
 function authorized(req: Request) {
@@ -26,7 +27,7 @@ export const POST = withErrorHandling(async (req: Request) => {
       select: {
         id: true,
         dueDate: true,
-        homework: { select: { title: true } },
+        homework: { select: { title: true, content: true } },
         patient: { select: { user: { select: { id: true, pushTokens: true } } } },
       },
     }),
@@ -44,17 +45,25 @@ export const POST = withErrorHandling(async (req: Request) => {
   ]);
 
   const deliveries = [
-    ...homework.flatMap((assignment) =>
-      assignment.patient.user.pushTokens.map((token) =>
+    ...homework.flatMap((assignment) => {
+      // Recurring block documents nudge toward the current entry, not the deadline.
+      const cadence = parseDoc(assignment.homework.content).schedule.cadence;
+      const title =
+        cadence === "daily"
+          ? "Today's entry is waiting"
+          : cadence === "weekly"
+            ? "This week's entry is waiting"
+            : "Homework due soon";
+      return assignment.patient.user.pushTokens.map((token) =>
         deliverPushNotification({
           token: token.token,
           platform: token.platform,
-          title: "Homework due soon",
+          title,
           body: assignment.homework.title,
           url: `/homework/${assignment.id}`,
         }),
-      ),
-    ),
+      );
+    }),
     ...sessions.flatMap((session) =>
       session.patient.user.pushTokens.map((token) =>
         deliverPushNotification({

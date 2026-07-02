@@ -2,7 +2,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { MessageSquareText } from "lucide-react";
 import { fetchReviewDetail, reviewAssignment, type ReviewDetail } from "@/lib/homework/client";
 import { parseContent, parseResponse } from "@/lib/homework/schema";
 import { docSchema, type HomeworkDoc } from "@/lib/homework/blocks";

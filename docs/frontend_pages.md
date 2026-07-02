@@ -16,9 +16,9 @@ This repo is currently a Next.js App Router application with Route Handler APIs,
 | Therapist matching | Directory API, patient connection requests, therapist request review APIs, specialty/availability scoring with exact and related concern matches. |
 | Therapist profile | Therapist specialties, availability, bio, accepting-patients profile route and UI. |
 | Patient invitations | Therapist can invite registered patients by email; invitations stay pending until patient consent. |
-| Homework sets | Therapist creates structured sets with task, writing, quiz, checklist, drawing, and voice-note items, plus guarded Gemini draft assistance. |
-| Homework assignment | Therapist assigns sets only to active linked patients; patient can complete and submit assignments. |
-| Homework review | Therapist can review submitted assignments and inspect item responses. |
+| Homework sets | Therapist composes block documents (instructions, text answers, scales, choices, checklists, tables/logs, voice/drawing, app activities) with presets, a live patient preview, and guarded Gemini draft assistance. Legacy item sets still render through adapters. |
+| Homework assignment | Therapist assigns sets only to active linked patients; one-shot or recurring (daily/weekly entries until the due date); patient completes and submits with autosave. |
+| Homework review | Therapist reviews per entry with per-block comments, measure scores, overall feedback, and can request changes. |
 | Media attachments | Patient media upload/download routes with owner checks for homework voice and drawing responses. |
 | Reflections / patient notes | Patients use one private reflections workspace with optional titles, therapist sharing, private Lumen conversation turns backed by Gemini/`AI_key`, and read-only therapist access to shared entries. |
 | Sessions | Therapist and patient session screens with scheduling, linked access checks, video rooms, clinical notes, patient notes, shared whiteboard, prior-session history, and AI summary generation. |
