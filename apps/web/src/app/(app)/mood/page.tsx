@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { TrendingDown, TrendingUp } from "lucide-react";
-import { fetchMoodEntries, createMoodEntry, type MoodEntry } from "@/lib/mood-client";
+import { fetchMoodHistory, createMoodEntry, type MoodEntry } from "@/lib/mood-client";
 import { useSwrLite } from "@/lib/swr-lite";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,7 +51,8 @@ function ScoreRail({ score }: { score: number }) {
 }
 
 export default function MoodPage() {
-  const { data: entries, error: loadError, update } = useSwrLite("mood-entries", fetchMoodEntries);
+  const { data: history, error: loadError, update } = useSwrLite("mood-history", fetchMoodHistory);
+  const entries = history?.entries ?? null;
   const [score, setScore] = useState<number | null>(null);
   const [tags, setTags] = useState("");
   const [notes, setNotes] = useState("");
@@ -69,7 +70,10 @@ export default function MoodPage() {
         notes: notes.trim() || undefined,
         tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
       });
-      update((prev) => [entry, ...(prev ?? [])]);
+      update((prev) => ({
+        entries: [entry, ...(prev?.entries ?? [])],
+        total: (prev?.total ?? 0) + 1,
+      }));
       setScore(null);
       setTags("");
       setNotes("");
@@ -84,11 +88,13 @@ export default function MoodPage() {
   // tick live.
   const [now] = useState(() => Date.now());
 
-  // Week-over-week reading, computed from whatever history exists.
+  // Week-over-week reading, computed from whatever history exists. The list is
+  // capped by the API, so "all time" uses the server-side count instead of the
+  // array length.
   const stats = useMemo(() => {
-    if (!entries || entries.length === 0) return null;
-    const thisWeek = entries.filter((e) => now - new Date(e.createdAt).getTime() < 7 * DAY);
-    const lastWeek = entries.filter((e) => {
+    if (!history || history.entries.length === 0) return null;
+    const thisWeek = history.entries.filter((e) => now - new Date(e.createdAt).getTime() < 7 * DAY);
+    const lastWeek = history.entries.filter((e) => {
       const age = now - new Date(e.createdAt).getTime();
       return age >= 7 * DAY && age < 14 * DAY;
     });
@@ -98,9 +104,9 @@ export default function MoodPage() {
       avgNow,
       delta: avgNow !== null && avgPrev !== null ? avgNow - avgPrev : null,
       weekCount: thisWeek.length,
-      total: entries.length,
+      total: history.total,
     };
-  }, [entries, now]);
+  }, [history, now]);
 
   const trendPoints = useMemo(() => {
     if (!entries || entries.length < 2) return [];

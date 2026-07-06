@@ -57,6 +57,15 @@ export const POST = withErrorHandling(async (req: Request) => {
   const therapistId = t.user.therapistProfile!.id;
   const patientId = patientUser.patientProfile.id;
 
+  // Re-inviting an already-linked patient must not sever the care relationship.
+  const existing = await prisma.patientTherapist.findUnique({
+    where: { patientId_therapistId: { patientId, therapistId } },
+    select: { status: true },
+  });
+  if (existing?.status === "ACTIVE") {
+    return json({ error: "You're already connected with this patient." }, 409);
+  }
+
   // Therapist-initiated links are invitations, not active care relationships.
   // The patient must consent before homework, media, and patient data access are unlocked.
   const link = await prisma.patientTherapist.upsert({
@@ -66,11 +75,13 @@ export const POST = withErrorHandling(async (req: Request) => {
       therapistId,
       status: "PENDING",
       isActive: false,
+      initiatedBy: "THERAPIST",
       requestNote: "Therapist invited patient by email.",
     },
     update: {
       status: "PENDING",
       isActive: false,
+      initiatedBy: "THERAPIST",
       endDate: null,
       requestNote: "Therapist invited patient by email.",
     },

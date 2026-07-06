@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "Exhale",
     description:
       "A calmer, clearer space for therapy: track mood, capture reflections, and stay connected with your therapist.",
-    start_url: "/",
+    start_url: "/dashboard",
     display: "standalone",
     background_color: "#0b0c10",
     theme_color: "#0b0c10",

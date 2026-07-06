@@ -5,6 +5,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 const {
   addSessionNote,
   ensureSessionVideo,
+  fetchAccountSettings,
   fetchSession,
   fetchTherapistSessionWorkspace,
   generateSessionSummary,
@@ -14,6 +15,7 @@ const {
 } = vi.hoisted(() => ({
   addSessionNote: vi.fn(),
   ensureSessionVideo: vi.fn(),
+  fetchAccountSettings: vi.fn(),
   fetchSession: vi.fn(),
   fetchTherapistSessionWorkspace: vi.fn(),
   generateSessionSummary: vi.fn(),
@@ -31,9 +33,15 @@ vi.mock("@/lib/sessions-client", () => ({
   generateSessionSummary,
   updateSession,
   updateTherapistSessionWorkspace,
+  isConflictError: () => false,
 }));
+vi.mock("@/lib/settings-client", () => ({ fetchAccountSettings }));
 vi.mock("@/components/sessions/jitsi-meeting", () => ({
-  JitsiMeeting: () => <div>Embedded video room</div>,
+  JitsiMeeting: ({ displayName, email }: { displayName: string; email: string }) => (
+    <div>
+      Embedded video room as {displayName} ({email})
+    </div>
+  ),
 }));
 vi.mock("@/components/sessions/session-whiteboard", () => ({
   SessionWhiteboard: ({ onSave }: { onSave: (state: { strokes: unknown[] }) => void }) => (
@@ -81,6 +89,14 @@ const DETAIL = {
 describe("SessionDetailPage", () => {
   beforeEach(() => {
     useParams.mockReturnValue({ id: "s1" });
+    fetchAccountSettings.mockReset().mockResolvedValue({
+      id: "t1",
+      email: "dr.rivera@example.com",
+      firstName: "Ada",
+      lastName: "Rivera",
+      role: "THERAPIST",
+      isActive: true,
+    });
     fetchSession.mockReset().mockResolvedValue(DETAIL);
     fetchTherapistSessionWorkspace.mockReset().mockResolvedValue({
       id: "sw1",
@@ -121,6 +137,26 @@ describe("SessionDetailPage", () => {
     expect(screen.getByDisplayValue(/patient wants to revisit homework/i)).toBeDefined();
     const addButton = screen.getByRole("button", { name: /add note/i }) as HTMLButtonElement;
     expect(addButton.disabled).toBe(true);
+  });
+
+  it("joins the embedded call as the signed-in therapist, not the patient", async () => {
+    render(<SessionDetailPage />);
+
+    await waitFor(() => screen.getByText(/embedded video room/i));
+
+    expect(
+      screen.getByText(/embedded video room as ada rivera \(dr\.rivera@example\.com\)/i),
+    ).toBeDefined();
+    expect(screen.queryByText(/embedded video room as sam lee/i)).toBeNull();
+  });
+
+  it("falls back to a neutral call identity when the account lookup fails", async () => {
+    fetchAccountSettings.mockRejectedValueOnce(new Error("offline"));
+
+    render(<SessionDetailPage />);
+
+    await waitFor(() => screen.getByText(/embedded video room/i));
+    expect(screen.getByText(/embedded video room as therapist/i)).toBeDefined();
   });
 
   it("saves therapist-visible workspace updates", async () => {

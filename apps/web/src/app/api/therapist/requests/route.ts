@@ -6,8 +6,10 @@ export const GET = withErrorHandling(async (req: Request) => {
   const t = await requireApprovedTherapist(req);
   if (!t.ok) return t.response;
 
+  // Only patient-initiated requests are acceptable here. Therapist-created
+  // invites await the PATIENT's consent and must never be self-acceptable.
   const requests = await prisma.patientTherapist.findMany({
-    where: { therapistId: t.user.therapistProfile!.id, status: "PENDING" },
+    where: { therapistId: t.user.therapistProfile!.id, status: "PENDING", initiatedBy: "PATIENT" },
     orderBy: { startDate: "desc" },
     select: {
       id: true,

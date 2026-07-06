@@ -2,6 +2,9 @@
   "name": "exhale",
   "private": true,
   "packageManager": "pnpm@10.14.0",
+  "engines": {
+    "node": ">=20 <21"
+  },
   "scripts": {
     "dev": "dotenv -e .env -- pnpm --filter web dev",
     "build": "dotenv -e .env -- pnpm --filter web build",

@@ -3,8 +3,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const requirePatient = vi.fn();
 const requireApprovedTherapist = vi.fn();
 const ptFindFirst = vi.fn();
+const ptFindUnique = vi.fn();
 const ptUpsert = vi.fn();
 const ptUpdate = vi.fn();
+const txFindFirst = vi.fn();
+const txUpdate = vi.fn();
+const $transaction = vi.fn();
 const tpFindFirst = vi.fn();
 const ppUpdate = vi.fn();
 const userFindUnique = vi.fn();
@@ -14,9 +18,16 @@ vi.mock("@/lib/authz", () => ({ requireApprovedTherapist }));
 vi.mock("@exhale/db", () => ({
   prisma: {
     user: { findUnique: userFindUnique },
-    patientTherapist: { findFirst: ptFindFirst, upsert: ptUpsert, update: ptUpdate, findMany: vi.fn() },
+    patientTherapist: {
+      findFirst: ptFindFirst,
+      findUnique: ptFindUnique,
+      upsert: ptUpsert,
+      update: ptUpdate,
+      findMany: vi.fn(),
+    },
     therapistProfile: { findFirst: tpFindFirst },
     patientProfile: { update: ppUpdate },
+    $transaction,
   },
 }));
 
@@ -49,7 +60,7 @@ describe("/api/connections POST (patient request)", () => {
     expect(ptUpsert).not.toHaveBeenCalled();
   });
 
-  it("201 pending on a valid request", async () => {
+  it("201 pending on a valid request, marked patient-initiated", async () => {
     requirePatient.mockResolvedValue(ok);
     ptFindFirst.mockResolvedValue(null);
     tpFindFirst.mockResolvedValue({ id: "tp1" });
@@ -57,7 +68,12 @@ describe("/api/connections POST (patient request)", () => {
     const { POST } = await import("../connections/route");
     const res = await POST(body({ therapistId: "tp1", note: "hi" }));
     expect(res.status).toBe(201);
-    expect(ptUpsert).toHaveBeenCalled();
+    expect(ptUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        create: expect.objectContaining({ initiatedBy: "PATIENT" }),
+        update: expect.objectContaining({ initiatedBy: "PATIENT" }),
+      }),
+    );
     expect((await res.json()).data.status).toBe("pending");
   });
 
@@ -75,24 +91,54 @@ describe("/api/therapist/requests/[id] PUT (accept/decline)", () => {
 
   beforeEach(() => {
     vi.resetModules();
-    [requireApprovedTherapist, ptFindFirst, ptUpdate].forEach((f) => f.mockReset());
+    [requireApprovedTherapist, ptFindFirst, ptUpdate, txFindFirst, txUpdate, $transaction].forEach((f) =>
+      f.mockReset(),
+    );
+    $transaction.mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) =>
+      fn({ patientTherapist: { findFirst: txFindFirst, update: txUpdate } }),
+    );
   });
 
-  it("accept activates the connection", async () => {
+  it("accept activates the connection when the patient has no other active therapist", async () => {
     requireApprovedTherapist.mockResolvedValue(t);
-    ptFindFirst.mockResolvedValue({ id: "l1" });
-    ptUpdate.mockResolvedValue({});
+    ptFindFirst.mockResolvedValue({ id: "l1", patientId: "pp1" });
+    txFindFirst.mockResolvedValue(null);
+    txUpdate.mockResolvedValue({});
     const { PUT } = await import("../therapist/requests/[id]/route");
     const res = await PUT(body({ accept: true }), ctx("l1"));
     expect(res.status).toBe(200);
-    expect(ptUpdate).toHaveBeenCalledWith(
+    expect(txUpdate).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ status: "ACTIVE", isActive: true }) }),
     );
   });
 
+  it("only responds to patient-initiated requests (no self-accepting invites)", async () => {
+    requireApprovedTherapist.mockResolvedValue(t);
+    ptFindFirst.mockResolvedValue({ id: "l1", patientId: "pp1" });
+    txFindFirst.mockResolvedValue(null);
+    txUpdate.mockResolvedValue({});
+    const { PUT } = await import("../therapist/requests/[id]/route");
+    await PUT(body({ accept: true }), ctx("l1"));
+    expect(ptFindFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ status: "PENDING", initiatedBy: "PATIENT" }),
+      }),
+    );
+  });
+
+  it("409 when the patient already has another active therapist", async () => {
+    requireApprovedTherapist.mockResolvedValue(t);
+    ptFindFirst.mockResolvedValue({ id: "l1", patientId: "pp1" });
+    txFindFirst.mockResolvedValue({ id: "other-link" });
+    const { PUT } = await import("../therapist/requests/[id]/route");
+    const res = await PUT(body({ accept: true }), ctx("l1"));
+    expect(res.status).toBe(409);
+    expect(txUpdate).not.toHaveBeenCalled();
+  });
+
   it("decline marks the connection declined", async () => {
     requireApprovedTherapist.mockResolvedValue(t);
-    ptFindFirst.mockResolvedValue({ id: "l1" });
+    ptFindFirst.mockResolvedValue({ id: "l1", patientId: "pp1" });
     ptUpdate.mockResolvedValue({});
     const { PUT } = await import("../therapist/requests/[id]/route");
     const res = await PUT(body({ accept: false }), ctx("l1"));
@@ -100,6 +146,7 @@ describe("/api/therapist/requests/[id] PUT (accept/decline)", () => {
     expect(ptUpdate).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ status: "DECLINED", isActive: false }) }),
     );
+    expect($transaction).not.toHaveBeenCalled();
   });
 
   it("404 when the request is not the therapist's pending one", async () => {
@@ -108,27 +155,30 @@ describe("/api/therapist/requests/[id] PUT (accept/decline)", () => {
     const { PUT } = await import("../therapist/requests/[id]/route");
     expect((await PUT(body({ accept: true }), ctx("l1"))).status).toBe(404);
     expect(ptUpdate).not.toHaveBeenCalled();
+    expect(txUpdate).not.toHaveBeenCalled();
   });
 });
 
 describe("/api/therapist/patients POST (invite by email)", () => {
   const t = { ok: true, user: { therapistProfile: { id: "tpp1" } } };
+  const patientUser = {
+    firstName: "Pat",
+    lastName: "Client",
+    email: "patient@example.com",
+    patientProfile: { id: "pp1" },
+  };
   const body = (b: unknown) =>
     new Request("http://t/api/therapist/patients", { method: "POST", body: JSON.stringify(b) });
 
   beforeEach(() => {
     vi.resetModules();
-    [requireApprovedTherapist, userFindUnique, ptUpsert].forEach((f) => f.mockReset());
+    [requireApprovedTherapist, userFindUnique, ptFindUnique, ptUpsert].forEach((f) => f.mockReset());
   });
 
-  it("creates a pending inactive connection so the patient must consent", async () => {
+  it("creates a pending therapist-initiated invite so the patient must consent", async () => {
     requireApprovedTherapist.mockResolvedValue(t);
-    userFindUnique.mockResolvedValue({
-      firstName: "Pat",
-      lastName: "Client",
-      email: "patient@example.com",
-      patientProfile: { id: "pp1" },
-    });
+    userFindUnique.mockResolvedValue(patientUser);
+    ptFindUnique.mockResolvedValue(null);
     ptUpsert.mockResolvedValue({ startDate: new Date("2026-01-01T00:00:00.000Z") });
 
     const { POST } = await import("../therapist/patients/route");
@@ -140,11 +190,24 @@ describe("/api/therapist/patients POST (invite by email)", () => {
     );
     expect(ptUpsert).toHaveBeenCalledWith(
       expect.objectContaining({
-        create: expect.objectContaining({ status: "PENDING", isActive: false }),
-        update: expect.objectContaining({ status: "PENDING", isActive: false }),
+        create: expect.objectContaining({ status: "PENDING", isActive: false, initiatedBy: "THERAPIST" }),
+        update: expect.objectContaining({ status: "PENDING", isActive: false, initiatedBy: "THERAPIST" }),
       }),
     );
     expect((await res.json()).data.status).toBe("pending");
+  });
+
+  it("re-inviting an already-linked patient does not sever the active relationship", async () => {
+    requireApprovedTherapist.mockResolvedValue(t);
+    userFindUnique.mockResolvedValue(patientUser);
+    ptFindUnique.mockResolvedValue({ status: "ACTIVE" });
+
+    const { POST } = await import("../therapist/patients/route");
+    const res = await POST(body({ email: "patient@example.com" }));
+
+    expect(res.status).toBe(409);
+    expect((await res.json()).error).toBe("You're already connected with this patient.");
+    expect(ptUpsert).not.toHaveBeenCalled();
   });
 });
 

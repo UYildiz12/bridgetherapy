@@ -4,12 +4,16 @@ import { requireApprovedTherapist } from "@/lib/authz";
 import { parseBody } from "@/lib/validation";
 import { json, withErrorHandling } from "@/lib/http";
 import { setContentSchema } from "@/lib/homework/schema";
+import { docSchema } from "@/lib/homework/blocks";
 import { toSetDTO, asJson } from "@/lib/homework/server";
+
+/** New sets are v2 block documents; v1 item sets stay accepted for legacy clients. */
+const contentSchema = z.union([docSchema, setContentSchema]);
 
 const CreateSet = z.object({
   title: z.string().min(1).max(160),
   description: z.string().max(1000).optional(),
-  content: setContentSchema,
+  content: contentSchema,
 });
 
 export const GET = withErrorHandling(async (req: Request) => {

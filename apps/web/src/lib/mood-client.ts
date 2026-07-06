@@ -12,10 +12,18 @@ export interface CreateMoodInput {
   tags?: string[];
 }
 
-export async function fetchMoodEntries(): Promise<MoodEntry[]> {
+export interface MoodHistory {
+  /** Newest-first, capped by the API (enough for charts and recent lists). */
+  entries: MoodEntry[];
+  /** Real all-time check-in count, independent of the list cap. */
+  total: number;
+}
+
+export async function fetchMoodHistory(): Promise<MoodHistory> {
   const res = await fetch("/api/mood");
   if (!res.ok) throw new Error(`Failed to load mood entries: ${res.status}`);
-  return (await res.json()).data as MoodEntry[];
+  const body = (await res.json()) as { data: MoodEntry[]; total?: number };
+  return { entries: body.data, total: body.total ?? body.data.length };
 }
 
 export async function createMoodEntry(input: CreateMoodInput): Promise<MoodEntry> {

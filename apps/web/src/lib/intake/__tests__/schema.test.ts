@@ -39,6 +39,39 @@ describe("normalizeCbtIntake", () => {
     expect(intake.preferences.therapistStyle).toEqual(["structured"]);
   });
 
+  it("truncates over-long free text instead of throwing", () => {
+    const intake = normalizeCbtIntake({
+      recentSituation: "a".repeat(5000),
+      automaticThoughts: `  ${"b".repeat(2400)}  `,
+      safety: {
+        selfHarmThoughts: "passive",
+        urgentSupportRequested: true,
+        notes: "c".repeat(3000),
+      },
+    });
+
+    expect(intake.recentSituation).toBe("a".repeat(1200));
+    expect(intake.automaticThoughts).toBe("b".repeat(1200));
+    expect(intake.safety.notes).toBe("c".repeat(1000));
+    // The rest of the safety answers survive intact.
+    expect(intake.safety.selfHarmThoughts).toBe("passive");
+    expect(intake.safety.urgentSupportRequested).toBe(true);
+  });
+
+  it("truncates list items and caps list length instead of throwing", () => {
+    const intake = normalizeCbtIntake({
+      primaryProblems: Array.from({ length: 14 }, (_, i) => `problem ${i} ${"x".repeat(400)}`),
+      strengths: ["y".repeat(500), `${"y".repeat(240)}tail`],
+    });
+
+    expect(intake.primaryProblems).toHaveLength(10);
+    for (const item of intake.primaryProblems) {
+      expect(item.length).toBeLessThanOrEqual(240);
+    }
+    // Items that collide after truncation are de-duplicated.
+    expect(intake.strengths).toEqual(["y".repeat(240)]);
+  });
+
   it("fills a safe empty structure when no CBT intake is provided", () => {
     const intake = normalizeCbtIntake(undefined);
 

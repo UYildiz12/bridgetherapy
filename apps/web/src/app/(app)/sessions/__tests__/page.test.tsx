@@ -12,6 +12,7 @@ vi.mock("@/lib/sessions-client", () => ({
   fetchPatientSessions,
   fetchPatientSessionWorkspace,
   updatePatientSessionWorkspace,
+  isConflictError: () => false,
 }));
 vi.mock("@/components/sessions/session-whiteboard", () => ({
   SessionWhiteboard: ({ onSave }: { onSave: (state: { strokes: unknown[] }) => void }) => (
@@ -22,6 +23,23 @@ vi.mock("@/components/sessions/session-whiteboard", () => ({
 }));
 
 import PatientSessionsPage from "../page";
+import { formatDateTime } from "@/lib/format";
+
+const HOUR = 60 * 60 * 1000;
+
+function sessionAt(id: string, scheduledAt: string, status = "SCHEDULED") {
+  return {
+    id,
+    scheduledAt,
+    startedAt: null,
+    endedAt: null,
+    status,
+    videoProvider: "jitsi",
+    videoRoomId: `room-${id}`,
+    videoUrl: null,
+    summary: null,
+  };
+}
 
 describe("PatientSessionsPage", () => {
   beforeEach(() => {
@@ -111,5 +129,31 @@ describe("PatientSessionsPage", () => {
     render(<PatientSessionsPage />);
 
     await waitFor(() => screen.getByText(/no sessions scheduled/i));
+  });
+
+  it("does not pin a stale past session as the next session", async () => {
+    fetchPatientSessions.mockResolvedValueOnce([
+      sessionAt("s1", new Date(Date.now() - 2 * HOUR).toISOString()),
+    ]);
+
+    render(<PatientSessionsPage />);
+
+    await waitFor(() => screen.getByText("None scheduled"));
+    // The past session still shows in the list, it just isn't "next".
+    expect(screen.getByText("scheduled")).toBeDefined();
+  });
+
+  it("shows the soonest upcoming session as the next session", async () => {
+    const future = new Date(Date.now() + 2 * HOUR).toISOString();
+    fetchPatientSessions.mockResolvedValueOnce([
+      sessionAt("s1", new Date(Date.now() - 2 * HOUR).toISOString()),
+      sessionAt("s2", future),
+    ]);
+
+    render(<PatientSessionsPage />);
+
+    // Header plus the session's own list row.
+    await waitFor(() => expect(screen.getAllByText(formatDateTime(future)).length).toBe(2));
+    expect(screen.queryByText("None scheduled")).toBeNull();
   });
 });

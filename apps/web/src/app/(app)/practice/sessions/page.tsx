@@ -3,20 +3,14 @@ import Link from "next/link";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { CalendarDays, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { formatDateTime } from "@/lib/format";
 import { fetchPatients, type LinkedPatient } from "@/lib/homework/client";
 import { createSession, fetchSessions, type SessionListItem } from "@/lib/sessions-client";
 
+// A datetime-local value has no zone: let Date parse it as local wall-clock
+// time, then serialize the real instant. Stamping it "Z" would shift it.
 function localInputToIso(value: string) {
-  return value.length === 16 ? `${value}:00.000Z` : new Date(value).toISOString();
-}
-
-function formatSessionDate(value: string) {
-  return new Intl.DateTimeFormat(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(value));
+  return new Date(value).toISOString();
 }
 
 export default function TherapistSessionsPage() {
@@ -151,7 +145,7 @@ export default function TherapistSessionsPage() {
                   <span>
                     <span className="block font-medium text-foreground">{session.patientName}</span>
                     <span className="mt-1 block text-sm text-muted-foreground">
-                      {formatSessionDate(session.scheduledAt)} · {session.status.replaceAll("_", " ").toLowerCase()}
+                      {formatDateTime(session.scheduledAt)} · {session.status.replaceAll("_", " ").toLowerCase()}
                     </span>
                   </span>
                   <span className="flex items-center gap-2 text-sm text-muted-foreground">

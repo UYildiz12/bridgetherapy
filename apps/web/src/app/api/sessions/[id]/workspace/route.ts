@@ -1,7 +1,12 @@
 import { prisma } from "@exhale/db";
 import { json, withErrorHandling } from "@/lib/http";
 import { requirePatient } from "@/lib/patient";
-import { toWorkspaceDto, WorkspacePatch, workspaceData } from "@/lib/session-workspace";
+import {
+  saveWorkspacePatch,
+  toWorkspaceDto,
+  WORKSPACE_CONFLICT_MESSAGE,
+  WorkspacePatch,
+} from "@/lib/session-workspace";
 import { parseBody } from "@/lib/validation";
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -35,12 +40,9 @@ export const PATCH = withErrorHandling(async (req: Request, ctx: Ctx) => {
   const parsed = await parseBody(req, WorkspacePatch);
   if (!parsed.ok) return parsed.response;
 
-  const data = workspaceData(parsed.data);
-  const workspace = await prisma.sessionWorkspace.upsert({
-    where: { sessionId: id },
-    update: data,
-    create: { sessionId: id, ...data },
-  });
+  // Guarded write: a stale `baseUpdatedAt` means the other side saved first.
+  const saved = await saveWorkspacePatch(id, parsed.data);
+  if (!saved.ok) return json({ error: WORKSPACE_CONFLICT_MESSAGE }, 409);
 
-  return json({ data: toWorkspaceDto(workspace, id) }, 200);
+  return json({ data: toWorkspaceDto(saved.workspace, id) }, 200);
 });

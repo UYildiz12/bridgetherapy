@@ -58,11 +58,13 @@ describe("TherapistSessionsPage", () => {
     fireEvent.change(screen.getByLabelText(/scheduled time/i), { target: { value: "2026-06-22T15:00" } });
     fireEvent.click(screen.getByRole("button", { name: /schedule session/i }));
 
+    // The datetime-local value is local wall-clock time, so the stored instant
+    // is that local time converted to UTC — not the digits stamped with "Z".
     await waitFor(() =>
       expect(createSession).toHaveBeenCalledWith(
         expect.objectContaining({
           patientId: "pp1",
-          scheduledAt: "2026-06-22T15:00:00.000Z",
+          scheduledAt: new Date("2026-06-22T15:00").toISOString(),
         }),
       ),
     );

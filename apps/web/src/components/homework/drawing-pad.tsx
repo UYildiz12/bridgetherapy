@@ -17,6 +17,7 @@ export function DrawingPad({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
   const [dirty, setDirty] = useState(false);
+  const [confirmingClear, setConfirmingClear] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -68,6 +69,13 @@ export function DrawingPad({
   function clear() {
     resetCanvas();
     setDirty(false);
+    setConfirmingClear(false);
+  }
+
+  // Only ask when there are unsaved marks to lose; an empty pad clears silently.
+  function requestClear() {
+    if (dirty) setConfirmingClear(true);
+    else clear();
   }
 
   function save() {
@@ -99,16 +107,35 @@ export function DrawingPad({
         ref={canvasRef}
         width={600}
         height={360}
+        aria-label="Drawing pad canvas"
         className="w-full touch-none rounded-md border border-border"
         onPointerDown={down}
         onPointerMove={move}
         onPointerUp={up}
         onPointerLeave={up}
       />
-      <div className="flex items-center gap-2">
-        <Button type="button" variant="outline" size="sm" onClick={clear}>
-          Clear
-        </Button>
+      <div className="flex flex-wrap items-center gap-2">
+        {confirmingClear ? (
+          <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Confirm clear">
+            <span className="text-xs text-muted-foreground">Clear this drawing?</span>
+            <Button type="button" variant="outline" size="sm" onClick={() => setConfirmingClear(false)}>
+              Keep it
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={clear}
+              className="text-destructive hover:text-destructive"
+            >
+              Clear
+            </Button>
+          </div>
+        ) : (
+          <Button type="button" variant="outline" size="sm" onClick={requestClear}>
+            Clear
+          </Button>
+        )}
         <Button type="button" size="sm" onClick={save} disabled={!dirty || uploading}>
           {uploading ? "Saving…" : "Save drawing"}
         </Button>

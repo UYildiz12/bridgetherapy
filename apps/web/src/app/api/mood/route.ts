@@ -17,12 +17,16 @@ export const GET = withErrorHandling(async (req: Request) => {
   const patient = await requirePatient(req);
   if (!patient.ok) return patient.response;
 
-  const entries = await prisma.moodEntry.findMany({
-    where: { patientId: patient.patientId },
-    orderBy: { createdAt: "desc" },
-    take: 100,
-  });
-  return json({ data: entries }, 200);
+  // The list is capped for the chart; `total` carries the real all-time count.
+  const [entries, total] = await Promise.all([
+    prisma.moodEntry.findMany({
+      where: { patientId: patient.patientId },
+      orderBy: { createdAt: "desc" },
+      take: 100,
+    }),
+    prisma.moodEntry.count({ where: { patientId: patient.patientId } }),
+  ]);
+  return json({ data: entries, total }, 200);
 });
 
 export const POST = withErrorHandling(async (req: Request) => {

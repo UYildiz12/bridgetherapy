@@ -4,9 +4,13 @@ import { requirePatient } from "@/lib/patient";
 import { json, withErrorHandling } from "@/lib/http";
 import { parseBody } from "@/lib/validation";
 import { askLumen, lumenConfigured } from "@/lib/lumen";
+import { createRateLimiter } from "@/lib/rate-limit";
 import { downloadMedia } from "@/lib/storage";
 
 type Ctx = { params: Promise<{ id: string }> };
+
+// Every turn is a paid Gemini call; cap them per user (best-effort, per instance).
+const lumenLimiter = createRateLimiter({ limit: 20, windowMs: 60_000 });
 
 const SendMessage = z.object({
   message: z.string().trim().min(1).max(2000),
@@ -41,9 +45,10 @@ export const GET = withErrorHandling(async (req: Request, ctx: Ctx) => {
   const note = await ownedNote(p.patientId, id);
   if (!note) return json({ error: "Entry not found" }, 404);
 
+  // The id tiebreaker keeps USER before LUMEN when both rows share a timestamp.
   const messages = await prisma.lumenMessage.findMany({
     where: { noteId: id },
-    orderBy: { createdAt: "asc" },
+    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
   });
   return json({ data: { configured: lumenConfigured(), messages } }, 200);
 });
@@ -51,6 +56,14 @@ export const GET = withErrorHandling(async (req: Request, ctx: Ctx) => {
 export const POST = withErrorHandling(async (req: Request, ctx: Ctx) => {
   const p = await requirePatient(req);
   if (!p.ok) return p.response;
+
+  const limit = lumenLimiter.check(p.userId);
+  if (!limit.allowed) {
+    return json(
+      { error: "You're sending messages very quickly. Give Lumen a moment, then try again.", retryAfterMs: limit.retryAfterMs },
+      429,
+    );
+  }
 
   const parsed = await parseBody(req, SendMessage);
   if (!parsed.ok) return parsed.response;
@@ -66,11 +79,9 @@ export const POST = withErrorHandling(async (req: Request, ctx: Ctx) => {
     );
   }
 
-  // Persist the patient's message, then gather context + history for Lumen.
-  const userMsg = await prisma.lumenMessage.create({
-    data: { noteId: id, role: "USER", content: parsed.data.message },
-  });
-
+  // Gather context + history for Lumen. The patient's new message is only
+  // persisted after Gemini answers, so a failed call can be retried without
+  // writing a duplicate USER row.
   const [profile, moods, thread] = await Promise.all([
     prisma.patientProfile.findUnique({ where: { id: p.patientId }, select: { concerns: true } }),
     prisma.moodEntry.findMany({
@@ -79,7 +90,7 @@ export const POST = withErrorHandling(async (req: Request, ctx: Ctx) => {
       take: 5,
       select: { moodScore: true, tags: true },
     }),
-    prisma.lumenMessage.findMany({ where: { noteId: id }, orderBy: { createdAt: "asc" } }),
+    prisma.lumenMessage.findMany({ where: { noteId: id }, orderBy: [{ createdAt: "asc" }, { id: "asc" }] }),
   ]);
 
   let reply: string;
@@ -92,13 +103,19 @@ export const POST = withErrorHandling(async (req: Request, ctx: Ctx) => {
         concerns: profile?.concerns ?? [],
         recentMoods: moods.map((m) => ({ score: m.moodScore, tags: m.tags })),
       },
-      thread.map((t) => ({ role: t.role, content: t.content })),
+      [
+        ...thread.map((t) => ({ role: t.role, content: t.content })),
+        { role: "USER" as const, content: parsed.data.message },
+      ],
     );
   } catch {
-    // Keep the patient's message; surface a soft failure so they can retry.
+    // Nothing has been persisted; the client can resend the same message safely.
     return json({ error: "Lumen could not respond just now. Please try again." }, 502);
   }
 
+  const userMsg = await prisma.lumenMessage.create({
+    data: { noteId: id, role: "USER", content: parsed.data.message },
+  });
   const lumenMsg = await prisma.lumenMessage.create({
     data: { noteId: id, role: "LUMEN", content: reply },
   });

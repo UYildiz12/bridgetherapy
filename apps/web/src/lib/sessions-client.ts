@@ -76,6 +76,22 @@ export interface PatientSessionItem {
   summary: SessionSummary | null;
 }
 
+/** Error thrown by write calls, keeping the HTTP status so callers can react to 409s. */
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
+/** True when a save was rejected because the resource changed since the client last read it. */
+export function isConflictError(err: unknown): err is ApiError {
+  return err instanceof ApiError && err.status === 409;
+}
+
 async function getJson<T>(url: string): Promise<T> {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`GET ${url} failed: ${res.status}`);
@@ -96,7 +112,7 @@ async function send<T>(url: string, method: "POST" | "PATCH", body?: unknown): P
     } catch {
       // keep status-based message
     }
-    throw new Error(message);
+    throw new ApiError(message, res.status);
   }
   return (await res.json()).data as T;
 }
@@ -109,17 +125,24 @@ export const fetchSession = (id: string) => getJson<SessionDetail>(`/api/therapi
 export const updateSession = (id: string, body: { status?: SessionStatus; scheduledAt?: string }) =>
   send<SessionDetail>(`/api/therapist/sessions/${id}`, "PATCH", body);
 export const ensureSessionVideo = (id: string) => send<SessionDetail>(`/api/therapist/sessions/${id}/video`, "POST");
+/**
+ * Workspace patch body. `baseUpdatedAt` is the `updatedAt` the client last
+ * saw (null when no workspace existed); the server rejects the save with a
+ * 409 when it no longer matches, instead of overwriting the other side.
+ */
+export interface SessionWorkspacePatch {
+  patientNote?: string;
+  whiteboard?: WhiteboardState;
+  baseUpdatedAt?: string | null;
+}
+
 export const fetchPatientSessionWorkspace = (id: string) => getJson<SessionWorkspace>(`/api/sessions/${id}/workspace`);
-export const updatePatientSessionWorkspace = (
-  id: string,
-  body: { patientNote?: string; whiteboard?: WhiteboardState },
-) => send<SessionWorkspace>(`/api/sessions/${id}/workspace`, "PATCH", body);
+export const updatePatientSessionWorkspace = (id: string, body: SessionWorkspacePatch) =>
+  send<SessionWorkspace>(`/api/sessions/${id}/workspace`, "PATCH", body);
 export const fetchTherapistSessionWorkspace = (id: string) =>
   getJson<SessionWorkspace>(`/api/therapist/sessions/${id}/workspace`);
-export const updateTherapistSessionWorkspace = (
-  id: string,
-  body: { patientNote?: string; whiteboard?: WhiteboardState },
-) => send<SessionWorkspace>(`/api/therapist/sessions/${id}/workspace`, "PATCH", body);
+export const updateTherapistSessionWorkspace = (id: string, body: SessionWorkspacePatch) =>
+  send<SessionWorkspace>(`/api/therapist/sessions/${id}/workspace`, "PATCH", body);
 export const addSessionNote = (id: string, content: string) =>
   send<SessionNote>(`/api/therapist/sessions/${id}/notes`, "POST", { content });
 export const generateSessionSummary = (id: string) =>

@@ -57,6 +57,70 @@ describe("IntakePage", () => {
     expect(screen.queryByRole("heading", { name: /start with what brings you here/i })).toBeNull();
   });
 
+  it("shows crisis resources inline when self-harm thoughts are disclosed", async () => {
+    render(<IntakePage />);
+    await waitFor(() => screen.getByText(/step 1 of/i));
+
+    fireEvent.click(screen.getByRole("button", { name: "Anxiety" }));
+    for (let step = 1; step < 6; step += 1) {
+      fireEvent.click(screen.getByRole("button", { name: /continue/i }));
+    }
+    expect(screen.getByRole("heading", { name: /add safety and support context/i })).toBeDefined();
+    expect(screen.queryByRole("link", { name: /call 988/i })).toBeNull();
+
+    fireEvent.change(screen.getByLabelText(/thoughts of harming yourself/i), {
+      target: { value: "passive" },
+    });
+
+    expect(screen.getByText(/support is available right now/i)).toBeDefined();
+    expect(screen.getByRole("link", { name: /call 988/i }).getAttribute("href")).toBe("tel:988");
+    expect(screen.getByRole("link", { name: /text home to 741741/i }).getAttribute("href")).toBe(
+      "sms:741741",
+    );
+    expect(
+      screen.getByRole("link", { name: /chat with 988/i }).getAttribute("href"),
+    ).toContain("988lifeline.org");
+    expect(screen.getByRole("link", { name: /see all crisis resources/i }).getAttribute("href")).toBe(
+      "/wellness?tab=crisis",
+    );
+
+    fireEvent.change(screen.getByLabelText(/thoughts of harming yourself/i), {
+      target: { value: "active" },
+    });
+    expect(screen.getByRole("link", { name: /call 988/i })).toBeDefined();
+
+    fireEvent.change(screen.getByLabelText(/thoughts of harming yourself/i), {
+      target: { value: "none" },
+    });
+    expect(screen.queryByRole("link", { name: /call 988/i })).toBeNull();
+  });
+
+  it("caps free-text answers at the lengths the schema accepts", async () => {
+    render(<IntakePage />);
+    await waitFor(() => screen.getByText(/step 1 of/i));
+
+    fireEvent.click(screen.getByRole("button", { name: "Anxiety" }));
+    fireEvent.click(screen.getByRole("button", { name: /continue/i }));
+    fireEvent.click(screen.getByRole("button", { name: /continue/i }));
+
+    expect(
+      (screen.getByLabelText(/current problems or patterns/i) as HTMLTextAreaElement).maxLength,
+    ).toBe(2400);
+    expect(
+      (screen.getByLabelText(/a recent situation/i) as HTMLTextAreaElement).maxLength,
+    ).toBe(1200);
+    expect(
+      (screen.getByLabelText(/thoughts or images that showed up/i) as HTMLTextAreaElement).maxLength,
+    ).toBe(1200);
+
+    for (let step = 3; step < 6; step += 1) {
+      fireEvent.click(screen.getByRole("button", { name: /continue/i }));
+    }
+    expect(
+      (screen.getByLabelText(/support people, warning signs/i) as HTMLTextAreaElement).maxLength,
+    ).toBe(1000);
+  });
+
   it("saves the complete existing intake payload from the final step", async () => {
     render(<IntakePage />);
     await waitFor(() => screen.getByText(/step 1 of/i));

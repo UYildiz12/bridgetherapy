@@ -94,7 +94,7 @@ export const GET = withErrorHandling(async (req: Request) => {
     const [moods, assignments, reflectionCount, sessions] = await Promise.all([
       prisma.moodEntry.findMany({
         where: { patientId },
-        orderBy: { createdAt: "asc" },
+        orderBy: { createdAt: "desc" },
         take: 30,
         select: { moodScore: true, tags: true, createdAt: true },
       }),
@@ -108,7 +108,8 @@ export const GET = withErrorHandling(async (req: Request) => {
         select: { status: true },
       }),
     ]);
-    const mood = moodSummary(moods);
+    // The query grabs the newest 30 check-ins; the summary reads chronologically.
+    const mood = moodSummary(moods.reverse());
     const homework = homeworkSummary(assignments);
     const session = sessionSummary(sessions);
     const measures = measureSummary(mood);
@@ -148,7 +149,7 @@ export const GET = withErrorHandling(async (req: Request) => {
             id: true,
             user: { select: { firstName: true, lastName: true, email: true } },
             moodEntries: {
-              orderBy: { createdAt: "asc" },
+              orderBy: { createdAt: "desc" },
               take: 30,
               select: { moodScore: true, createdAt: true },
             },
@@ -161,7 +162,8 @@ export const GET = withErrorHandling(async (req: Request) => {
     });
 
     const patients = links.map((link) => {
-      const mood = moodSummary(link.patient.moodEntries);
+      // Same idea as the patient branch: newest 30, flipped back to chronological.
+      const mood = moodSummary([...link.patient.moodEntries].reverse());
       const homework = homeworkSummary(link.patient.homeworkAssignments);
       const sessions = sessionSummary(link.patient.sessions);
       const measures = measureSummary(mood);

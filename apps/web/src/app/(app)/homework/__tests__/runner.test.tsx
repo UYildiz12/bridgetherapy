@@ -14,6 +14,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 import HomeworkDoPage from "../[id]/page";
+import { formatDate } from "@/lib/format";
 
 const today = (() => {
   const d = new Date();
@@ -61,6 +62,15 @@ describe("HomeworkDoPage (v2 block runner)", () => {
     expect(screen.getByText(/daily · 0 of ongoing entries complete/i)).toBeDefined();
   });
 
+  it("shows the due date in the shared month-short dialect", async () => {
+    const due = new Date(Date.now() + 3 * 86_400_000).toISOString();
+    fetchMyAssignment.mockResolvedValue(assignment({ dueDate: due }));
+    render(<HomeworkDoPage />);
+    await waitFor(() => screen.getByText("Evening notes"));
+    const dueLabel = `· due ${formatDate(due)}`;
+    expect(screen.getByText((text) => text.includes(dueLabel))).toBeDefined();
+  });
+
   it("saves the active entry through saveMyEntry", async () => {
     fetchMyAssignment.mockResolvedValue(assignment());
     saveMyEntry.mockResolvedValue(assignment());
@@ -92,9 +102,29 @@ describe("HomeworkDoPage (v2 block runner)", () => {
     );
     render(<HomeworkDoPage />);
     await waitFor(() => screen.getByText("Evening notes"));
-    expect((screen.getByRole("button", { name: /^submit$/i }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole("button", { name: /^resubmit$/i }) as HTMLButtonElement).disabled).toBe(true);
     expect(screen.getByText(/changes requested/i)).toBeDefined();
     expect(screen.getByText(/try adding a bit more detail/i)).toBeDefined();
+  });
+
+  it("locks a submitted assignment, but reopens it when changes are requested", async () => {
+    fetchMyAssignment.mockResolvedValue(assignment({ status: "COMPLETED" }));
+    render(<HomeworkDoPage />);
+    await waitFor(() => screen.getByText("Evening notes"));
+    expect((screen.getByLabelText("Tonight's note") as HTMLTextAreaElement).disabled).toBe(true);
+    expect((screen.getByRole("button", { name: /submitted/i }) as HTMLButtonElement).disabled).toBe(true);
+    cleanup();
+
+    fetchMyAssignment.mockResolvedValue(
+      assignment({
+        status: "COMPLETED",
+        response: { version: 2, entries: [], revisionRequestedAt: new Date().toISOString() },
+      }),
+    );
+    render(<HomeworkDoPage />);
+    await waitFor(() => screen.getByText("Evening notes"));
+    expect((screen.getByLabelText("Tonight's note") as HTMLTextAreaElement).disabled).toBe(false);
+    expect(screen.getByRole("button", { name: /^resubmit$/i })).toBeDefined();
   });
 
   it("still renders legacy v1 assignments through the item flow", async () => {

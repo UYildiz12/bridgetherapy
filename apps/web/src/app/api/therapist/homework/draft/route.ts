@@ -6,11 +6,23 @@ import {
   isRiskyHomeworkPrompt,
 } from "@/lib/homework/ai-draft";
 import { json, withErrorHandling } from "@/lib/http";
+import { createRateLimiter } from "@/lib/rate-limit";
 import { parseBody } from "@/lib/validation";
+
+// Each draft is a paid Gemini call; cap them per therapist (best-effort, per instance).
+const draftLimiter = createRateLimiter({ limit: 10, windowMs: 60_000 });
 
 export const POST = withErrorHandling(async (req: Request) => {
   const therapist = await requireApprovedTherapist(req);
   if (!therapist.ok) return therapist.response;
+
+  const limit = draftLimiter.check(therapist.user.id);
+  if (!limit.allowed) {
+    return json(
+      { error: "Too many draft requests. Wait a minute before generating another set.", retryAfterMs: limit.retryAfterMs },
+      429,
+    );
+  }
 
   const parsed = await parseBody(req, homeworkDraftRequestSchema);
   if (!parsed.ok) return parsed.response;

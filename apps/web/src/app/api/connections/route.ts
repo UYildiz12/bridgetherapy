@@ -19,19 +19,36 @@ export const GET = withErrorHandling(async (req: Request) => {
 
   const links = await prisma.patientTherapist.findMany({
     where: { patientId: p.patientId, status: { in: ["ACTIVE", "PENDING"] } },
+    orderBy: { startDate: "desc" },
     select: {
+      id: true,
       status: true,
+      initiatedBy: true,
+      startDate: true,
       therapist: { select: { user: { select: { firstName: true, lastName: true, email: true } } } },
     },
   });
 
-  const chosen = links.find((l) => l.status === "ACTIVE") ?? links.find((l) => l.status === "PENDING");
-  if (!chosen) return json({ data: { status: "none" } }, 200);
+  // Therapist-initiated PENDING links are invites awaiting THIS patient's
+  // consent — surfaced separately from the patient's own outgoing request.
+  const invites = links
+    .filter((l) => l.status === "PENDING" && l.initiatedBy === "THERAPIST")
+    .map((l) => ({
+      id: l.id,
+      therapistName: displayName(l.therapist.user),
+      invitedAt: l.startDate,
+    }));
+
+  const chosen =
+    links.find((l) => l.status === "ACTIVE") ??
+    links.find((l) => l.status === "PENDING" && l.initiatedBy === "PATIENT");
+  if (!chosen) return json({ data: { status: "none", invites } }, 200);
   return json(
     {
       data: {
         status: chosen.status === "ACTIVE" ? "active" : "pending",
         therapistName: displayName(chosen.therapist.user),
+        invites,
       },
     },
     200,
@@ -65,11 +82,13 @@ export const POST = withErrorHandling(async (req: Request) => {
       therapistId: therapist.id,
       status: "PENDING",
       isActive: false,
+      initiatedBy: "PATIENT",
       requestNote: parsed.data.note,
     },
     update: {
       status: "PENDING",
       isActive: false,
+      initiatedBy: "PATIENT",
       requestNote: parsed.data.note,
       endDate: null,
     },

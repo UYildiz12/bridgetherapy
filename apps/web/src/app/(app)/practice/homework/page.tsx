@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
+  createSet,
   fetchSets,
   fetchPatients,
   assignSet,
@@ -9,6 +10,7 @@ import {
   type LinkedPatient,
 } from "@/lib/homework/client";
 import { parseDoc } from "@/lib/homework/adapt";
+import type { Block, HomeworkDoc } from "@/lib/homework/blocks";
 import { SubNav } from "@/components/app/sub-nav";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,11 +23,31 @@ import { PageHeader } from "@/components/app/page-header";
 const fieldCls =
   "h-9 rounded-md border border-input bg-transparent px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50";
 
+const KIND_LABELS: Partial<Record<Block["type"], string>> = {
+  "input.text": "text answers",
+  "input.scale": "scales",
+  "input.choice": "choices",
+  "input.checklist": "checklists",
+  "input.table": "logs",
+  "input.media": "voice/drawing",
+  "input.activity": "app activities",
+};
+
+/** One glanceable line: cadence, size, and what the patient will actually do. */
+function describeDoc(doc: HomeworkDoc): string {
+  const cadence =
+    doc.schedule.cadence === "daily" ? "Daily" : doc.schedule.cadence === "weekly" ? "Weekly" : "One-shot";
+  const n = doc.blocks.length;
+  const kinds = [...new Set(doc.blocks.map((b) => KIND_LABELS[b.type]).filter(Boolean))].slice(0, 3);
+  return [`${cadence}`, `${n} block${n === 1 ? "" : "s"}`, kinds.join(", ")].filter(Boolean).join(" · ");
+}
+
 export default function HomeworkSetsPage() {
   const [sets, setSets] = useState<HomeworkSet[] | null>(null);
   const [patients, setPatients] = useState<LinkedPatient[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchSets()
@@ -35,6 +57,23 @@ export default function HomeworkSetsPage() {
       .then(setPatients)
       .catch(() => {});
   }, []);
+
+  async function duplicate(s: HomeworkSet) {
+    setDuplicatingId(s.id);
+    setError(null);
+    try {
+      const copy = await createSet({
+        title: `${s.title} (copy)`,
+        description: s.description ?? undefined,
+        content: parseDoc(s.content),
+      });
+      setSets((prev) => (prev ? [copy, ...prev] : [copy]));
+    } catch {
+      setError("Couldn't duplicate that set.");
+    } finally {
+      setDuplicatingId(null);
+    }
+  }
 
   return (
     <div className="grid gap-6">
@@ -79,6 +118,14 @@ export default function HomeworkSetsPage() {
                     {s.description && <CardDescription>{s.description}</CardDescription>}
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => duplicate(s)}
+                      disabled={duplicatingId === s.id}
+                    >
+                      {duplicatingId === s.id ? "Duplicating…" : "Duplicate"}
+                    </Button>
                     <Button asChild variant="ghost" size="sm">
                       <Link href={`/practice/homework/new?edit=${s.id}`}>Edit</Link>
                     </Button>
@@ -93,12 +140,7 @@ export default function HomeworkSetsPage() {
                 </div>
               </CardHeader>
               <CardContent className="grid gap-3">
-                <span className="text-sm text-muted-foreground">
-                  {(() => {
-                    const n = parseDoc(s.content).blocks.length;
-                    return `${n} block${n === 1 ? "" : "s"}`;
-                  })()}
-                </span>
+                <span className="text-sm text-muted-foreground">{describeDoc(parseDoc(s.content))}</span>
                 {openId === s.id && (
                   <AssignForm set={s} patients={patients} onDone={() => setOpenId(null)} />
                 )}

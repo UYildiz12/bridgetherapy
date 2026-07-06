@@ -2,11 +2,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
-const { fetchAccountSettings } = vi.hoisted(() => ({
+const { fetchAccountSettings, fetchNotificationPreferences, saveNotificationPreferences } = vi.hoisted(() => ({
   fetchAccountSettings: vi.fn(),
+  fetchNotificationPreferences: vi.fn(),
+  saveNotificationPreferences: vi.fn(),
 }));
 
 vi.mock("@/lib/settings-client", () => ({ fetchAccountSettings }));
+vi.mock("@/lib/preferences-client", () => ({ fetchNotificationPreferences, saveNotificationPreferences }));
 
 import SettingsPage from "../page";
 
@@ -23,6 +26,12 @@ describe("SettingsPage", () => {
       createdAt: "2026-06-21T00:00:00.000Z",
       updatedAt: "2026-06-21T00:00:00.000Z",
     });
+    fetchNotificationPreferences.mockReset().mockResolvedValue({
+      notifySessionReminders: true,
+      notifyHomeworkNudges: true,
+      notifyWeeklyCheckin: true,
+    });
+    saveNotificationPreferences.mockReset().mockImplementation(async (prefs) => prefs);
   });
 
   afterEach(cleanup);
@@ -38,17 +47,37 @@ describe("SettingsPage", () => {
     expect(screen.getByRole("link", { name: /update intake/i })).toBeDefined();
   });
 
-  it("keeps notification preferences locally", async () => {
+  it("loads and persists notification preferences through the API", async () => {
     render(<SettingsPage />);
     await waitFor(() => screen.getByText("sam@example.com"));
 
-    const checkbox = screen.getByLabelText(/homework nudges/i) as HTMLInputElement;
+    const checkbox = (await screen.findByLabelText(/homework nudges/i)) as HTMLInputElement;
     expect(checkbox.checked).toBe(true);
 
     fireEvent.click(checkbox);
 
     expect(checkbox.checked).toBe(false);
-    expect(localStorage.getItem("exhale.settings.homeworkNudges")).toBe("false");
+    await waitFor(() =>
+      expect(saveNotificationPreferences).toHaveBeenCalledWith({
+        notifySessionReminders: true,
+        notifyHomeworkNudges: false,
+        notifyWeeklyCheckin: true,
+      }),
+    );
+    // Persistence now lives on the User row, not in this browser.
+    expect(localStorage.getItem("exhale.settings.homeworkNudges")).toBeNull();
+  });
+
+  it("reverts the toggle and surfaces an error when saving fails", async () => {
+    saveNotificationPreferences.mockRejectedValue(new Error("PUT /api/me/preferences failed: 500"));
+
+    render(<SettingsPage />);
+    const checkbox = (await screen.findByLabelText(/homework nudges/i)) as HTMLInputElement;
+
+    fireEvent.click(checkbox);
+
+    await waitFor(() => screen.getByText(/couldn't save notification preferences/i));
+    expect((screen.getByLabelText(/homework nudges/i) as HTMLInputElement).checked).toBe(true);
   });
 
   it("shows privacy boundaries for reflections and crisis support", async () => {

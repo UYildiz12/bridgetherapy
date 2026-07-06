@@ -48,6 +48,8 @@ export interface TherapistAssignment {
   dueDate: string | null;
   completedAt: string | null;
   reviewedAt: string | null;
+  /** Set when the therapist asked for changes and the patient hasn't edited since. */
+  revisionRequestedAt: string | null;
   patient: { patientId: string; name: string };
   set: { id: string; title: string };
   completedCount: number;
@@ -78,11 +80,17 @@ async function getJson<T>(url: string): Promise<T> {
   return (await res.json()).data as T;
 }
 
-async function send<T>(url: string, method: "POST" | "PUT", body: unknown): Promise<T> {
+async function send<T>(
+  url: string,
+  method: "POST" | "PUT",
+  body: unknown,
+  opts?: { keepalive?: boolean },
+): Promise<T> {
   const res = await fetch(url, {
     method,
     headers: { "content-type": "application/json" },
     body: JSON.stringify(body),
+    keepalive: opts?.keepalive,
   });
   if (!res.ok) {
     let message = `${method} ${url} failed: ${res.status}`;
@@ -104,12 +112,13 @@ export const saveMyResponse = (
   id: string,
   body: { items: Record<string, ItemResponse>; submit?: boolean },
 ) => send<PatientAssignment>(`/api/homework/${id}`, "PUT", body);
-/** v2 block assignments: upsert one dated entry's block responses. */
+/** v2 block assignments: upsert one dated entry's block responses. Keepalive so
+ *  a flush fired while the tab is closing still reaches the server. */
 export const saveMyEntry = (
   id: string,
   entry: { date: string; blocks: Record<string, BlockResponse> },
   submit?: boolean,
-) => send<PatientAssignment>(`/api/homework/${id}`, "PUT", { entry, submit });
+) => send<PatientAssignment>(`/api/homework/${id}`, "PUT", { entry, submit }, { keepalive: true });
 
 // ---- Therapist ----
 export const fetchPatients = () => getJson<LinkedPatient[]>("/api/therapist/patients");

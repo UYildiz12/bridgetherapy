@@ -41,11 +41,12 @@ jobs:
       - name: Lint
         run: pnpm --filter web lint
 
+      # Recursive so packages/db and apps/mobile are checked too, not just web.
       - name: Typecheck
-        run: pnpm --filter web typecheck
+        run: pnpm -r --if-present typecheck
 
       - name: Test
-        run: pnpm --filter web test
+        run: pnpm -r --if-present test
 
       - name: Build
         run: pnpm --filter web build

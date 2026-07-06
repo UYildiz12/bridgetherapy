@@ -1,26 +1,18 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { CalendarDays, CheckCircle2, Video } from "lucide-react";
-import { SessionWhiteboard } from "@/components/sessions/session-whiteboard";
+import { SessionWhiteboard, type WhiteboardSaveResult } from "@/components/sessions/session-whiteboard";
 import { Button } from "@/components/ui/button";
+import { formatDateTime } from "@/lib/format";
 import {
   fetchPatientSessionWorkspace,
   fetchPatientSessions,
+  isConflictError,
   updatePatientSessionWorkspace,
   type PatientSessionItem,
   type SessionWorkspace,
   type WhiteboardState,
 } from "@/lib/sessions-client";
-
-function formatSessionDate(value: string) {
-  return new Intl.DateTimeFormat(undefined, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(value));
-}
 
 function statusLabel(status: string) {
   return status.replaceAll("_", " ").toLowerCase();
@@ -32,11 +24,25 @@ export default function PatientSessionsPage() {
   const [noteDrafts, setNoteDrafts] = useState<Record<string, string>>({});
   const [savingWorkspace, setSavingWorkspace] = useState<Record<string, boolean>>({});
   const [error, setError] = useState<string | null>(null);
+  // Derived in the load effect (not during render) so the "now" boundary never
+  // calls an impure function while rendering; a stale past SCHEDULED row must not
+  // pin "Next session" to a date that already happened.
+  const [nextSession, setNextSession] = useState<PatientSessionItem | undefined>(undefined);
 
   useEffect(() => {
     fetchPatientSessions()
       .then(async (sessionData) => {
         setSessions(sessionData);
+        const now = Date.now();
+        setNextSession(
+          sessionData
+            .filter(
+              (session) =>
+                (session.status === "SCHEDULED" || session.status === "IN_PROGRESS") &&
+                new Date(session.scheduledAt).getTime() >= now,
+            )
+            .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())[0],
+        );
         const loaded = await Promise.all(
           sessionData.map((session) =>
             fetchPatientSessionWorkspace(session.id)
@@ -52,14 +58,6 @@ export default function PatientSessionsPage() {
       })
       .catch(() => setError("Couldn't load sessions."));
   }, []);
-
-  const nextSession = useMemo(
-    () =>
-      sessions
-        ?.filter((session) => session.status === "SCHEDULED" || session.status === "IN_PROGRESS")
-        .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())[0],
-    [sessions],
-  );
 
   async function saveNote(sessionId: string) {
     setSavingWorkspace((prev) => ({ ...prev, [sessionId]: true }));
@@ -77,14 +75,30 @@ export default function PatientSessionsPage() {
     }
   }
 
-  async function saveWhiteboard(sessionId: string, whiteboard: WhiteboardState) {
+  async function saveWhiteboard(
+    sessionId: string,
+    whiteboard: WhiteboardState,
+    baseUpdatedAt: string | null,
+  ): Promise<WhiteboardSaveResult> {
     setSavingWorkspace((prev) => ({ ...prev, [sessionId]: true }));
     setError(null);
     try {
-      const updated = await updatePatientSessionWorkspace(sessionId, { whiteboard });
+      const updated = await updatePatientSessionWorkspace(sessionId, { whiteboard, baseUpdatedAt });
       setWorkspaces((prev) => ({ ...prev, [sessionId]: updated }));
+      return { ok: true, updatedAt: updated.updatedAt };
     } catch (err) {
+      if (isConflictError(err)) {
+        // The therapist saved first; hand the fresh board back so the canvas
+        // can quietly merge and retry instead of overwriting their strokes.
+        try {
+          const fresh = await fetchPatientSessionWorkspace(sessionId);
+          return { ok: false, conflict: { whiteboard: fresh.whiteboard, updatedAt: fresh.updatedAt } };
+        } catch {
+          // fall through to the generic error
+        }
+      }
       setError(err instanceof Error ? err.message : "Couldn't save that whiteboard.");
+      return { ok: false };
     } finally {
       setSavingWorkspace((prev) => ({ ...prev, [sessionId]: false }));
     }
@@ -109,7 +123,7 @@ export default function PatientSessionsPage() {
           <div className="self-end lg:border-l lg:border-border lg:pl-6">
             <p className="text-sm text-muted-foreground">Next session</p>
             <p className="mt-2 text-xl font-semibold tracking-tight">
-              {nextSession ? formatSessionDate(nextSession.scheduledAt) : "None scheduled"}
+              {nextSession ? formatDateTime(nextSession.scheduledAt) : "None scheduled"}
             </p>
           </div>
         </div>
@@ -143,7 +157,7 @@ export default function PatientSessionsPage() {
                 className="grid gap-5 border-b border-border/70 py-5 last:border-b-0 md:grid-cols-[1fr_auto]"
               >
                 <div>
-                  <p className="font-medium text-foreground">{formatSessionDate(session.scheduledAt)}</p>
+                  <p className="font-medium text-foreground">{formatDateTime(session.scheduledAt)}</p>
                   <p className="mt-1 text-sm text-muted-foreground">{statusLabel(session.status)}</p>
                 </div>
                 {session.videoUrl ? (
@@ -190,7 +204,8 @@ export default function PatientSessionsPage() {
                     </div>
                     <SessionWhiteboard
                       value={workspaces[session.id]?.whiteboard ?? { strokes: [] }}
-                      onSave={(whiteboard) => saveWhiteboard(session.id, whiteboard)}
+                      updatedAt={workspaces[session.id]?.updatedAt ?? null}
+                      onSave={(whiteboard, baseUpdatedAt) => saveWhiteboard(session.id, whiteboard, baseUpdatedAt)}
                     />
                   </div>
                 </div>

@@ -20,10 +20,22 @@ export const POST = withErrorHandling(async (req: Request) => {
   const parsed = await parseBody(req, TokenBody);
   if (!parsed.ok) return parsed.response;
 
+  // A push token identifies a device registration. Re-registering your own
+  // token is fine (refreshes the platform), but a token already bound to a
+  // different account must not be transferable — that would let an attacker
+  // hijack another device's notifications.
+  const existing = await prisma.pushToken.findUnique({
+    where: { token: parsed.data.token },
+    select: { userId: true },
+  });
+  if (existing && existing.userId !== auth.authId) {
+    return json({ error: "Token is registered to another account" }, 409);
+  }
+
   const token = await prisma.pushToken.upsert({
     where: { token: parsed.data.token },
     create: { userId: auth.authId, token: parsed.data.token, platform: parsed.data.platform },
-    update: { userId: auth.authId, platform: parsed.data.platform },
+    update: { platform: parsed.data.platform },
   });
 
   return json({ data: token }, 201);

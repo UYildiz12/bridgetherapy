@@ -2,13 +2,15 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { MessageSquareText } from "lucide-react";
 import { fetchReviewDetail, reviewAssignment, type ReviewDetail } from "@/lib/homework/client";
 import { parseContent, parseResponse } from "@/lib/homework/schema";
 import { docSchema, type HomeworkDoc } from "@/lib/homework/blocks";
 import { parseResponseDoc } from "@/lib/homework/adapt";
-import { choiceScore, isScoredDoc } from "@/lib/homework/completion";
+import { choiceScore, isEntryComplete, isScoredDoc, maxChoiceScore } from "@/lib/homework/completion";
 import { BlockView } from "@/components/homework/block-view";
 import { ItemReview } from "@/components/homework/item-review";
+import { formatDate } from "@/lib/format";
 import { StatusBadge } from "@/components/homework/status-badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -20,7 +22,23 @@ const areaCls =
 
 function entryLabel(date: string): string {
   if (date === "1970-01-01") return "Submission";
-  return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(new Date(`${date}T00:00:00`));
+  return formatDate(new Date(`${date}T00:00:00`));
+}
+
+/** Hairline score trend across entries, in the blueprint idiom. */
+function Sparkline({ values, max }: { values: number[]; max: number }) {
+  const w = 132;
+  const h = 30;
+  const pad = 3;
+  const x = (i: number) => pad + (i * (w - pad * 2)) / Math.max(1, values.length - 1);
+  const y = (v: number) => h - pad - (max > 0 ? (Math.min(v, max) / max) * (h - pad * 2) : 0);
+  const d = values.map((v, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="text-foreground/70" aria-hidden>
+      <path d={d} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx={x(values.length - 1)} cy={y(values.at(-1) ?? 0)} r="2.2" fill="currentColor" />
+    </svg>
+  );
 }
 
 export default function ReviewPage() {
@@ -28,6 +46,7 @@ export default function ReviewPage() {
   const [detail, setDetail] = useState<ReviewDetail | null>(null);
   const [feedback, setFeedback] = useState("");
   const [comments, setComments] = useState<Record<string, string>>({});
+  const [revisionAt, setRevisionAt] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -40,6 +59,7 @@ export default function ReviewPage() {
         const rd = parseResponseDoc(d.set.content, d.response);
         setFeedback(rd.feedback ?? "");
         setComments(rd.comments ?? {});
+        setRevisionAt(rd.revisionRequestedAt ?? null);
       })
       .catch(() => setLoadError("Couldn't load this submission."));
   }, [id]);
@@ -72,6 +92,7 @@ export default function ReviewPage() {
         requestRevision: requestRevision || undefined,
       });
       setSavedAt(new Date().toLocaleTimeString());
+      if (requestRevision) setRevisionAt(new Date().toISOString());
       setDetail((d) => (d ? { ...d, assignment: { ...d.assignment, reviewedAt: res.reviewedAt } } : d));
     } catch (e) {
       setSaveError(e instanceof Error ? e.message : "Couldn't save the review.");
@@ -137,6 +158,12 @@ export default function ReviewPage() {
               Request changes
             </Button>
           )}
+          {revisionAt && (
+            <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+              <MessageSquareText size={12} aria-hidden /> Changes requested · waiting on{" "}
+              {patientName.split(" ")[0]}
+            </span>
+          )}
           {savedAt && <span className="text-xs text-muted-foreground">Saved at {savedAt}</span>}
         </div>
       </div>
@@ -159,6 +186,7 @@ function V2Review({
 }) {
   const rd = useMemo(() => parseResponseDoc(rawContent, rawResponse), [rawContent, rawResponse]);
   const scored = isScoredDoc(doc);
+  const scoreMax = maxChoiceScore(doc);
   const [activeIdx, setActiveIdx] = useState(() => Math.max(0, rd.entries.length - 1));
   const entry = rd.entries[activeIdx];
 
@@ -170,33 +198,55 @@ function V2Review({
     <div className="grid gap-4">
       {rd.entries.length > 1 && (
         <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Entries">
-          {rd.entries.map((e, i) => (
-            <button
-              key={e.id}
-              type="button"
-              role="tab"
-              aria-selected={i === activeIdx}
-              onClick={() => setActiveIdx(i)}
-              className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${
-                i === activeIdx
-                  ? "border-foreground bg-foreground text-background"
-                  : "border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground"
-              }`}
-            >
-              {entryLabel(e.date)}
-              {scored && <span className="ml-1.5 tabular-nums opacity-70">· {choiceScore(doc, e)}</span>}
-            </button>
-          ))}
+          {rd.entries.map((e, i) => {
+            const complete = isEntryComplete(doc, e);
+            const active = i === activeIdx;
+            return (
+              <button
+                key={e.id}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                title={complete ? "Entry complete" : "Entry incomplete"}
+                onClick={() => setActiveIdx(i)}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition-colors ${
+                  active
+                    ? "border-foreground bg-foreground text-background"
+                    : "border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground"
+                }`}
+              >
+                <span
+                  aria-hidden
+                  className={`size-1.5 rounded-full ${
+                    complete ? (active ? "bg-background" : "bg-foreground") : "border border-current"
+                  }`}
+                />
+                {entryLabel(e.date)}
+                {scored && <span className="tabular-nums opacity-70">· {choiceScore(doc, e)}</span>}
+              </button>
+            );
+          })}
         </div>
       )}
 
       {scored && entry && (
-        <p className="text-sm text-muted-foreground">
-          Score for this entry:{" "}
-          <span className="text-xl leading-none tabular-nums text-foreground" style={SERIF}>
-            {choiceScore(doc, entry)}
-          </span>
-        </p>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <p className="text-sm text-muted-foreground">
+            Score for this entry:{" "}
+            <span className="text-xl leading-none tabular-nums text-foreground" style={SERIF}>
+              {choiceScore(doc, entry)}
+            </span>
+            {scoreMax > 0 && <span className="tabular-nums"> of {scoreMax}</span>}
+          </p>
+          {rd.entries.length > 1 && (
+            <div className="grid justify-items-end gap-0.5">
+              <Sparkline values={rd.entries.map((e) => choiceScore(doc, e))} max={scoreMax} />
+              <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                Trend across entries
+              </span>
+            </div>
+          )}
+        </div>
       )}
 
       {entry && (

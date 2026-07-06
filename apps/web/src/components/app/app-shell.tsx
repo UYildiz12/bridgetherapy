@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { LifeBuoy, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { SignOutButton } from "./sign-out-button";
@@ -102,6 +102,14 @@ export function AppShell({
             </nav>
           </div>
           <div className="flex items-center gap-3">
+            {/* Always-visible, quiet route to crisis resources from any page. */}
+            <Link
+              href="/wellness?tab=crisis"
+              className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent/55 hover:text-foreground"
+            >
+              <LifeBuoy className="size-4" aria-hidden="true" />
+              Crisis support
+            </Link>
             <div className="hidden lg:block">
               <AccountMenu display={display} initials={initials} email={email} />
             </div>
@@ -124,6 +132,14 @@ export function AppShell({
             <div className="mx-auto grid max-w-6xl gap-1 px-4 py-3 sm:px-6">
               {renderLinks("mobile")}
               <div className="mt-2 grid gap-1 border-t border-border pt-3">
+                <Link
+                  href="/wellness?tab=crisis"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-2 rounded-md px-3 py-3 text-base text-muted-foreground transition-colors hover:bg-accent/55 hover:text-foreground"
+                >
+                  <LifeBuoy className="size-4" aria-hidden="true" />
+                  Crisis support
+                </Link>
                 <Link
                   href="/settings"
                   onClick={() => setMobileOpen(false)}

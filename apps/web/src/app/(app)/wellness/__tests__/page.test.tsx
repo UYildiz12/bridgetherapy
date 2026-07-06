@@ -1,9 +1,23 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+
+const nav = vi.hoisted(() => ({ search: "", replace: vi.fn() }));
+
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/wellness",
+  useRouter: () => ({ replace: nav.replace }),
+  useSearchParams: () => new URLSearchParams(nav.search),
+}));
+
 import WellnessPage from "../page";
 
 describe("WellnessPage", () => {
+  beforeEach(() => {
+    nav.search = "";
+    nav.replace.mockReset();
+  });
+
   afterEach(cleanup);
 
   // Tab panels are code-split via next/dynamic, so the first assertion inside a
@@ -46,5 +60,29 @@ describe("WellnessPage", () => {
     expect(screen.getByText(/immediate danger/i)).toBeDefined();
     expect(screen.getByText(/call or text 988/i)).toBeDefined();
     expect(screen.getByRole("link", { name: /chat with 988/i })).toBeDefined();
+  });
+
+  it("keeps the selected tab in the URL so views are linkable", () => {
+    render(<WellnessPage />);
+
+    fireEvent.click(screen.getByRole("button", { name: /crisis/i }));
+
+    expect(nav.replace).toHaveBeenCalledWith("/wellness?tab=crisis", { scroll: false });
+  });
+
+  it("opens crisis resources directly from a ?tab=crisis deep link", () => {
+    nav.search = "tab=crisis";
+    render(<WellnessPage />);
+
+    expect(screen.getByText(/immediate danger/i)).toBeDefined();
+    expect(screen.getByRole("link", { name: /call 988/i }).getAttribute("href")).toBe("tel:988");
+    expect(screen.getByRole("link", { name: /text 988/i }).getAttribute("href")).toBe("sms:988");
+  });
+
+  it("falls back to the default view for an unknown ?tab value", async () => {
+    nav.search = "tab=bogus";
+    render(<WellnessPage />);
+
+    expect(await screen.findByRole("heading", { name: /calm anxiety/i })).toBeDefined();
   });
 });

@@ -206,26 +206,30 @@ describe("/api/notes/[id]/lumen POST", () => {
     ].forEach((f) => f.mockReset());
   });
 
+  function lumenReq() {
+    return new Request("http://t/api/notes/n1/lumen", {
+      method: "POST",
+      body: JSON.stringify({ message: "help" }),
+    });
+  }
+
   it("503s when Lumen has no API key configured", async () => {
-    requirePatient.mockResolvedValue({ ok: true, patientId: "pp1" });
+    requirePatient.mockResolvedValue({ ok: true, patientId: "pp1", userId: "u1" });
     noteFindFirst.mockResolvedValue({ id: "n1", title: null, content: "x" });
     lumenConfigured.mockReturnValue(false);
     const { POST } = await import("../notes/[id]/lumen/route");
-    const res = await POST(
-      new Request("http://t/api/notes/n1/lumen", { method: "POST", body: JSON.stringify({ message: "help" }) }),
-      ctx("n1"),
-    );
+    const res = await POST(lumenReq(), ctx("n1"));
     expect(res.status).toBe(503);
     expect(lumenCreate).not.toHaveBeenCalled();
   });
 
-  it("includes the reflection voice note when asking Lumen for follow-up", async () => {
+  it("includes the reflection voice note and the new message when asking Lumen", async () => {
     requirePatient.mockResolvedValue({ ok: true, patientId: "pp1", userId: "u1" });
     noteFindFirst.mockResolvedValue({ id: "n1", title: "Morning", content: "", voiceMediaId: "m1" });
     lumenConfigured.mockReturnValue(true);
     lumenCreate.mockResolvedValueOnce({ id: "u", noteId: "n1", role: "USER", content: "help" });
     lumenCreate.mockResolvedValueOnce({ id: "l", noteId: "n1", role: "LUMEN", content: "reply" });
-    lumenFindMany.mockResolvedValue([{ role: "USER", content: "help" }]);
+    lumenFindMany.mockResolvedValue([{ role: "LUMEN", content: "earlier reply" }]);
     profileFindUnique.mockResolvedValue({ concerns: ["anxiety"] });
     moodFindMany.mockResolvedValue([]);
     mediaFindFirst.mockResolvedValue({
@@ -239,18 +243,84 @@ describe("/api/notes/[id]/lumen POST", () => {
     askLumen.mockResolvedValue("reply");
 
     const { POST } = await import("../notes/[id]/lumen/route");
-    const res = await POST(
-      new Request("http://t/api/notes/n1/lumen", { method: "POST", body: JSON.stringify({ message: "help" }) }),
-      ctx("n1"),
-    );
+    const res = await POST(lumenReq(), ctx("n1"));
 
     expect(res.status).toBe(201);
+    // The unsaved patient message is appended to the stored thread.
     expect(askLumen).toHaveBeenCalledWith(
       expect.objectContaining({
         voiceNote: { mimeType: "audio/webm", dataBase64: "AQID" },
       }),
-      expect.any(Array),
+      [
+        { role: "LUMEN", content: "earlier reply" },
+        { role: "USER", content: "help" },
+      ],
     );
+  });
+
+  it("persists the patient's message only after Lumen replies", async () => {
+    requirePatient.mockResolvedValue({ ok: true, patientId: "pp1", userId: "u1" });
+    noteFindFirst.mockResolvedValue({ id: "n1", title: null, content: "x", voiceMediaId: null });
+    lumenConfigured.mockReturnValue(true);
+    lumenFindMany.mockResolvedValue([]);
+    profileFindUnique.mockResolvedValue({ concerns: [] });
+    moodFindMany.mockResolvedValue([]);
+    lumenCreate.mockResolvedValueOnce({ id: "u", noteId: "n1", role: "USER", content: "help" });
+    lumenCreate.mockResolvedValueOnce({ id: "l", noteId: "n1", role: "LUMEN", content: "reply" });
+    askLumen.mockImplementation(async () => {
+      // Nothing may be written before Gemini answers.
+      expect(lumenCreate).not.toHaveBeenCalled();
+      return "reply";
+    });
+
+    const { POST } = await import("../notes/[id]/lumen/route");
+    const res = await POST(lumenReq(), ctx("n1"));
+
+    expect(res.status).toBe(201);
+    expect(lumenCreate).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ data: expect.objectContaining({ role: "USER", content: "help" }) }),
+    );
+    expect(lumenCreate).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ data: expect.objectContaining({ role: "LUMEN", content: "reply" }) }),
+    );
+  });
+
+  it("persists nothing when Gemini fails, so a retry cannot duplicate the message", async () => {
+    requirePatient.mockResolvedValue({ ok: true, patientId: "pp1", userId: "u1" });
+    noteFindFirst.mockResolvedValue({ id: "n1", title: null, content: "x", voiceMediaId: null });
+    lumenConfigured.mockReturnValue(true);
+    lumenFindMany.mockResolvedValue([]);
+    profileFindUnique.mockResolvedValue({ concerns: [] });
+    moodFindMany.mockResolvedValue([]);
+    askLumen.mockRejectedValue(new Error("gemini down"));
+
+    const { POST } = await import("../notes/[id]/lumen/route");
+    const res = await POST(lumenReq(), ctx("n1"));
+
+    expect(res.status).toBe(502);
+    expect(lumenCreate).not.toHaveBeenCalled();
+  });
+
+  it("429s when a patient sends messages faster than the Lumen limit", async () => {
+    requirePatient.mockResolvedValue({ ok: true, patientId: "pp1", userId: "u1" });
+    noteFindFirst.mockResolvedValue({ id: "n1", title: null, content: "x", voiceMediaId: null });
+    lumenConfigured.mockReturnValue(true);
+    lumenFindMany.mockResolvedValue([]);
+    profileFindUnique.mockResolvedValue({ concerns: [] });
+    moodFindMany.mockResolvedValue([]);
+    lumenCreate.mockResolvedValue({ id: "x", noteId: "n1", role: "USER", content: "help" });
+    askLumen.mockResolvedValue("reply");
+
+    const { POST } = await import("../notes/[id]/lumen/route");
+    let res: Response | undefined;
+    for (let i = 0; i < 21; i++) {
+      res = await POST(lumenReq(), ctx("n1"));
+    }
+
+    expect(res!.status).toBe(429);
+    expect(askLumen).toHaveBeenCalledTimes(20);
   });
 });
 

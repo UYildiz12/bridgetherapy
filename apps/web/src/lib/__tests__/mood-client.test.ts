@@ -1,15 +1,24 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { fetchMoodEntries, createMoodEntry } from "../mood-client";
+import { fetchMoodHistory, createMoodEntry } from "../mood-client";
 
 describe("mood-client", () => {
   beforeEach(() => vi.restoreAllMocks());
 
-  it("fetchMoodEntries returns the data array", async () => {
+  it("fetchMoodHistory returns the entries with the all-time total", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ data: [{ id: "m1", moodScore: 6, tags: [], createdAt: "2026-06-21T00:00:00Z" }], total: 240 }), { status: 200 }),
+    ));
+    const history = await fetchMoodHistory();
+    expect(history.entries[0].id).toBe("m1");
+    expect(history.total).toBe(240);
+  });
+
+  it("fetchMoodHistory falls back to the list length when total is missing", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(
       new Response(JSON.stringify({ data: [{ id: "m1", moodScore: 6, tags: [], createdAt: "2026-06-21T00:00:00Z" }] }), { status: 200 }),
     ));
-    const entries = await fetchMoodEntries();
-    expect(entries[0].id).toBe("m1");
+    const history = await fetchMoodHistory();
+    expect(history.total).toBe(1);
   });
 
   it("createMoodEntry POSTs the payload and returns the entry", async () => {

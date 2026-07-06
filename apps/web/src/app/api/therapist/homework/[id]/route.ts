@@ -4,6 +4,7 @@ import { requireApprovedTherapist } from "@/lib/authz";
 import { parseBody } from "@/lib/validation";
 import { json, withErrorHandling } from "@/lib/http";
 import { setContentSchema } from "@/lib/homework/schema";
+import { docSchema } from "@/lib/homework/blocks";
 import { toSetDTO, asJson } from "@/lib/homework/server";
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -11,7 +12,8 @@ type Ctx = { params: Promise<{ id: string }> };
 const UpdateSet = z.object({
   title: z.string().min(1).max(160).optional(),
   description: z.string().max(1000).nullable().optional(),
-  content: setContentSchema.optional(),
+  /** v2 block documents preferred; v1 item sets stay accepted for legacy clients. */
+  content: z.union([docSchema, setContentSchema]).optional(),
 });
 
 export const GET = withErrorHandling(async (req: Request, ctx: Ctx) => {

@@ -1,8 +1,9 @@
 "use client";
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, Check, ClipboardList, HeartPulse, Route } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, ClipboardList, HeartPulse, LifeBuoy, Route } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -104,6 +105,7 @@ function TextAreaField({
   value,
   onChange,
   placeholder,
+  maxLength,
   minHeight = "min-h-28",
 }: {
   id: string;
@@ -111,6 +113,7 @@ function TextAreaField({
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  maxLength?: number;
   minHeight?: string;
 }) {
   return (
@@ -122,7 +125,46 @@ function TextAreaField({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
+        maxLength={maxLength}
       />
+    </div>
+  );
+}
+
+// Shown inline as soon as someone tells us about self-harm thoughts, so the
+// resources are right there instead of a page away.
+function InlineCrisisSupport() {
+  return (
+    <div role="status" className="grid gap-4 border-l-2 border-foreground/40 bg-foreground/[0.03] p-4 sm:p-5">
+      <div className="flex items-start gap-3">
+        <LifeBuoy className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+        <div className="grid gap-1">
+          <p className="text-sm font-medium">Support is available right now</p>
+          <p className="text-sm leading-6 text-muted-foreground">
+            Thank you for sharing this. You don&apos;t have to wait for a therapist match — the 988
+            Suicide & Crisis Lifeline is free, confidential, and open around the clock.
+          </p>
+        </div>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <Button asChild size="sm">
+          <a href="tel:988">Call 988</a>
+        </Button>
+        <Button asChild size="sm" variant="outline">
+          <a href="sms:741741">Text HOME to 741741</a>
+        </Button>
+        <Button asChild size="sm" variant="outline">
+          <a href="https://chat.988lifeline.org/" target="_blank" rel="noreferrer">
+            Chat with 988
+          </a>
+        </Button>
+      </div>
+      <Link
+        href="/wellness?tab=crisis"
+        className="text-sm text-muted-foreground underline underline-offset-4 transition-colors hover:text-foreground"
+      >
+        See all crisis resources
+      </Link>
     </div>
   );
 }
@@ -393,6 +435,7 @@ export default function IntakePage() {
                   value={cbtIntake.primaryProblems.join("\n")}
                   onChange={(value) => setListFromLines("primaryProblems", value)}
                   placeholder="One per line"
+                  maxLength={2400}
                 />
                 <TextAreaField
                   id="recentSituation"
@@ -400,6 +443,7 @@ export default function IntakePage() {
                   value={cbtIntake.recentSituation}
                   onChange={(value) => setCbtIntake((prev) => ({ ...prev, recentSituation: value }))}
                   placeholder="What happened, where were you, and who was involved?"
+                  maxLength={1200}
                 />
                 <TextAreaField
                   id="automaticThoughts"
@@ -407,6 +451,7 @@ export default function IntakePage() {
                   value={cbtIntake.automaticThoughts}
                   onChange={(value) => setCbtIntake((prev) => ({ ...prev, automaticThoughts: value }))}
                   placeholder="Examples: I can't cope, something bad will happen, I messed this up"
+                  maxLength={1200}
                 />
               </div>
             )}
@@ -501,6 +546,8 @@ export default function IntakePage() {
                     <option value="prefer_not_say">Prefer not to say</option>
                   </select>
                 </div>
+                {(cbtIntake.safety.selfHarmThoughts === "passive" ||
+                  cbtIntake.safety.selfHarmThoughts === "active") && <InlineCrisisSupport />}
                 <label className="flex items-center gap-3 text-sm text-muted-foreground">
                   <Input
                     type="checkbox"
@@ -522,6 +569,7 @@ export default function IntakePage() {
                   onChange={(value) =>
                     setCbtIntake((prev) => ({ ...prev, safety: { ...prev.safety, notes: value } }))
                   }
+                  maxLength={1000}
                   minHeight="min-h-24"
                 />
               </div>
@@ -543,6 +591,7 @@ export default function IntakePage() {
                   value={cbtIntake.strengths.join("\n")}
                   onChange={(value) => setListFromLines("strengths", value)}
                   placeholder="One per line"
+                  maxLength={2400}
                 />
               </div>
             )}
@@ -573,6 +622,7 @@ export default function IntakePage() {
                   value={goals}
                   onChange={setGoals}
                   placeholder="A sentence or two about your goals"
+                  maxLength={2000}
                   minHeight="min-h-32"
                 />
               </div>

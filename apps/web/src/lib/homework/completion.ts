@@ -67,3 +67,11 @@ export function choiceScore(doc: HomeworkDoc, entry: HomeworkEntry): number {
 export function isScoredDoc(doc: HomeworkDoc): boolean {
   return doc.blocks.some((b) => b.type === "input.choice" && b.scored);
 }
+
+/** Highest possible summed score across scored single-select choices. */
+export function maxChoiceScore(doc: HomeworkDoc): number {
+  return doc.blocks.reduce(
+    (sum, b) => (b.type === "input.choice" && b.scored ? sum + b.options.length - 1 : sum),
+    0,
+  );
+}

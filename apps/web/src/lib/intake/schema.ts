@@ -80,9 +80,11 @@ const DEFAULT_PREFERENCES = {
 
 const unique = <T>(items: T[]) => Array.from(new Set(items));
 
+// Over-long input is truncated in preprocess (like knownList) instead of
+// throwing, so a long answer never blocks someone from finishing intake.
 function text(max = 1200) {
   return z.preprocess(
-    (value) => (typeof value === "string" ? value.trim() : ""),
+    (value) => (typeof value === "string" ? value.trim().slice(0, max) : ""),
     z.string().max(max),
   );
 }
@@ -91,7 +93,12 @@ function textList(maxItems: number, maxLength = 240) {
   return z.preprocess(
     (value) =>
       Array.isArray(value)
-        ? unique(value.filter((v): v is string => typeof v === "string").map((v) => v.trim()).filter(Boolean))
+        ? unique(
+            value
+              .filter((v): v is string => typeof v === "string")
+              .map((v) => v.trim().slice(0, maxLength))
+              .filter(Boolean),
+          ).slice(0, maxItems)
         : [],
     z.array(z.string().min(1).max(maxLength)).max(maxItems),
   );

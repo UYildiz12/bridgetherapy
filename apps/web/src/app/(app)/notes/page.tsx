@@ -137,7 +137,7 @@ export default function NotesPage() {
                   )}
                   {e.voiceMediaId && (
                     <>
-                      <span aria-hidden>Â·</span>
+                      <span aria-hidden>·</span>
                       <span className="inline-flex items-center gap-1">
                         <Mic size={11} aria-hidden /> Voice
                       </span>
@@ -188,6 +188,7 @@ function Editor({
   const [visibility, setVisibility] = useState<NoteVisibility>(entry?.visibility ?? "PRIVATE");
   const [saving, setSaving] = useState(false);
   const [busyVis, setBusyVis] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -305,17 +306,45 @@ function Editor({
                   </>
                 )}
               </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={remove}
-                disabled={deleting}
-                aria-label="Delete reflection"
-                className="ml-auto text-muted-foreground hover:text-destructive"
-              >
-                <Trash2 size={16} aria-hidden />
-              </Button>
+              {confirmingDelete ? (
+                // Gentle two-step confirm: deleting also removes the private
+                // Lumen conversation, so it should never happen on a stray tap.
+                <div className="ml-auto flex flex-wrap items-center gap-2" role="group" aria-label="Confirm delete">
+                  <span className="text-sm text-muted-foreground">
+                    Delete this reflection and its private Lumen conversation?
+                  </span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setConfirmingDelete(false)}
+                    disabled={deleting}
+                  >
+                    Keep it
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={remove}
+                    disabled={deleting}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    {deleting ? "Deleting..." : "Delete"}
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setConfirmingDelete(true)}
+                  aria-label="Delete reflection"
+                  className="ml-auto text-muted-foreground hover:text-destructive"
+                >
+                  <Trash2 size={16} aria-hidden />
+                </Button>
+              )}
             </>
           )}
         </div>

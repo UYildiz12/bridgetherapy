@@ -10,6 +10,8 @@ const sessionCreate = vi.fn();
 const sessionUpdate = vi.fn();
 const sessionWorkspaceFindUnique = vi.fn();
 const sessionWorkspaceUpsert = vi.fn();
+const sessionWorkspaceUpdateMany = vi.fn();
+const sessionWorkspaceCreate = vi.fn();
 const linkFindFirst = vi.fn();
 const noteCreate = vi.fn();
 
@@ -27,6 +29,8 @@ vi.mock("@exhale/db", () => ({
     sessionWorkspace: {
       findUnique: sessionWorkspaceFindUnique,
       upsert: sessionWorkspaceUpsert,
+      updateMany: sessionWorkspaceUpdateMany,
+      create: sessionWorkspaceCreate,
     },
     patientTherapist: { findFirst: linkFindFirst },
     sessionNote: { create: noteCreate },
@@ -346,9 +350,14 @@ describe("/api/therapist/sessions/[id]/video", () => {
 describe("/api/therapist/sessions/[id]/workspace", () => {
   beforeEach(() => {
     vi.resetModules();
-    [requireApprovedTherapist, sessionFindFirst, sessionWorkspaceFindUnique, sessionWorkspaceUpsert].forEach((f) =>
-      f.mockReset(),
-    );
+    [
+      requireApprovedTherapist,
+      sessionFindFirst,
+      sessionWorkspaceFindUnique,
+      sessionWorkspaceUpsert,
+      sessionWorkspaceUpdateMany,
+      sessionWorkspaceCreate,
+    ].forEach((f) => f.mockReset());
   });
 
   it("PATCH saves whiteboard state for a linked therapist session", async () => {
@@ -401,6 +410,28 @@ describe("/api/therapist/sessions/[id]/workspace", () => {
       patientNote: "Client wants to revisit exposure ladder.",
       whiteboard: { strokes: [{ points: [{ x: 1, y: 2 }], color: "#111827", size: 3 }] },
     });
+  });
+
+  it("PATCH returns 409 when the patient saved the board first", async () => {
+    requireApprovedTherapist.mockResolvedValue(okTherapist);
+    sessionFindFirst.mockResolvedValue({ id: "s1" });
+    sessionWorkspaceUpdateMany.mockResolvedValue({ count: 0 });
+
+    const { PATCH } = await import("../therapist/sessions/[id]/workspace/route");
+    const res = await PATCH(
+      req(
+        "/api/therapist/sessions/s1/workspace",
+        {
+          whiteboard: { strokes: [] },
+          baseUpdatedAt: "2026-06-22T15:00:00.000Z",
+        },
+        "PATCH",
+      ),
+      ctx("s1"),
+    );
+
+    expect(res.status).toBe(409);
+    expect(sessionWorkspaceUpsert).not.toHaveBeenCalled();
   });
 });
 
@@ -506,10 +537,22 @@ describe("/api/sessions", () => {
 describe("/api/sessions/[id]/workspace", () => {
   beforeEach(() => {
     vi.resetModules();
-    [getAuthUser, userFindUnique, sessionFindFirst, sessionWorkspaceFindUnique, sessionWorkspaceUpsert].forEach((f) =>
-      f.mockReset(),
-    );
+    [
+      getAuthUser,
+      userFindUnique,
+      sessionFindFirst,
+      sessionWorkspaceFindUnique,
+      sessionWorkspaceUpsert,
+      sessionWorkspaceUpdateMany,
+      sessionWorkspaceCreate,
+    ].forEach((f) => f.mockReset());
   });
+
+  function authAsPatient() {
+    getAuthUser.mockResolvedValue({ authId: "u1", email: "sam@example.com" });
+    userFindUnique.mockResolvedValue({ patientProfile: { id: "pp1" } });
+    sessionFindFirst.mockResolvedValue({ id: "s1" });
+  }
 
   it("PATCH saves a patient note and whiteboard only for the patient's own session", async () => {
     getAuthUser.mockResolvedValue({ authId: "u1", email: "sam@example.com" });
@@ -555,5 +598,97 @@ describe("/api/sessions/[id]/workspace", () => {
       }),
     );
     expect(body.data.patientNote).toBe("I want to remember the breathing plan.");
+  });
+
+  it("PATCH with a matching baseUpdatedAt guards the write and returns the fresh row", async () => {
+    authAsPatient();
+    sessionWorkspaceUpdateMany.mockResolvedValue({ count: 1 });
+    sessionWorkspaceFindUnique.mockResolvedValue({
+      id: "sw1",
+      sessionId: "s1",
+      patientNote: null,
+      whiteboard: { strokes: [{ points: [{ x: 4, y: 8 }], color: "#0f766e", size: 4 }] },
+      createdAt: new Date("2026-06-22T15:00:00.000Z"),
+      updatedAt: new Date("2026-06-22T15:05:00.000Z"),
+    });
+
+    const { PATCH } = await import("../sessions/[id]/workspace/route");
+    const res = await PATCH(
+      req(
+        "/api/sessions/s1/workspace",
+        {
+          whiteboard: { strokes: [{ points: [{ x: 4, y: 8 }], color: "#0f766e", size: 4 }] },
+          baseUpdatedAt: "2026-06-22T15:00:00.000Z",
+        },
+        "PATCH",
+      ),
+      ctx("s1"),
+    );
+
+    expect(res.status).toBe(200);
+    expect(sessionWorkspaceUpdateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { sessionId: "s1", updatedAt: new Date("2026-06-22T15:00:00.000Z") },
+        data: expect.objectContaining({ whiteboard: expect.objectContaining({ strokes: expect.any(Array) }) }),
+      }),
+    );
+    expect(sessionWorkspaceUpsert).not.toHaveBeenCalled();
+    expect((await res.json()).data.whiteboard.strokes).toHaveLength(1);
+  });
+
+  it("PATCH returns 409 when the workspace changed since the client read it", async () => {
+    authAsPatient();
+    sessionWorkspaceUpdateMany.mockResolvedValue({ count: 0 });
+
+    const { PATCH } = await import("../sessions/[id]/workspace/route");
+    const res = await PATCH(
+      req(
+        "/api/sessions/s1/workspace",
+        { whiteboard: { strokes: [] }, baseUpdatedAt: "2026-06-22T15:00:00.000Z" },
+        "PATCH",
+      ),
+      ctx("s1"),
+    );
+
+    expect(res.status).toBe(409);
+    expect(sessionWorkspaceUpsert).not.toHaveBeenCalled();
+    expect(sessionWorkspaceFindUnique).not.toHaveBeenCalled();
+  });
+
+  it("PATCH with baseUpdatedAt null creates the first revision", async () => {
+    authAsPatient();
+    sessionWorkspaceCreate.mockResolvedValue({
+      id: "sw1",
+      sessionId: "s1",
+      patientNote: null,
+      whiteboard: { strokes: [] },
+      createdAt: new Date("2026-06-22T15:00:00.000Z"),
+      updatedAt: new Date("2026-06-22T15:00:00.000Z"),
+    });
+
+    const { PATCH } = await import("../sessions/[id]/workspace/route");
+    const res = await PATCH(
+      req("/api/sessions/s1/workspace", { whiteboard: { strokes: [] }, baseUpdatedAt: null }, "PATCH"),
+      ctx("s1"),
+    );
+
+    expect(res.status).toBe(200);
+    expect(sessionWorkspaceCreate).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ sessionId: "s1" }) }),
+    );
+    expect(sessionWorkspaceUpdateMany).not.toHaveBeenCalled();
+  });
+
+  it("PATCH with baseUpdatedAt null returns 409 when the other side created the board first", async () => {
+    authAsPatient();
+    sessionWorkspaceCreate.mockRejectedValue(new Error("Unique constraint failed on sessionId"));
+
+    const { PATCH } = await import("../sessions/[id]/workspace/route");
+    const res = await PATCH(
+      req("/api/sessions/s1/workspace", { whiteboard: { strokes: [] }, baseUpdatedAt: null }, "PATCH"),
+      ctx("s1"),
+    );
+
+    expect(res.status).toBe(409);
   });
 });

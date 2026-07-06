@@ -3,15 +3,17 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useParams } from "next/navigation";
 import { CheckCircle2, ExternalLink, FileText, History, Sparkles, Video } from "lucide-react";
 import { JitsiMeeting } from "@/components/sessions/jitsi-meeting";
-import { SessionWhiteboard } from "@/components/sessions/session-whiteboard";
+import { SessionWhiteboard, type WhiteboardSaveResult } from "@/components/sessions/session-whiteboard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { fetchAccountSettings, type AccountSettings } from "@/lib/settings-client";
 import {
   addSessionNote,
   ensureSessionVideo,
   fetchSession,
   fetchTherapistSessionWorkspace,
   generateSessionSummary,
+  isConflictError,
   updateSession,
   updateTherapistSessionWorkspace,
   type SessionDetail,
@@ -35,6 +37,8 @@ export default function SessionDetailPage() {
   const params = useParams<{ id: string }>();
   const sessionId = Array.isArray(params.id) ? params.id[0] : params.id;
   const [session, setSession] = useState<SessionDetail | null>(null);
+  const [account, setAccount] = useState<AccountSettings | null>(null);
+  const [accountReady, setAccountReady] = useState(false);
   const [workspace, setWorkspace] = useState<SessionWorkspace | null>(null);
   const [workspaceNoteDraft, setWorkspaceNoteDraft] = useState("");
   const [noteDraft, setNoteDraft] = useState("");
@@ -54,6 +58,19 @@ export default function SessionDetailPage() {
       })
       .catch(() => setError("Couldn't load that session."));
   }, [sessionId]);
+
+  // The embedded call needs the signed-in therapist's own identity — never the
+  // patient's — so fetch it separately and fall back to a neutral label.
+  useEffect(() => {
+    fetchAccountSettings()
+      .then(setAccount)
+      .catch(() => {})
+      .finally(() => setAccountReady(true));
+  }, []);
+
+  const therapistDisplayName = account
+    ? [account.firstName, account.lastName].filter(Boolean).join(" ").trim() || account.email
+    : "Therapist";
 
   async function addNote(e: FormEvent) {
     e.preventDefault();
@@ -111,14 +128,26 @@ export default function SessionDetailPage() {
     }
   }
 
-  async function saveWhiteboard(whiteboard: WhiteboardState) {
+  async function saveWhiteboard(whiteboard: WhiteboardState, baseUpdatedAt: string | null): Promise<WhiteboardSaveResult> {
     setSavingWorkspace(true);
     setError(null);
     try {
-      const updated = await updateTherapistSessionWorkspace(sessionId, { whiteboard });
+      const updated = await updateTherapistSessionWorkspace(sessionId, { whiteboard, baseUpdatedAt });
       setWorkspace(updated);
+      return { ok: true, updatedAt: updated.updatedAt };
     } catch (err) {
+      if (isConflictError(err)) {
+        // The patient saved first; hand the fresh board back so the canvas
+        // can quietly merge and retry instead of overwriting their strokes.
+        try {
+          const fresh = await fetchTherapistSessionWorkspace(sessionId);
+          return { ok: false, conflict: { whiteboard: fresh.whiteboard, updatedAt: fresh.updatedAt } };
+        } catch {
+          // fall through to the generic error
+        }
+      }
       setError(err instanceof Error ? err.message : "Couldn't save the whiteboard.");
+      return { ok: false };
     } finally {
       setSavingWorkspace(false);
     }
@@ -209,11 +238,15 @@ export default function SessionDetailPage() {
               </Button>
             </div>
             <div className="hidden lg:block">
-              <JitsiMeeting
-                roomId={session.videoRoomId}
-                displayName={session.patientName}
-                email={session.patientEmail}
-              />
+              {accountReady ? (
+                <JitsiMeeting
+                  roomId={session.videoRoomId}
+                  displayName={therapistDisplayName}
+                  email={account?.email ?? ""}
+                />
+              ) : (
+                <Skeleton className="h-72 w-full rounded-xl" />
+              )}
             </div>
           </div>
         ) : (
@@ -263,7 +296,11 @@ export default function SessionDetailPage() {
               Save workspace note
             </Button>
           </div>
-          <SessionWhiteboard value={workspace?.whiteboard ?? { strokes: [] }} onSave={saveWhiteboard} />
+          <SessionWhiteboard
+            value={workspace?.whiteboard ?? { strokes: [] }}
+            updatedAt={workspace?.updatedAt ?? null}
+            onSave={saveWhiteboard}
+          />
         </div>
       </section>
 

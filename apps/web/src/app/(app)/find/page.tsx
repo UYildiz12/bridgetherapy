@@ -6,6 +6,7 @@ import {
   fetchTherapists,
   fetchMyConnection,
   requestConnection,
+  respondToInvite,
   type TherapistCard,
   type MyConnection,
 } from "@/lib/matching/client";
@@ -62,7 +63,21 @@ export default function FindPage() {
     }
   }
 
+  async function respond(id: string, accept: boolean) {
+    setBusyId(id);
+    setError(null);
+    try {
+      await respondToInvite(id, accept);
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Couldn't respond to the invite.");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   const hasActive = conn?.status === "active";
+  const invites = conn?.invites ?? [];
 
   return (
     <div className="grid gap-6">
@@ -90,6 +105,28 @@ export default function FindPage() {
           </CardContent>
         </Card>
       )}
+      {invites.map((inv) => (
+        <Card key={inv.id} className="border-primary/30">
+          <CardContent className="flex flex-wrap items-center justify-between gap-3 pt-6 text-sm">
+            <span>
+              <span className="font-medium">{inv.therapistName}</span> invited you to connect.
+            </span>
+            <span className="flex gap-2">
+              <Button size="sm" onClick={() => respond(inv.id, true)} disabled={busyId === inv.id || hasActive}>
+                {busyId === inv.id ? "Saving…" : "Accept"}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => respond(inv.id, false)}
+                disabled={busyId === inv.id}
+              >
+                Decline
+              </Button>
+            </span>
+          </CardContent>
+        </Card>
+      ))}
 
       {error && <p className="text-sm text-destructive">{error}</p>}
       {cards === null && !error && <Skeleton className="h-40 w-full rounded-xl" />}

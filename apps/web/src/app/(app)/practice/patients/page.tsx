@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { fetchPatients, addPatient, type LinkedPatient } from "@/lib/homework/client";
+import { formatDate } from "@/lib/format";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -92,7 +93,7 @@ export default function PatientsPage() {
                   <div className="text-sm text-muted-foreground">{p.email}</div>
                 </div>
                 <span className="text-xs text-muted-foreground">
-                  since {new Date(p.linkedAt).toLocaleDateString()}
+                  since {formatDate(p.linkedAt)}
                 </span>
               </CardContent>
             </Card>

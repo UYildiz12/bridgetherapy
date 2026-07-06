@@ -22,9 +22,16 @@ export interface TherapistCard {
   connection: ConnectionState;
 }
 
+export interface TherapistInvite {
+  id: string;
+  therapistName: string;
+  invitedAt: string;
+}
+
 export interface MyConnection {
   status: "none" | "pending" | "active";
   therapistName?: string;
+  invites?: TherapistInvite[];
 }
 
 export interface TherapistProfileForm {
@@ -77,6 +84,8 @@ export const fetchTherapists = () => getJson<TherapistCard[]>("/api/therapists")
 export const fetchMyConnection = () => getJson<MyConnection>("/api/connections");
 export const requestConnection = (therapistId: string, note?: string) =>
   send<{ status: ConnectionState }>("/api/connections", "POST", { therapistId, note });
+export const respondToInvite = (id: string, accept: boolean) =>
+  send<{ status: string }>(`/api/connections/${id}`, "PUT", { accept });
 
 // ---- Therapist ----
 export const fetchMyTherapistProfile = () => getJson<TherapistProfileForm>("/api/therapist/profile");

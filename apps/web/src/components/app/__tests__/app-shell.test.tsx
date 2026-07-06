@@ -70,6 +70,25 @@ describe("AppShell", () => {
     );
   });
 
+  it("keeps a quiet crisis support link reachable from the header and mobile menu", () => {
+    render(
+      <AppShell firstName="Mina" lastName="Kaya" email="mina@example.com" role="PATIENT">
+        <p>Patient content</p>
+      </AppShell>,
+    );
+
+    // Persistent header link, available without opening any menu.
+    expect(screen.getByRole("link", { name: /crisis support/i }).getAttribute("href")).toBe(
+      "/wellness?tab=crisis",
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /open navigation menu/i }));
+    const mobileNav = screen.getByRole("navigation", { name: /mobile navigation/i });
+    expect(
+      within(mobileNav).getByRole("link", { name: /crisis support/i }).getAttribute("href"),
+    ).toBe("/wellness?tab=crisis");
+  });
+
   it("opens account actions from the desktop avatar menu", () => {
     render(
       <AppShell firstName="Mina" lastName="Kaya" email="mina@example.com" role="PATIENT">

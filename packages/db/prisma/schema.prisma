@@ -24,6 +24,12 @@ model User {
   role          UserRole
   avatarUrl     String?
   isActive      Boolean   @default(true)
+
+  // Notification preferences (honored by the reminder cron).
+  notifySessionReminders Boolean @default(true)
+  notifyHomeworkNudges   Boolean @default(true)
+  notifyWeeklyCheckin    Boolean @default(true)
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -64,6 +70,8 @@ model TherapistProfile {
   createdHomework Homework[]
   sessionNotes  SessionNote[]
   conversations Conversation[]
+
+  @@index([approvedAt, acceptingPatients])
 }
 
 model PatientProfile {
@@ -99,6 +107,9 @@ model PatientTherapist {
   endDate     DateTime?
   isActive    Boolean  @default(true)
   status      ConnectionStatus @default(ACTIVE)
+  // Who opened this link. A PENDING link is a request awaiting the OTHER party:
+  // PATIENT-initiated waits on the therapist; THERAPIST-initiated waits on the patient.
+  initiatedBy RequestInitiator @default(PATIENT)
   requestNote String?
 
   patient     PatientProfile   @relation(fields: [patientId], references: [id], onDelete: Cascade)
@@ -107,6 +118,11 @@ model PatientTherapist {
   @@unique([patientId, therapistId])
   @@index([patientId])
   @@index([therapistId])
+}
+
+enum RequestInitiator {
+  PATIENT
+  THERAPIST
 }
 
 model Conversation {
@@ -163,6 +179,8 @@ model Homework {
   updatedAt   DateTime @updatedAt
 
   assignments HomeworkAssignment[]
+
+  @@index([createdById])
 }
 
 enum HomeworkType {
@@ -191,6 +209,7 @@ model HomeworkAssignment {
 
   @@index([patientId])
   @@index([homeworkId])
+  @@index([status, dueDate])
 }
 
 enum AssignmentStatus {
@@ -215,6 +234,7 @@ model MoodEntry {
 
   @@index([patientId])
   @@index([createdAt])
+  @@index([patientId, createdAt])
 }
 
 // ==========================================
@@ -269,6 +289,8 @@ model PatientNote {
   updatedAt   DateTime @updatedAt
 
   @@index([patientId])
+  @@index([patientId, createdAt])
+  @@index([visibility, sharedAt])
 }
 
 enum NoteVisibility {

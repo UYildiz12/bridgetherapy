@@ -13,9 +13,9 @@ const SERIF = { fontFamily: "var(--font-instrument-serif), serif" } as const;
 const ACTIVITY_LINKS: Record<ActivityKind, { href: string; cta: string }> = {
   "mood-checkin": { href: "/mood", cta: "Do a mood check-in" },
   reflection: { href: "/notes", cta: "Write a reflection" },
-  breathing: { href: "/wellness", cta: "Do a breathing session" },
-  "quick-practice": { href: "/wellness", cta: "Do a quick practice" },
-  lesson: { href: "/wellness", cta: "Open the lesson" },
+  breathing: { href: "/wellness?tab=practice", cta: "Do a breathing session" },
+  "quick-practice": { href: "/wellness?tab=practice", cta: "Do a quick practice" },
+  lesson: { href: "/wellness?tab=learn", cta: "Open the lesson" },
 };
 
 function FieldLabel({ text, optional }: { text: string; optional?: boolean }) {
@@ -100,6 +100,11 @@ export function BlockView({
 
     case "input.scale": {
       const val = r.value ?? block.min;
+      // A tap that doesn't move the thumb fires no change event, so commit the
+      // resting value on release — otherwise "leave it at the minimum" never counts.
+      const commit = () => {
+        if (!readOnly && r.value === undefined) set({ value: val });
+      };
       return (
         <div className="grid gap-2">
           <div className="flex items-baseline justify-between gap-3">
@@ -117,6 +122,8 @@ export function BlockView({
             disabled={readOnly}
             aria-label={block.label}
             onChange={(e) => set({ value: Number(e.target.value) })}
+            onPointerUp={commit}
+            onKeyUp={commit}
             className="h-2 w-full cursor-pointer appearance-none rounded-full bg-white/15 disabled:cursor-default"
             style={{ accentColor: "var(--foreground)" }}
           />

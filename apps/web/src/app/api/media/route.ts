@@ -1,9 +1,13 @@
 import { prisma } from "@exhale/db";
 import { getAuthUser } from "@/lib/auth";
 import { json, withErrorHandling } from "@/lib/http";
+import { createRateLimiter } from "@/lib/rate-limit";
 import { uploadMedia } from "@/lib/storage";
 
 const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
+
+// Uploads are up to 10 MB each; cap them per user (best-effort, per instance).
+const uploadLimiter = createRateLimiter({ limit: 20, windowMs: 60_000 });
 
 const KIND_CONFIG = {
   voice: { type: "VOICE_NOTE", ext: "webm", mimePrefix: "audio/" },
@@ -13,6 +17,14 @@ const KIND_CONFIG = {
 export const POST = withErrorHandling(async (req: Request) => {
   const auth = await getAuthUser(req);
   if (!auth) return json({ error: "Unauthorized" }, 401);
+
+  const limit = uploadLimiter.check(auth.authId);
+  if (!limit.allowed) {
+    return json(
+      { error: "Too many uploads at once. Wait a moment and try again.", retryAfterMs: limit.retryAfterMs },
+      429,
+    );
+  }
 
   const form = await req.formData();
   const file = form.get("file");

@@ -75,6 +75,42 @@ describe("NotesPage (reflections workspace)", () => {
     await waitFor(() => screen.getByRole("button", { name: /sleep spiral/i }));
   });
 
+  it("asks for confirmation before deleting a reflection", async () => {
+    fetchEntries.mockResolvedValue([
+      {
+        id: "n1",
+        title: "Morning walk",
+        content: "Felt lighter after the walk.",
+        voiceMediaId: null,
+        visibility: "PRIVATE",
+        sharedAt: null,
+        lumenCount: 2,
+        createdAt: "2026-06-21T12:00:00Z",
+        updatedAt: "2026-06-21T12:00:00Z",
+      },
+    ]);
+    deleteEntry.mockResolvedValue(undefined);
+
+    render(<NotesPage />);
+    fireEvent.click(await screen.findByRole("button", { name: /morning walk/i }));
+
+    // First tap only opens the confirm step — nothing is deleted yet.
+    fireEvent.click(screen.getByRole("button", { name: /delete reflection/i }));
+    expect(deleteEntry).not.toHaveBeenCalled();
+    expect(screen.getByText(/delete this reflection and its private lumen conversation/i)).toBeDefined();
+
+    // Changing your mind keeps the entry.
+    fireEvent.click(screen.getByRole("button", { name: /keep it/i }));
+    expect(screen.queryByText(/delete this reflection and its private lumen conversation/i)).toBeNull();
+    expect(deleteEntry).not.toHaveBeenCalled();
+
+    // Confirming actually deletes.
+    fireEvent.click(screen.getByRole("button", { name: /delete reflection/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^delete$/i }));
+    await waitFor(() => expect(deleteEntry).toHaveBeenCalledWith("n1"));
+    await waitFor(() => expect(screen.queryByRole("button", { name: /morning walk/i })).toBeNull());
+  });
+
   it("creates a voice-only reflection from the composer", async () => {
     createEntry.mockResolvedValue({
       id: "n1",

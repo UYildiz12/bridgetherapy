@@ -40,9 +40,10 @@ describe("/api/reports/progress", () => {
       patientProfile: { id: "pp1" },
       therapistProfile: null,
     });
+    // Prisma returns newest-first (the route asks for the latest 30).
     moodFindMany.mockResolvedValue([
-      { moodScore: 4, tags: ["anxious"], createdAt: new Date("2026-06-19T00:00:00.000Z") },
       { moodScore: 7, tags: ["steady"], createdAt: new Date("2026-06-21T00:00:00.000Z") },
+      { moodScore: 4, tags: ["anxious"], createdAt: new Date("2026-06-19T00:00:00.000Z") },
     ]);
     assignmentFindMany.mockResolvedValue([{ status: "COMPLETED" }, { status: "PENDING" }]);
     noteCount.mockResolvedValue(3);
@@ -54,8 +55,15 @@ describe("/api/reports/progress", () => {
 
     expect(res.status).toBe(200);
     expect(body.data.role).toBe("PATIENT");
+    // The newest 30 entries are fetched, not the oldest 30 frozen forever.
+    expect(moodFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({ orderBy: { createdAt: "desc" }, take: 30 }),
+    );
     expect(body.data.mood.average).toBe(5.5);
+    // The summary still reads chronologically: latest check-in is "current".
+    expect(body.data.mood.current).toBe(7);
     expect(body.data.mood.delta).toBe(3);
+    expect(body.data.mood.entries.map((e: { moodScore: number }) => e.moodScore)).toEqual([4, 7]);
     expect(body.data.homework.completionRate).toBe(50);
     expect(body.data.reflections.total).toBe(3);
     expect(body.data.sessions).toMatchObject({
@@ -90,8 +98,8 @@ describe("/api/reports/progress", () => {
           id: "pp1",
           user: { firstName: "Sam", lastName: "Lee", email: "sam@example.com" },
           moodEntries: [
-            { moodScore: 5, createdAt: new Date("2026-06-20T00:00:00.000Z") },
             { moodScore: 8, createdAt: new Date("2026-06-21T00:00:00.000Z") },
+            { moodScore: 5, createdAt: new Date("2026-06-20T00:00:00.000Z") },
           ],
           homeworkAssignments: [{ status: "COMPLETED" }, { status: "COMPLETED" }],
           sessions: [{ status: "COMPLETED" }, { status: "NO_SHOW" }],
@@ -108,6 +116,18 @@ describe("/api/reports/progress", () => {
     expect(linkFindMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { therapistId: "tp1", isActive: true, status: "ACTIVE" },
+      }),
+    );
+    // The nested mood query also takes the newest 30.
+    expect(linkFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        select: expect.objectContaining({
+          patient: expect.objectContaining({
+            select: expect.objectContaining({
+              moodEntries: expect.objectContaining({ orderBy: { createdAt: "desc" }, take: 30 }),
+            }),
+          }),
+        }),
       }),
     );
     expect(body.data.role).toBe("THERAPIST");

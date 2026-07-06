@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isBlockComplete, isEntryComplete, expectedEntries, docProgress, isDocComplete, choiceScore } from "../completion";
+import { isBlockComplete, isEntryComplete, expectedEntries, docProgress, isDocComplete, choiceScore, maxChoiceScore } from "../completion";
 import type { Block, HomeworkDoc, HomeworkEntry } from "../blocks";
 
 const D = (blocks: Block[], cadence: "once" | "daily" | "weekly" = "once"): HomeworkDoc => ({
@@ -73,5 +73,18 @@ describe("docProgress + isDocComplete + choiceScore", () => {
     expect(isDocComplete(doc, [entries[0]], 1)).toBe(true);
     expect(isDocComplete(doc, [entries[0]], null)).toBe(true); // open-ended: any complete entry counts
     expect(choiceScore(doc, entries[0])).toBe(2);
+  });
+});
+
+describe("maxChoiceScore", () => {
+  it("sums the top option index of each scored choice, ignoring unscored blocks", () => {
+    const doc = D([
+      { type: "input.choice", id: "a", label: "A", options: ["0", "1", "2", "3"], scored: true },
+      { type: "input.choice", id: "b", label: "B", options: ["0", "1", "2"], scored: true },
+      { type: "input.choice", id: "c", label: "C", options: ["x", "y"] },
+      { type: "input.text", id: "t", label: "T" },
+    ]);
+    expect(maxChoiceScore(doc)).toBe(5);
+    expect(maxChoiceScore(D([{ type: "input.text", id: "t", label: "T" }]))).toBe(0);
   });
 });

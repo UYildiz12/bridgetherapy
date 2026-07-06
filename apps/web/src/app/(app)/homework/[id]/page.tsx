@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { MessageSquareText } from "lucide-react";
+import { Flame, MessageSquareText } from "lucide-react";
 import {
   fetchMyAssignment,
   saveMyEntry,
@@ -20,6 +20,8 @@ import {
 import { docSchema, type BlockResponse, type HomeworkDoc } from "@/lib/homework/blocks";
 import { parseResponseDoc } from "@/lib/homework/adapt";
 import { docProgress, expectedEntries, isDocComplete, isEntryComplete } from "@/lib/homework/completion";
+import { dailyStreak, entryParts, localDate } from "@/lib/homework/attention";
+import { formatDate } from "@/lib/format";
 import { BlockView } from "@/components/homework/block-view";
 import { ItemDo } from "@/components/homework/item-do";
 import { StatusBadge } from "@/components/homework/status-badge";
@@ -27,15 +29,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
-/** Local-time YYYY-MM-DD, since entries are dated in the patient's day. */
-function localDate(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
 function chipLabel(date: string, cadence: "daily" | "weekly"): string {
   const d = new Date(`${date}T00:00:00`);
   const label = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(d);
   return cadence === "weekly" ? `Week of ${label}` : label;
+}
+
+/** The chip that stands for the current cadence unit (today / this week). */
+function currentChipDate(cadence: "daily" | "weekly", now: Date = new Date()): string {
+  if (cadence === "daily") return localDate(now);
+  const d = new Date(now);
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  return localDate(d);
 }
 
 /** The dates a patient can hold entries for: assignment start through today (capped at due). */
@@ -120,6 +125,7 @@ function BlockRunner({
     recurring ? (dates.at(-1) ?? localDate(new Date())) : (responseDoc.entries[0]?.date ?? localDate(new Date())),
   );
   const [saving, setSaving] = useState(false);
+  const [dirty, setDirty] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -137,6 +143,7 @@ function BlockRunner({
       pendingRef.current = {};
       if (Object.keys(patchBlocks).length === 0 && !submit) return;
       setSaving(true);
+      setDirty(false);
       setError(null);
       try {
         const updated = await saveMyEntry(assignment.id, { date: activeDate, blocks: patchBlocks }, submit);
@@ -145,6 +152,10 @@ function BlockRunner({
         setSavedAt(new Date().toLocaleTimeString());
         if (submit) router.push("/homework");
       } catch (e) {
+        // Put the failed patch back so the next save retries it; edits made
+        // in the meantime win per block.
+        pendingRef.current = { ...patchBlocks, ...pendingRef.current };
+        setDirty(true);
         setError(e instanceof Error ? e.message : "Couldn't save.");
       } finally {
         setSaving(false);
@@ -156,6 +167,7 @@ function BlockRunner({
   const update = useCallback(
     (blockId: string, r: BlockResponse) => {
       pendingRef.current[blockId] = { ...pendingRef.current[blockId], ...r };
+      setDirty(true);
       // Optimistic local state so the UI is instant.
       setResponseDoc((prev) => {
         const entries = [...prev.entries];
@@ -177,14 +189,41 @@ function BlockRunner({
     [activeDate, flush],
   );
 
-  useEffect(() => () => {
-    if (timerRef.current) clearTimeout(timerRef.current);
+  // A debounced patch must survive leaving the page: flush when the tab hides
+  // (keepalive carries it through unload) and on unmount, via the latest flush.
+  const flushRef = useRef(flush);
+  useEffect(() => {
+    flushRef.current = flush;
+  }, [flush]);
+  useEffect(() => {
+    const onHide = () => {
+      if (document.visibilityState === "hidden") void flushRef.current(false);
+    };
+    document.addEventListener("visibilitychange", onHide);
+    window.addEventListener("pagehide", onHide);
+    return () => {
+      document.removeEventListener("visibilitychange", onHide);
+      window.removeEventListener("pagehide", onHide);
+      void flushRef.current(false);
+    };
   }, []);
 
   const expected = expectedEntries(doc, createdAt, dueDate);
   const progress = docProgress(doc, responseDoc.entries, expected);
   const allDone = isDocComplete(doc, responseDoc.entries, expected);
   const submitted = assignment.status === "COMPLETED";
+  const revisionRequested = Boolean(responseDoc.revisionRequestedAt);
+  // A revision request reopens the submission for editing.
+  const locked = submitted && !revisionRequested;
+  const parts = entryParts(doc, entry);
+  const streak = dailyStreak(doc, responseDoc.entries);
+  const pct = recurring
+    ? expected
+      ? Math.round((Math.min(progress.complete, expected) / expected) * 100)
+      : null
+    : parts.total > 0
+      ? Math.round((parts.done / parts.total) * 100)
+      : 0;
 
   return (
     <div className="grid gap-6">
@@ -201,22 +240,35 @@ function BlockRunner({
           </div>
           <StatusBadge status={assignment.status} />
         </div>
-        <p className="mt-3 text-xs uppercase tracking-[0.18em] text-muted-foreground">
-          {recurring
-            ? `${doc.schedule.cadence === "daily" ? "Daily" : "Weekly"} · ${progress.complete} of ${progress.expected ?? "ongoing"} entries complete`
-            : `${progress.complete === 1 ? "Complete" : "In progress"}`}
-          {assignment.dueDate && ` · due ${new Date(assignment.dueDate).toLocaleDateString()}`}
-        </p>
+        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs uppercase tracking-[0.18em] text-muted-foreground">
+          <span>
+            {recurring
+              ? `${doc.schedule.cadence === "daily" ? "Daily" : "Weekly"} · ${progress.complete} of ${progress.expected ?? "ongoing"} entries complete`
+              : `${parts.done} of ${parts.total} parts`}
+            {assignment.dueDate && ` · due ${formatDate(assignment.dueDate)}`}
+          </span>
+          {streak >= 2 && (
+            <span className="inline-flex items-center gap-1 text-foreground">
+              <Flame size={12} aria-hidden /> {streak} days in a row
+            </span>
+          )}
+        </div>
+        {pct !== null && (
+          <div className="mt-2 h-1 max-w-2xl overflow-hidden rounded-full bg-border" aria-hidden>
+            <div className="h-full rounded-full bg-foreground/80 transition-all" style={{ width: `${pct}%` }} />
+          </div>
+        )}
       </div>
 
-      {responseDoc.revisionRequestedAt && !submitted && (
+      {revisionRequested && (
         <Card className="border-foreground/30">
           <CardContent className="grid gap-1 pt-6">
             <span className="flex items-center gap-1.5 text-xs uppercase tracking-[0.18em] text-foreground">
               <MessageSquareText size={13} aria-hidden /> Changes requested
             </span>
             <p className="text-sm leading-6 text-muted-foreground">
-              Your therapist asked you to revisit this one. Their notes are shown under the relevant parts.
+              Your therapist asked you to revisit this one. Their notes are shown under the relevant
+              parts — edit what you need to, then resubmit.
             </p>
           </CardContent>
         </Card>
@@ -234,9 +286,14 @@ function BlockRunner({
       {recurring && (
         <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Entries">
           {dates.map((date) => {
+            const cadence = doc.schedule.cadence === "weekly" ? ("weekly" as const) : ("daily" as const);
+            const currentDate = currentChipDate(cadence);
             const e = responseDoc.entries.find((x) => x.date === date);
             const complete = e ? isEntryComplete(doc, e) : false;
             const active = date === activeDate;
+            const missed = !complete && date < currentDate;
+            const label =
+              date === currentDate ? (cadence === "daily" ? "Today" : "This week") : chipLabel(date, cadence);
             return (
               <button
                 key={date}
@@ -250,13 +307,13 @@ function BlockRunner({
                 className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition-colors ${
                   active
                     ? "border-foreground bg-foreground text-background"
-                    : "border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground"
+                    : `${missed ? "border-dashed border-border" : "border-border"} text-muted-foreground hover:border-foreground/40 hover:text-foreground`
                 }`}
               >
                 {complete && (
                   <span aria-hidden className={`size-1.5 rounded-full ${active ? "bg-background" : "bg-foreground"}`} />
                 )}
-                {chipLabel(date, doc.schedule.cadence === "weekly" ? "weekly" : "daily")}
+                {label}
               </button>
             );
           })}
@@ -270,7 +327,7 @@ function BlockRunner({
               block={block}
               response={blocks[block.id]}
               onChange={(r) => update(block.id, r)}
-              readOnly={submitted}
+              readOnly={locked}
             />
             {responseDoc.comments?.[block.id] && (
               <p className="border-l-2 border-foreground/40 pl-3 text-sm leading-6 text-muted-foreground">
@@ -284,15 +341,17 @@ function BlockRunner({
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 
-      <div className="flex flex-wrap items-center gap-3 border-t border-border pt-5">
-        <Button variant="outline" onClick={() => void flush(false)} disabled={saving || submitted}>
+      <div className="sticky bottom-0 z-10 flex flex-wrap items-center gap-3 border-t border-border bg-background/90 py-4 backdrop-blur">
+        <Button variant="outline" onClick={() => void flush(false)} disabled={saving || locked}>
           {saving ? "Saving…" : "Save progress"}
         </Button>
-        <Button onClick={() => void flush(true)} disabled={saving || !allDone || submitted}>
-          {submitted ? "Submitted" : "Submit"}
+        <Button onClick={() => void flush(true)} disabled={saving || !allDone || locked}>
+          {locked ? "Submitted" : revisionRequested ? "Resubmit" : "Submit"}
         </Button>
-        {savedAt && <span className="text-xs text-muted-foreground">Saved at {savedAt}</span>}
-        {!allDone && !submitted && (
+        <span aria-live="polite" className="text-xs text-muted-foreground">
+          {saving ? "" : dirty ? "Unsaved changes" : savedAt ? `Saved at ${savedAt}` : ""}
+        </span>
+        {!allDone && !locked && (
           <span className="text-xs text-muted-foreground">
             {recurring ? "Complete every expected entry to submit" : "Finish every part to submit"}
           </span>

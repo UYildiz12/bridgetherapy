@@ -1,6 +1,7 @@
 "use client";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import dynamic from "next/dynamic";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AlertTriangle, BookOpen, CircleHelp, Clapperboard, Waves } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/app/page-header";
@@ -40,8 +41,32 @@ const views = [
   { id: "crisis", label: "Crisis", Icon: AlertTriangle },
 ] satisfies { id: View; label: string; Icon: typeof Waves }[];
 
-export default function WellnessPage() {
-  const [view, setView] = useState<View>("watch");
+const DEFAULT_VIEW: View = "watch";
+
+function parseView(value: string | null): View | null {
+  return views.some((v) => v.id === value) ? (value as View) : null;
+}
+
+// The active view is driven by ?tab= so every tab — crisis support in
+// particular — is directly linkable from anywhere in the app.
+function WellnessView() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const paramView = parseView(searchParams.get("tab")) ?? DEFAULT_VIEW;
+  const [view, setView] = useState<View>(paramView);
+  const [prevParamView, setPrevParamView] = useState<View>(paramView);
+  // Follow the URL when it changes underneath us (deep links, back/forward)
+  // by adjusting state during render instead of in an effect.
+  if (paramView !== prevParamView) {
+    setPrevParamView(paramView);
+    setView(paramView);
+  }
+
+  function selectView(id: View) {
+    setView(id);
+    router.replace(`${pathname}?tab=${id}`, { scroll: false });
+  }
 
   return (
     <div className="grid gap-8">
@@ -56,7 +81,7 @@ export default function WellnessPage() {
             key={id}
             type="button"
             variant={view === id ? "default" : "outline"}
-            onClick={() => setView(id)}
+            onClick={() => selectView(id)}
             className="justify-start"
           >
             <Icon className="h-4 w-4" />
@@ -134,5 +159,14 @@ export default function WellnessPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function WellnessPage() {
+  // useSearchParams requires a Suspense boundary during prerendering.
+  return (
+    <Suspense fallback={tabLoading()}>
+      <WellnessView />
+    </Suspense>
   );
 }

@@ -117,6 +117,7 @@ export function toTherapistAssignmentDTO(a: AssignmentRowWithPatient) {
     return {
       ...base,
       reviewedAt: rd.reviewedAt ?? null,
+      revisionRequestedAt: rd.revisionRequestedAt ?? null,
       completedCount: p.complete,
       itemCount: p.expected ?? Math.max(p.complete, rd.entries.length),
     };
@@ -127,6 +128,7 @@ export function toTherapistAssignmentDTO(a: AssignmentRowWithPatient) {
   return {
     ...base,
     reviewedAt: response.reviewedAt ?? null,
+    revisionRequestedAt: null,
     completedCount: countComplete(content, response),
     itemCount: content.items.length,
   };

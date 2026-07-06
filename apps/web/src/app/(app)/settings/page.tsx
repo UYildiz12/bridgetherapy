@@ -3,21 +3,31 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Bell, LockKeyhole, ShieldAlert, UserRound } from "lucide-react";
 import { fetchAccountSettings, type AccountSettings } from "@/lib/settings-client";
+import {
+  fetchNotificationPreferences,
+  saveNotificationPreferences,
+  type NotificationPreferences,
+} from "@/lib/preferences-client";
 import { BrowserLock } from "@/components/security/browser-lock";
 
 type PrefKey = "sessionReminders" | "homeworkNudges" | "weeklyCheckIn";
 type UrgentAccessPreference = "standard" | "sameDay" | "unavailable";
 
-const prefStorage: Record<PrefKey, string> = {
-  sessionReminders: "exhale.settings.sessionReminders",
-  homeworkNudges: "exhale.settings.homeworkNudges",
-  weeklyCheckIn: "exhale.settings.weeklyCheckIn",
-};
+// UI toggle keys map to User columns persisted through /api/me/preferences.
+function toPrefs(server: NotificationPreferences): Record<PrefKey, boolean> {
+  return {
+    sessionReminders: server.notifySessionReminders,
+    homeworkNudges: server.notifyHomeworkNudges,
+    weeklyCheckIn: server.notifyWeeklyCheckin,
+  };
+}
 
-function storedBoolean(key: PrefKey, fallback: boolean) {
-  if (typeof window === "undefined") return fallback;
-  const value = window.localStorage.getItem(prefStorage[key]);
-  return value === null ? fallback : value === "true";
+function toServer(prefs: Record<PrefKey, boolean>): NotificationPreferences {
+  return {
+    notifySessionReminders: prefs.sessionReminders,
+    notifyHomeworkNudges: prefs.homeworkNudges,
+    notifyWeeklyCheckin: prefs.weeklyCheckIn,
+  };
 }
 
 function displayName(account: AccountSettings) {
@@ -34,24 +44,30 @@ export default function SettingsPage() {
   const [account, setAccount] = useState<AccountSettings | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [urgentAccess, setUrgentAccess] = useState<UrgentAccessPreference>(storedUrgentAccessPreference);
-  const [prefs, setPrefs] = useState<Record<PrefKey, boolean>>(() => ({
-    sessionReminders: storedBoolean("sessionReminders", true),
-    homeworkNudges: storedBoolean("homeworkNudges", true),
-    weeklyCheckIn: storedBoolean("weeklyCheckIn", false),
-  }));
+  const [prefs, setPrefs] = useState<Record<PrefKey, boolean> | null>(null);
+  const [prefsError, setPrefsError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchAccountSettings()
       .then(setAccount)
       .catch((err) => setError(err instanceof Error ? err.message : "Couldn't load settings."));
+    fetchNotificationPreferences()
+      .then((server) => setPrefs(toPrefs(server)))
+      .catch(() => setPrefsError("Couldn't load notification preferences."));
   }, []);
 
   function toggle(key: PrefKey) {
-    setPrefs((current) => {
-      const next = { ...current, [key]: !current[key] };
-      window.localStorage.setItem(prefStorage[key], String(next[key]));
-      return next;
-    });
+    if (!prefs) return;
+    const previous = prefs;
+    const next = { ...prefs, [key]: !prefs[key] };
+    setPrefs(next);
+    setPrefsError(null);
+    saveNotificationPreferences(toServer(next))
+      .then((server) => setPrefs(toPrefs(server)))
+      .catch(() => {
+        setPrefs(previous);
+        setPrefsError("Couldn't save notification preferences.");
+      });
   }
 
   function updateUrgentAccess(value: UrgentAccessPreference) {
@@ -102,21 +118,26 @@ export default function SettingsPage() {
               Notifications
             </div>
             <div className="grid gap-3">
-              {[
-                ["sessionReminders", "Session reminders"],
-                ["homeworkNudges", "Homework nudges"],
-                ["weeklyCheckIn", "Weekly check-in prompt"],
-              ].map(([key, label]) => (
-                <label key={key} className="flex items-center justify-between gap-4 border-b border-border py-3 text-sm">
-                  <span>{label}</span>
-                  <input
-                    type="checkbox"
-                    checked={prefs[key as PrefKey]}
-                    onChange={() => toggle(key as PrefKey)}
-                    className="size-4 accent-primary"
-                  />
-                </label>
-              ))}
+              {prefsError && <p className="text-sm text-destructive">{prefsError}</p>}
+              {!prefs && !prefsError && (
+                <p className="text-sm text-muted-foreground">Loading notification preferences...</p>
+              )}
+              {prefs &&
+                [
+                  ["sessionReminders", "Session reminders"],
+                  ["homeworkNudges", "Homework nudges"],
+                  ["weeklyCheckIn", "Weekly check-in prompt"],
+                ].map(([key, label]) => (
+                  <label key={key} className="flex items-center justify-between gap-4 border-b border-border py-3 text-sm">
+                    <span>{label}</span>
+                    <input
+                      type="checkbox"
+                      checked={prefs[key as PrefKey]}
+                      onChange={() => toggle(key as PrefKey)}
+                      className="size-4 accent-primary"
+                    />
+                  </label>
+                ))}
             </div>
           </section>
 
