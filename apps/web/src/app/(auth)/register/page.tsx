@@ -1,7 +1,7 @@
 "use client"
 
 // 1. Import'lar
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -23,7 +23,9 @@ interface Errors {
 
 export default function RegisterPage() {
   const [role, setRole] = useState<"patient" | "therapist">("patient")
-  const [isDark, setIsDark] = useState(false)
+  const [isDark, setIsDark] = useState(
+    () => typeof window !== "undefined" && localStorage.getItem("auth-theme") === "dark",
+  )
   const [formData, setFormData] = useState<FormData>({
     email: "",
     fullName: "",
@@ -33,14 +35,6 @@ export default function RegisterPage() {
   })
   const [errors, setErrors] = useState<Errors>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
-
-  // Dark mode
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("auth-theme")
-    if (savedTheme) {
-      setIsDark(savedTheme === "dark")
-    }
-  }, [])
 
   // Validation
   const validateForm = (): boolean => {
