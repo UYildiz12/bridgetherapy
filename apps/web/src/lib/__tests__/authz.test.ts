@@ -42,6 +42,20 @@ describe("requireApprovedTherapist", () => {
     if (!result.ok) expect(result.response.status).toBe(403);
   });
 
+  it("403 when a patient token tries to access a therapist-only route", async () => {
+    getAuthUser.mockResolvedValue({ authId: "uid-patient", email: "patient@b.co" });
+    findUnique.mockResolvedValue({
+      id: "uid-patient",
+      email: "patient@b.co",
+      role: "PATIENT",
+      therapistProfile: null,
+    });
+    const guard = await load();
+    const result = await guard(req());
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.response.status).toBe(403);
+  });
+
   it("403 when role is THERAPIST but therapistProfile is absent", async () => {
     getAuthUser.mockResolvedValue({ authId: "uid-1", email: "a@b.co" });
     findUnique.mockResolvedValue({ id: "uid-1", email: "a@b.co", role: "THERAPIST", therapistProfile: null });

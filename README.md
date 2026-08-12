@@ -48,6 +48,28 @@ exhale/
 - [Feature Inventory](./docs/frontend_pages.md)
 - [Web README](./apps/web/README.md)
 
+## Phase 0 exit criteria: closed with coverage, remaining backlog
+
+The Phase 0 gate is closed with the minimum required regression tests for:
+
+- auth provisioning and user creation
+- login / forgot-password / reset-password flow surface
+- role-based therapist access guard
+- user profile contract + session access flow
+
+These items are intentionally not implemented yet and are tracked as non-blocking follow-up work:
+
+1. Concurrent provision race handling under parallel sign-up requests.
+2. Full email-confirmation signup flow after the confirmation email is clicked.
+3. Admin approval flow for pending therapists from UI to database state.
+4. Expired or already-used password reset link handling in a live environment.
+5. Re-provisioning role drift when a user is first created as PATIENT and later attempts THERAPIST.
+6. Prisma migration drift between schema updates and deployed database state.
+7. Deployment/env drift for Supabase and Postgres credentials across local/staging/prod.
+8. Profile completeness validation beyond the core role contract (e.g., missing therapist/patient profile metadata).
+
+These remain in backlog form only; they are not blockers for the current Phase 0 completion call.
+
 ## License
 
 Private. All rights reserved.
