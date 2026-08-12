@@ -1,29 +1,32 @@
 .landing-page {
+    /* Dark Mode (Default) - Terapi Konsepti */
     --ink: #f1f0eb;
-    --paper: #0b0c10;
-    --accent: #ffffff;
-    --panel: #121318;
-    --panel-strong: #171820;
-    --line: rgba(245, 244, 239, 0.14);
-    --line-strong: rgba(245, 244, 239, 0.28);
-    --hover: rgba(255, 255, 255, 0.06);
-    --strike: rgba(255, 255, 255, 0.75);
-    --accent-glow: rgba(255, 255, 255, 0.35);
-    --accent-dust: rgba(255, 255, 255, 0.25);
-    --fold-edge: rgba(255, 255, 255, 0.32);
-    --fold-fill: rgba(255, 255, 255, 0.06);
-    --fold-highlight: rgba(255, 255, 255, 0.22);
+    --paper: #1a1f35;
+    --accent: #5e81ac;
+    --panel: #252d45;
+    --panel-strong: #2d3652;
+    --primary: #5e81ac;
+    --success: #8fbcbb;
+    --line: rgba(94, 129, 172, 0.15);
+    --line-strong: rgba(94, 129, 172, 0.30);
+    --hover: rgba(94, 129, 172, 0.08);
+    --strike: rgba(241, 240, 235, 0.75);
+    --accent-glow: rgba(94, 129, 172, 0.40);
+    --accent-dust: rgba(94, 129, 172, 0.25);
+    --fold-edge: rgba(94, 129, 172, 0.32);
+    --fold-fill: rgba(94, 129, 172, 0.06);
+    --fold-highlight: rgba(94, 129, 172, 0.22);
     --fold-shadow: rgba(0, 0, 0, 0.35);
-    --grid-minor: rgba(245, 244, 239, 0.03);
-    --grid-major: rgba(245, 244, 239, 0.08);
-    --blueprint: rgba(110, 170, 255, 0.28);
-    --blueprint-weak: rgba(110, 170, 255, 0.14);
-    --mode-grid: rgba(110, 170, 255, 0.2);
-    --mode-grid-strong: rgba(110, 170, 255, 0.34);
-    --sketch: rgba(236, 202, 140, 0.22);
-    --smudge: rgba(255, 255, 255, 0.08);
-    --muted: rgba(245, 244, 239, 0.65);
-    --shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+    --grid-minor: rgba(94, 129, 172, 0.04);
+    --grid-major: rgba(94, 129, 172, 0.10);
+    --blueprint: rgba(94, 129, 172, 0.30);
+    --blueprint-weak: rgba(94, 129, 172, 0.15);
+    --mode-grid: rgba(94, 129, 172, 0.20);
+    --mode-grid-strong: rgba(94, 129, 172, 0.40);
+    --sketch: rgba(143, 188, 187, 0.22);
+    --smudge: rgba(241, 240, 235, 0.06);
+    --muted: rgba(241, 240, 235, 0.60);
+    --shadow: 0 18px 40px rgba(0, 0, 0, 0.50);
     --radius: 18px;
 
     margin: 0;
@@ -34,8 +37,8 @@
         repeating-linear-gradient(0deg, var(--grid-minor) 0 1px, transparent 1px 36px),
         repeating-linear-gradient(90deg, var(--grid-major) 0 1px, transparent 1px 180px),
         repeating-linear-gradient(0deg, var(--grid-major) 0 1px, transparent 1px 180px),
-        radial-gradient(900px 520px at 80% -10%, #08090d 0%, transparent 60%),
-        linear-gradient(180deg, #050608 0%, #0a0b0f 100%);
+        radial-gradient(900px 520px at 80% -10%, #1a1f35 0%, transparent 60%),
+        linear-gradient(180deg, #15192a 0%, #1a1f35 100%);
     overflow-x: hidden;
     min-height: 100vh;
     position: relative;
@@ -66,38 +69,41 @@
 }
 
 .landing-page[data-theme="light"] {
-    --ink: #0b0c10;
-    --paper: #f6f5f2;
-    --accent: #0b0c10;
+    /* Light Mode - Terapi Konsepti (Açık, Rahat, Güvenli) */
+    --ink: #2e3440;
+    --paper: #f8f9fa;
+    --accent: #5e81ac;
     --panel: #ffffff;
-    --panel-strong: #f1efe9;
-    --line: rgba(11, 12, 16, 0.12);
-    --line-strong: rgba(11, 12, 16, 0.28);
-    --hover: rgba(11, 12, 16, 0.06);
-    --strike: rgba(11, 12, 16, 0.75);
-    --accent-glow: rgba(11, 12, 16, 0.28);
-    --accent-dust: rgba(11, 12, 16, 0.22);
-    --fold-edge: rgba(11, 12, 16, 0.22);
-    --fold-fill: rgba(11, 12, 16, 0.05);
-    --fold-highlight: rgba(11, 12, 16, 0.18);
-    --fold-shadow: rgba(0, 0, 0, 0.18);
-    --grid-minor: rgba(11, 12, 16, 0.04);
-    --grid-major: rgba(11, 12, 16, 0.08);
-    --blueprint: rgba(20, 60, 120, 0.22);
-    --blueprint-weak: rgba(20, 60, 120, 0.12);
-    --mode-grid: rgba(20, 60, 120, 0.16);
-    --mode-grid-strong: rgba(20, 60, 120, 0.28);
-    --sketch: rgba(120, 90, 40, 0.2);
-    --smudge: rgba(11, 12, 16, 0.08);
-    --muted: rgba(11, 12, 16, 0.65);
-    --shadow: 0 18px 40px rgba(12, 12, 14, 0.12);
+    --panel-strong: #f0f1f3;
+    --primary: #5e81ac;
+    --success: #8fbcbb;
+    --line: rgba(46, 52, 64, 0.12);
+    --line-strong: rgba(46, 52, 64, 0.24);
+    --hover: rgba(94, 129, 172, 0.08);
+    --strike: rgba(46, 52, 64, 0.75);
+    --accent-glow: rgba(94, 129, 172, 0.30);
+    --accent-dust: rgba(94, 129, 172, 0.20);
+    --fold-edge: rgba(94, 129, 172, 0.22);
+    --fold-fill: rgba(94, 129, 172, 0.03);
+    --fold-highlight: rgba(94, 129, 172, 0.15);
+    --fold-shadow: rgba(0, 0, 0, 0.10);
+    --grid-minor: rgba(46, 52, 64, 0.03);
+    --grid-major: rgba(46, 52, 64, 0.06);
+    --blueprint: rgba(94, 129, 172, 0.18);
+    --blueprint-weak: rgba(94, 129, 172, 0.08);
+    --mode-grid: rgba(94, 129, 172, 0.12);
+    --mode-grid-strong: rgba(94, 129, 172, 0.22);
+    --sketch: rgba(143, 188, 187, 0.15);
+    --smudge: rgba(46, 52, 64, 0.04);
+    --muted: rgba(46, 52, 64, 0.60);
+    --shadow: 0 18px 40px rgba(46, 52, 64, 0.08);
     background:
         repeating-linear-gradient(90deg, var(--grid-minor) 0 1px, transparent 1px 48px),
         repeating-linear-gradient(0deg, var(--grid-minor) 0 1px, transparent 1px 48px),
         repeating-linear-gradient(90deg, var(--grid-major) 0 1px, transparent 1px 200px),
         repeating-linear-gradient(0deg, var(--grid-major) 0 1px, transparent 1px 200px),
-        radial-gradient(900px 520px at 80% -10%, #e9e6e1 0%, transparent 60%),
-        linear-gradient(180deg, #f6f5f2 0%, #f0ede7 100%);
+        radial-gradient(900px 520px at 80% -10%, #e8ecf5 0%, transparent 60%),
+        linear-gradient(180deg, #f8f9fa 0%, #f1f3f6 100%);
 }
 
 .landing-page[data-theme="light"]::before {
