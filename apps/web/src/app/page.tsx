@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import Link from "next/link";
+import { Check, Sparkles } from "lucide-react";
 import { BlueprintSvg } from "@/components/landing/blueprint-svg";
 import { BlueprintSecondarySvg } from "@/components/landing/blueprint-secondary-svg";
 
@@ -13,251 +15,404 @@ interface Ritual {
   active?: boolean;
 }
 
+interface ValueProp {
+  title: string;
+  desc: string;
+}
+
 const content = {
   patient: {
-    nav: { cta: "Patient Login", badge: "Patient" },
+    badge: "Patient",
     hero: {
       title: "mental health, clarified.",
-      axis: "Daily Flow",
-      desc: "An intelligent workspace for your mind. Track mood, journal with AI insights, and connect with your therapist—all in one place.",
-      cta: "Start Ritual",
-      secondaryCta: "See Demo",
+      desc: "A steady workspace for your mind: track your mood, capture reflections, and stay connected with your therapist.",
       panelHeader: "Today's Plan",
       rituals: [
         { label: "Morning Check-in", time: "2 min", done: true },
         { label: "Mood Log", time: "1 min", done: true },
         { label: "Therapy Session", time: "50 min", active: true },
-        { label: "Evening Journal", time: "10 min", done: false },
+        { label: "Evening Reflection", time: "10 min", done: false },
       ] as Ritual[],
     },
-    approach: {
-      title: "Data-driven care, human connection.",
-      subtitle: "Exhale bridges the gap between sessions. Your progress isn't a mystery—it's visible, understandable, and actionable.",
-      cards: [
-        { title: "Smart Journaling", desc: "Your private space for reflection is enhanced by on-device AI that detects patterns in your entries. Over time, it highlights recurring themes and emotional shifts, helping you understand your own narrative without compromising privacy." },
-        { title: "Mood Analytics", desc: "Track your emotional landscape with granular precision using our clinically-validated mood spectrum. Visualize your highs and lows on a timeline to correlate them with life events, sleep quality, and therapy sessions." },
-        { title: "Secure Connection", desc: "Experience true privacy with HIPAA-compliant, end-to-end encrypted video and messaging. Whether you're in a session or sending a quick update, your communication is locked down and visible only to you and your provider." },
-        { title: "Daily Focus", desc: "Start every morning with intention. Based on your recent journals and therapy goals, Exhale generates a personalized focus prompt to ground you for the day ahead, helping you stay aligned with your growth journey." },
-        { title: "Sleep Tracking", desc: "Integrate seamlessly with Apple HealthKit or Google Fit to correlate your rest with your resilience. See clearly how your sleep quality impacts your mood the next day, and get tailored suggestions for better hygiene." },
-        { title: "Meditation Library", desc: "Access a curated library of over 500 evidence-based audio sessions. From 5-minute anxiety reducers to deep sleep nidras, discover practices designed by clinical experts to regulate your nervous system." },
-        { title: "Breathwork", desc: "Regulate your autonomic nervous system in real-time with visual breathing guides. Use 'Box Breathing' for focus, '4-7-8' for sleep, or 'Physiological Sighs' for immediate stress relief, all accessible with a single tap." },
-        { title: "Crisis Support", desc: "Safety is paramount. Get immediate, one-tap access to your personalized safety plan and crisis lifelines. Share your location with trusted contacts or connect instantly to emergency services when you need support the most." },
-        { title: "Medication Reminders", desc: "Reduce the cognitive load of your treatment plan with discreet, customizable reminders. Track adherence over time and share logs with your psychiatrist to fine-tune your dosage and minimize side effects." },
-        { title: "Family Systems", desc: "Map out the complex web of relationships in your life. visual genograms help you and your therapist identify generational patterns, alliance structures, and relational dynamics that influence your wellbeing." },
-        { title: "Progress Timeline", desc: "Celebrate your journey with a beautiful, scrolling timeline of your milestones. See how far you've come by reviewing past insights, completed goals, and growth markers in a visual format that honors your hard work." },
-        { title: "Export Data", desc: "Your data belongs to you, always. With a single click, export your entire history—journals, mood logs, and insights—into a secure PDF or JSON format for your own records or to share with a new provider." },
-      ],
-    },
-    features: {
-      title: "Core Values.",
-      subtitle: "Technology built on trust, privacy, and clinical precision.",
-      cards: [
-        { title: "Insightful", desc: "AI-generated reflections that help you spot patterns, but never replace human intuition." },
-        { title: "Ethical", desc: "Your data is yours. No information that you didn't explicitly want shared is ever shared." },
-        { title: "Secure", desc: "Enterprise-grade encryption and biometric locks keep your deepest thoughts strictly private." },
-        { title: "Customized", desc: "Receive homework and rituals that are specific to your unique workflow and needs." },
-      ],
-    },
-    howItWorks: {
-      steps: [
-        { title: "Match", desc: "Answer a few questions and get matched with a specialist who fits your needs." },
-        { title: "Engage", desc: "Start your daily plan: Check-in, journal, and prepare for your first session." },
-        { title: "Grow", desc: "Track your mood trends and celebrate milestones with your therapist." },
-      ],
-    },
-    pricing: {
-      title: "Pricing with room to grow",
-      subtitle: "Transparent plans with therapist access, rituals, and progress insights.",
-      tiers: [
-        { name: "Starter", price: "$39 / mo", features: ["Weekly therapist message", "3 guided rituals", "Progress reflections"] },
-        { name: "Core", price: "$79 / mo", features: ["Unlimited rituals", "Biweekly live sessions", "Personalized nervous system map"], highlight: true },
-        { name: "Deep Care", price: "$129 / mo", features: ["Weekly live sessions", "Voice note access", "Therapist-led plans"] },
-      ],
-    },
+    valuesTitle: "What you get",
+    values: [
+      {
+        title: "Track your mood",
+        desc: "Log how you feel in seconds. Patterns surface over time, so progress stops being a mystery and starts being visible.",
+      },
+      { title: "Reflect with clarity", desc: "A private-feeling space to notice situations, thoughts, feelings, and recurring themes." },
+      { title: "Stay connected", desc: "Share what matters with your therapist between sessions, securely." },
+    ] as ValueProp[],
+    howItWorks: [
+      { title: "Connect", desc: "Invite your current therapist into Exhale, or complete the intake to find a CBT therapist who fits your needs." },
+      { title: "Engage", desc: "Work through CBT homework sets and daily check-ins your therapist assigns." },
+      { title: "Grow", desc: "Track your trends and bring clearer patterns into the next session." },
+    ],
     cta: {
       title: "Begin with clarity.",
-      desc: "Exhale is designed to help you steady, focus, and feel supported every day. Start a session and meet a therapist who keeps it clear.",
-      btn: "Start today",
+      desc: "Steady, focused support for the everyday. Start with a one-minute check-in.",
     },
   },
   therapist: {
-    nav: { cta: "Join Practice", badge: "Therapist" },
+    badge: "Therapist",
     hero: {
       title: "practice designed for deep work.",
-      axis: "Workflow Flow",
-      desc: "Manage less, heal more. Automate intake, notes, and scheduling so you can focus entirely on the session. Your practice, clarified.",
-      cta: "Start Practice",
-      secondaryCta: "See Features",
+      desc: "Automate intake, notes, and scheduling so you can focus entirely on the session. Your practice, clarified.",
       panelHeader: "Today's Flow",
       rituals: [
         { label: "Review: Jada P.", time: "09:00", done: true },
         { label: "Session: Marcus T.", time: "10:00", done: true },
-        { label: "Notes & Billing", time: "11:00", active: true },
+        { label: "Notes Review", time: "11:00", active: true },
         { label: "Group Session", time: "14:00", done: false },
       ] as Ritual[],
     },
-    approach: {
-      title: "A system that respects your craft.",
-      subtitle: "Exhale handles the noise. Intelligent tooling for documentation, scheduling, and client insights.",
-      cards: [
-        { title: "Auto-Documentation", desc: "Focus entirely on your client while our secure ambient intelligence captures session context. It automatically generates structured SOAP notes, clinical summaries, and CPT coding suggestions in seconds, saving you hours of admin work." },
-        { title: "Client Radar", desc: "Stay informed between sessions with a real-time dashboard. Receive smart alerts when a client's mood drops significantly or when specific keywords appear in their journals, allowing for proactive, timely check-ins." },
-        { title: "Unified Stream", desc: "Ditch the tab-switching fatigue. Chat, secure video, document sharing, and clinical notes all live in a single, continuous timeline for each client, giving you a complete contextual history at a glance." },
-        { title: "Smart Scheduling", desc: "Reclaim your energy with a calendar that works for you. Our intelligent scheduler optimizes your day to prevent burnout, automatically enforcing gaps between intensive sessions and clustering admin time." },
-        { title: "Billing & Invoices", desc: "Get paid on time without the awkward conversations. Automated Superbill generation and striped payment integration ensure invoices are sent and settled instantly after every session." },
-        { title: "Insurance Claims", desc: "Navigate the reimbursement maze with ease. Submit claims with a single click, track their status in real-time, and get automated alerts for denials or required resubmissions, reducing revenue leakage." },
-        { title: "Secure Messaging", desc: "Maintain healthy boundaries with a dedicated, secure channel. Set automated out-of-office replies, schedule messages for business hours, and keep your personal phone number completely private." },
-        { title: "Resource Library", desc: "Empower your clients with the right tools at the right time. Instantly send worksheets, psychoeducation videos, and coping articles from our clinically-vetted library directly to their client portal." },
-        { title: "Supervision Chat", desc: "Never practice in isolation. Connect with your consultation group in secure, anonymized channels to discuss difficult cases, share resources, and get peer support in a protected environment." },
-        { title: "Outcome Measures", desc: "Track clinical progress objectively. Automatically dispatch standard measures like GAD-7 and PHQ-9 at set intervals, and view the results in longitudinal graphs that demonstrate efficacy to clients and payers." },
-        { title: "Custom Forms", desc: "Streamline your intake process with a powerful drag-and-drop form builder. Create custom questionnaires, consent forms, and assessments that clients can complete digitally before their first appointment." },
-        { title: "Practice Analytics", desc: "Treat your practice like the business it is. Visual dashboards help you understand detailed metrics on client retention, revenue per session, referral sources, and clinical outcomes." },
-      ],
-    },
-    features: {
-      title: "Practice Pillars.",
-      subtitle: "Everything you need to run a modern, efficient therapy practice.",
-      cards: [
-        { title: "Insightful", desc: "AI-driven clinical summaries that highlight progress markers you might miss." },
-        { title: "Ethical", desc: "Built-in safeguards ensure AI never oversteps. You always have the final say." },
-        { title: "Secure", desc: "HIPAA-compliant infrastructure with biometric access control for sensitive notes." },
-        { title: "Customized", desc: "Create and assign custom homework workflows specific to your treatment modalities." },
-      ],
-    },
-    howItWorks: {
-      steps: [
-        { title: "Onboard", desc: "Import your existing clients or open slots for new matches." },
-        { title: "Automate", desc: "Set your availability and let the system handle bookings and reminders." },
-        { title: "Focus", desc: "Use session insights and AI notes to deliver better care with less effort." },
-      ],
-    },
-    pricing: {
-      title: "Simple practice pricing",
-      subtitle: "One subscription for your entire clinical operating system.",
-      tiers: [
-        { name: "Solo", price: "$29 / mo", features: ["Up to 10 clients", "Basic AI Notes", "Scheduling & Billing"] },
-        { name: "Professional", price: "$79 / mo", features: ["Unlimited clients", "Advanced AI Insights", "Custom Forms"], highlight: true },
-        { name: "Group", price: "$199 / mo", features: ["Multi-provider support", "Practice Analytics", "Admin roles"] },
-      ],
-    },
+    valuesTitle: "How it helps",
+    values: [
+      {
+        title: "Less paperwork",
+        desc: "Structured session notes and summaries drafted for you, so you can stay present instead of writing.",
+      },
+      { title: "Know what's happening", desc: "See mood trends and flags between sessions, and reach out at the right moment." },
+      { title: "Everything in one place", desc: "Notes, messages, and history for each client in one continuous timeline." },
+    ] as ValueProp[],
+    howItWorks: [
+      { title: "Onboard", desc: "Import existing clients or open slots for new matches." },
+      { title: "Build", desc: "Build flexible CBT homework sets from worksheets, readings, or anything." },
+      { title: "Focus", desc: "Structured notes and suggested homework after every session." },
+    ],
     cta: {
       title: "Upgrade your practice.",
-      desc: "Exhale is designed to let you do the work you love without the burnout. Join the network of modern therapists.",
-      btn: "Join Now",
+      desc: "Do the work you love without the burnout. Run a modern, quiet practice.",
     },
   },
 };
 
+// Blueprint vignettes shown on the phone, one per step, swapped as the active step changes.
+const phoneScreens: Record<Role, React.ReactNode[]> = {
+  patient: [
+    // Connect: use Exhale with your therapist, or find a CBT-first match.
+    <>
+      <div className="ps-head">Set up your therapy workspace</div>
+      <div className="ps-prefs">
+        <span className="on">Already have a therapist</span>
+        <span>Find a CBT match</span>
+      </div>
+      <div className="ps-sub ps-why-head">
+        <Sparkles size={11} strokeWidth={2} />
+        Two ways to start
+      </div>
+      <ul className="ps-matches">
+        <li>
+          <span className="ps-avatar sm" />
+          <div className="ps-mt">
+            <div className="ps-name">Invite your therapist</div>
+            <div className="ps-role">Use Exhale with your current therapist</div>
+            <div className="ps-why">Share reflections, homework, and check-ins with the therapist you already trust.</div>
+          </div>
+        </li>
+        <li>
+          <span className="ps-avatar sm" />
+          <div className="ps-mt">
+            <div className="ps-name">Find a CBT match</div>
+            <div className="ps-role">Guided intake when you need someone new</div>
+            <div className="ps-why">Tell us your needs and choose from therapists matched to your goals and schedule.</div>
+          </div>
+        </li>
+        <li>
+          <span className="ps-avatar sm" />
+          <div className="ps-mt">
+            <div className="ps-name">Keep one workspace</div>
+            <div className="ps-role">Notes, mood, messages, sessions</div>
+            <div className="ps-why">Your between-session work stays organized either way.</div>
+          </div>
+        </li>
+      </ul>
+    </>,
+    // Engage: doing an assigned CBT homework set
+    <>
+      <div className="ps-head">This week&apos;s homework</div>
+      <div className="ps-set">
+        <div className="ps-set-name">Cognitive restructuring</div>
+        <div className="ps-set-meta">From Dr. Okafor · 2 of 3 done</div>
+        <div className="ps-progress">
+          <span style={{ width: "66%" }} />
+        </div>
+      </div>
+      <ul className="ps-tasks">
+        <li className="done">
+          <span className="ps-box">
+            <Check size={11} strokeWidth={3} />
+          </span>
+          Thought record
+        </li>
+        <li className="done">
+          <span className="ps-box">
+            <Check size={11} strokeWidth={3} />
+          </span>
+          4-7-8 breathing
+        </li>
+        <li>
+          <span className="ps-box" />
+          Behavioral activation: a short walk
+        </li>
+      </ul>
+      <div className="ps-actions">
+        <span className="ps-btn">Add note</span>
+        <span className="ps-btn primary">Open set</span>
+      </div>
+    </>,
+    // Grow: progress + the Lumen AI companion nudge
+    <>
+      <div className="ps-head">Your progress</div>
+      <div className="ps-stats">
+        <div>
+          <strong className="ps-trend">+18%</strong>
+          <span>calmer this week</span>
+        </div>
+        <div>
+          <strong>7</strong>
+          <span>day streak</span>
+        </div>
+      </div>
+      <div className="ps-sub">Mood · last 7 days</div>
+      <div className="ps-bars sm">
+        {[4, 6, 5, 7, 6, 8, 7].map((h, n) => (
+          <span key={n} style={{ height: `${h * 8}px` }} />
+        ))}
+      </div>
+      <div className="ps-bot">
+        <div className="ps-bot-head">
+          <Sparkles size={13} strokeWidth={2} />
+          Lumen
+        </div>
+        <p className="ps-bot-msg">
+          Last session, Dr. Okafor suggested noting your thoughts when you head out. Want to try a
+          quick thought record today?
+        </p>
+        <span className="ps-btn primary ps-bot-cta">Start now</span>
+      </div>
+    </>,
+  ],
+  therapist: [
+    // Onboard: a real client roster with status
+    <>
+      <div className="ps-head">Your clients</div>
+      <ul className="ps-matches">
+        <li>
+          <span className="ps-avatar sm" />
+          <div className="ps-mt">
+            <div className="ps-name">Jada P.</div>
+            <div className="ps-role">Cognitive restructuring · Wk 2</div>
+          </div>
+          <span className="ps-pct">On track</span>
+        </li>
+        <li>
+          <span className="ps-avatar sm" />
+          <div className="ps-mt">
+            <div className="ps-name">Marcus T.</div>
+            <div className="ps-role">Behavioral activation</div>
+          </div>
+          <span className="ps-pct">2 due</span>
+        </li>
+        <li>
+          <span className="ps-avatar sm" />
+          <div className="ps-mt">
+            <div className="ps-name">New intake</div>
+            <div className="ps-role">Awaiting review</div>
+          </div>
+          <span className="ps-pct">New</span>
+        </li>
+      </ul>
+      <div className="ps-actions">
+        <span className="ps-btn primary">Add client</span>
+      </div>
+    </>,
+    // Build: a flexible homework-set builder (items can be anything)
+    <>
+      <div className="ps-head">New homework set</div>
+      <div className="ps-field">
+        Cognitive restructuring
+        <span className="ps-caret" />
+      </div>
+      <ul className="ps-builder">
+        <li>
+          <span className="ps-itype">Worksheet</span>Thought record
+        </li>
+        <li>
+          <span className="ps-itype">Reading</span>Cognitive distortions
+        </li>
+        <li>
+          <span className="ps-itype">Voice</span>Daily reflection
+        </li>
+        <li className="add">
+          <span className="ps-box plus">+</span>Add any item
+        </li>
+      </ul>
+      <div className="ps-actions">
+        <span className="ps-btn">Save draft</span>
+        <span className="ps-btn primary">Assign</span>
+      </div>
+    </>,
+    // Focus: drafted notes + suggested homework
+    <>
+      <div className="ps-head">Session summary</div>
+      <div className="ps-note">Drafted notes ready. Suggested: assign a thought-record set this week.</div>
+      <ul className="ps-tasks">
+        <li className="done">
+          <span className="ps-box">
+            <Check size={11} strokeWidth={3} />
+          </span>
+          SOAP note drafted
+        </li>
+        <li className="done">
+          <span className="ps-box">
+            <Check size={11} strokeWidth={3} />
+          </span>
+          Homework suggested
+        </li>
+      </ul>
+      <div className="ps-actions">
+        <span className="ps-btn">Edit</span>
+        <span className="ps-btn primary">Review &amp; send</span>
+      </div>
+    </>,
+  ],
+};
+
+function PhoneScreen({ role, step }: { role: Role; step: number }) {
+  return (
+    <div className="phone-screen-inner" key={`${role}-${step}`}>
+      {phoneScreens[role][step]}
+    </div>
+  );
+}
+
 export default function Home() {
-  const [isLight, setIsLight] = useState(false);
   const [role, setRole] = useState<Role>("patient");
-  const [activeFeature, setActiveFeature] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
   const heroVisualRef = useRef<HTMLDivElement>(null);
-  const featureListRef = useRef<HTMLDivElement>(null);
 
   const t = content[role];
-
-  // Initialize rituals state from content
   const [rituals, setRituals] = useState<Ritual[]>(t.hero.rituals);
+  const nextRitualIndex = rituals.findIndex((r) => !r.done);
+  const [activeStep, setActiveStep] = useState(0);
+  const stepRefs = useRef<(HTMLElement | null)[]>([]);
+  const [signedIn, setSignedIn] = useState(false);
 
-  // Find first unchecked item for "Glow" effect
-  const nextRitualIndex = rituals.findIndex(r => !r.done);
-
-  // Update rituals when role changes
+  // Returning users with a live session get "Open app" instead of the sign-in CTA.
   useEffect(() => {
-    setRituals(content[role].hero.rituals as Ritual[]);
+    let cancelled = false;
+    import("@/lib/supabase/client")
+      .then(({ createSupabaseBrowserClient }) =>
+        createSupabaseBrowserClient().auth.getSession(),
+      )
+      .then(({ data }) => {
+        if (!cancelled && data.session) setSignedIn(true);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const signupHref = `/signup?role=${role}`;
+
+  const chooseRole = (nextRole: Role) => {
+    setRole(nextRole);
+    setRituals(content[nextRole].hero.rituals);
+    setActiveStep(0);
+  };
+
+  // Sync the phone to the step nearest a target line: viewport center on desktop,
+  // and lower on mobile (~78%) so the active step sits in the visible band BELOW the
+  // pinned phone rather than behind it.
+  useEffect(() => {
+    const pickActive = () => {
+      const isMobile = window.matchMedia("(max-width: 860px)").matches;
+      if (isMobile) {
+        // The phone is pinned at the top. The active step is the topmost one still
+        // peeking out below it, so as soon as a step tucks behind the phone the next
+        // one takes over (rather than waiting for that next step to reach behind it).
+        const phone = document.querySelector(".how-phone-wrap");
+        const phoneBottom = phone
+          ? phone.getBoundingClientRect().bottom
+          : window.innerHeight * 0.6;
+        let best = stepRefs.current.length - 1;
+        for (let i = 0; i < stepRefs.current.length; i++) {
+          const el = stepRefs.current[i];
+          if (el && el.getBoundingClientRect().bottom > phoneBottom + 40) {
+            best = i;
+            break;
+          }
+        }
+        setActiveStep(best);
+        return;
+      }
+      const targetY = window.innerHeight * 0.5;
+      let best = 0;
+      let bestDist = Infinity;
+      stepRefs.current.forEach((el, i) => {
+        if (!el) return;
+        const r = el.getBoundingClientRect();
+        const dist = Math.abs(r.top + r.height / 2 - targetY);
+        if (dist < bestDist) {
+          bestDist = dist;
+          best = i;
+        }
+      });
+      setActiveStep(best);
+    };
+    pickActive();
+    window.addEventListener("scroll", pickActive, { passive: true });
+    window.addEventListener("resize", pickActive);
+    return () => {
+      window.removeEventListener("scroll", pickActive);
+      window.removeEventListener("resize", pickActive);
+    };
   }, [role]);
 
   const toggleRitual = (index: number) => {
-    setRituals(prev => prev.map((r, i) => i === index ? { ...r, done: !r.done } : r));
+    setRituals((prev) => prev.map((r, i) => (i === index ? { ...r, done: !r.done } : r)));
   };
 
+  // Scroll reveal: re-observe when role changes so new copy animates in.
   useEffect(() => {
-    // Auto-advance features every 7 seconds
-    const interval = setInterval(() => {
-      if (!isPaused) {
-        setActiveFeature((prev) => (prev + 1) % t.approach.cards.length);
-      }
-    }, 7000);
-    return () => clearInterval(interval);
-  }, [role, t.approach.cards.length, isPaused]); // Reset if role or pause state changes
-
-  useEffect(() => {
-    // Auto-scroll to active item
-    if (featureListRef.current) {
-      const activeEl = document.getElementById(`feature-item-${activeFeature}`);
-      if (activeEl) {
-        // Smooth scroll to element
-        const container = featureListRef.current;
-        const offset = activeEl.offsetTop - container.offsetTop;
-        container.scrollTo({ top: offset - 20, behavior: 'smooth' });
-      }
-    }
-  }, [activeFeature]);
-
-  useEffect(() => {
-    // Theme initialization
-    const storedTheme = localStorage.getItem("exhale-theme");
-    if (storedTheme === "light") {
-      setIsLight(true);
-    }
-  }, []);
-
-  const toggleTheme = () => {
-    const newTheme = !isLight;
-    setIsLight(newTheme);
-    localStorage.setItem("exhale-theme", newTheme ? "light" : "dark");
-  };
-
-  useEffect(() => {
-    // Scroll Reveal Observer
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("in-view");
-          }
+          if (entry.isIntersecting) entry.target.classList.add("in-view");
         });
       },
-      { threshold: 0.1 }
+      { threshold: 0.15 },
     );
-
-    const revealEls = document.querySelectorAll(".reveal");
-    revealEls.forEach((el) => observer.observe(el));
-
+    document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  }, [role]); // Re-run when role changes to catch new elements
+  }, [role]);
 
+  // Hero visual mouse-tilt: motion that responds to the reader, not a loop.
   useEffect(() => {
-    // Mouse Tilt Effect
     const visual = heroVisualRef.current;
     if (!visual) return;
-
-    const handleMouseMove = (event: MouseEvent) => {
+    const onMove = (event: MouseEvent) => {
       const rect = visual.getBoundingClientRect();
       const x = (event.clientX - rect.left) / rect.width - 0.5;
       const y = (event.clientY - rect.top) / rect.height - 0.5;
-      visual.style.setProperty("--tilt-x", `${x * 5}deg`);
-      visual.style.setProperty("--tilt-y", `${-y * 5}deg`);
+      visual.style.setProperty("--tilt-x", `${x * 6}deg`);
+      visual.style.setProperty("--tilt-y", `${-y * 6}deg`);
     };
-
-    const handleMouseLeave = () => {
+    const onLeave = () => {
       visual.style.setProperty("--tilt-x", "0deg");
       visual.style.setProperty("--tilt-y", "0deg");
     };
-
-    visual.addEventListener("mousemove", handleMouseMove);
-    visual.addEventListener("mouseleave", handleMouseLeave);
-
+    visual.addEventListener("mousemove", onMove);
+    visual.addEventListener("mouseleave", onLeave);
     return () => {
-      visual.removeEventListener("mousemove", handleMouseMove);
-      visual.removeEventListener("mouseleave", handleMouseLeave);
+      visual.removeEventListener("mousemove", onMove);
+      visual.removeEventListener("mouseleave", onLeave);
     };
   }, [role]);
 
   return (
-    <div className="landing-page" data-theme={isLight ? "light" : "dark"}>
+    <div className="landing-page" data-theme="dark">
       <BlueprintSvg />
       <BlueprintSecondarySvg />
 
@@ -266,61 +421,41 @@ export default function Home() {
           <div className="logo">
             <span className="logo-badge"></span>
             exhale
-            <span className="ml-3 text-[10px] tracking-widest text-muted-foreground uppercase border border-white/10 px-2 py-0.5 rounded-full">
-              {t.nav.badge}
+            <span className="ml-3 hidden text-[10px] tracking-widest text-white/70 uppercase border border-white/10 px-2 py-0.5 rounded-full sm:inline-block">
+              {t.badge}
             </span>
           </div>
-          <div className="nav-links">
-            <a href="#approach">Approach</a>
-            <a href="#modes">Features</a>
-            <a href="#stories">Stories</a>
-            <a href="#pricing">Pricing</a>
-          </div>
           <div className="nav-actions">
-            <div className="flex bg-white/5 border border-white/10 rounded-full p-1 mr-2">
+            <div className="flex bg-white/5 border border-white/10 rounded-full p-1 mr-1">
               <button
-                onClick={() => setRole("patient")}
-                className={`px-3 py-1 text-[10px] uppercase tracking-wider rounded-full transition-all ${role === "patient" ? "bg-white text-black" : "text-gray-400 hover:text-white"
-                  }`}
+                onClick={() => chooseRole("patient")}
+                className={`px-3 py-1 text-[10px] uppercase tracking-wider rounded-full transition-all ${role === "patient" ? "bg-white text-black" : "text-white/50 hover:text-white"}`}
               >
                 Patient
               </button>
               <button
-                onClick={() => setRole("therapist")}
-                className={`px-3 py-1 text-[10px] uppercase tracking-wider rounded-full transition-all ${role === "therapist" ? "bg-white text-black" : "text-gray-400 hover:text-white"
-                  }`}
+                onClick={() => chooseRole("therapist")}
+                className={`px-3 py-1 text-[10px] uppercase tracking-wider rounded-full transition-all ${role === "therapist" ? "bg-white text-black" : "text-white/50 hover:text-white"}`}
               >
                 Therapist
               </button>
             </div>
-            <button
-              className="theme-toggle"
-              type="button"
-              aria-pressed={isLight}
-              onClick={toggleTheme}
-            >
-              {isLight ? "Dark" : "Light"}
-            </button>
-            <a href="/dashboard" className="cta-button no-underline flex items-center">
-              {t.nav.cta}
-            </a>
+            <Link href={signedIn ? "/dashboard" : "/login"} className="nav-login no-underline">
+              {signedIn ? "Open app" : "Sign in / Register"}
+            </Link>
           </div>
         </nav>
 
         <section className="hero">
           <div className="hero-copy stagger" key={role}>
             <h1>
-              <span className="exhale-word accent">Exhale</span> — {t.hero.title}
+              <span className="exhale-word accent">Exhale</span>: {t.hero.title}
             </h1>
-            <div className="flow-axis">{t.hero.axis}</div>
             <p>{t.hero.desc}</p>
             <div className="hero-actions">
-              <a href="/dashboard" className="cta-button no-underline flex items-center">
-                {t.hero.cta}
-              </a>
-              <a href="/dashboard" className="ghost-button no-underline flex items-center">
-                {t.hero.secondaryCta}
-              </a>
+              <Link href={signupHref} className="cta-button no-underline flex items-center">
+                Get Started
+              </Link>
             </div>
           </div>
           <div className="hero-visual" ref={heroVisualRef}>
@@ -333,7 +468,6 @@ export default function Home() {
               <div className="ritual-panel">
                 <div className="ritual-header">
                   {t.hero.panelHeader}
-                  <span className="chip">Today</span>
                 </div>
                 <ul className="ritual-list">
                   {rituals.map((r, i) => (
@@ -355,113 +489,85 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="approach" className="section reveal">
-          <h2 className="section-title">{t.approach.title}</h2>
-          <p className="section-subtitle">{t.approach.subtitle}</p>
-          <div
-            className="interactive-features"
-            onMouseEnter={() => setIsPaused(true)}
-            onMouseLeave={() => setIsPaused(false)}
-          >
-            <div className="feature-list" ref={featureListRef}>
-              {t.approach.cards.map((c, i) => (
+        <section id="features" className="section reveal value-section">
+          <h2 className="section-title">{t.valuesTitle}</h2>
+          <svg className="draw-line" viewBox="0 0 260 8" fill="none" aria-hidden="true">
+            <path d="M1 5 H 259" pathLength={1} />
+          </svg>
+          <div className="value-list" key={role}>
+            {t.values.map((v, i) => (
+              <div
+                className="value-row"
+                key={`${role}-${i}`}
+                style={{ "--i": i } as React.CSSProperties}
+              >
+                <h3>{v.title}</h3>
+                <p>{v.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section id="how" className="section reveal">
+          <h2 className="section-title">How it works</h2>
+          <div className="how-grid">
+            <div className="how-steps">
+              {t.howItWorks.map((s, i) => (
                 <div
-                  key={i}
-                  id={`feature-item-${i}`}
-                  className={`feature-item ${activeFeature === i ? "active" : ""}`}
-                  onClick={() => setActiveFeature(i)}
+                  className={`how-step ${activeStep === i ? "active" : ""}`}
+                  key={`${role}-${i}`}
+                  data-step={i}
+                  ref={(el) => {
+                    stepRefs.current[i] = el;
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={activeStep === i}
+                  onMouseEnter={() => setActiveStep(i)}
+                  onClick={() => setActiveStep(i)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setActiveStep(i);
+                    }
+                  }}
                 >
-                  <h3>{c.title}</h3>
-                  <p>{c.desc}</p>
+                  <span className="how-num">0{i + 1}</span>
+                  <div className="how-step-body">
+                    <h3>{s.title}</h3>
+                    <p>{s.desc}</p>
+                  </div>
                 </div>
               ))}
             </div>
-            <div className="feature-detail-wrapper">
-              <div className="feature-detail" key={activeFeature}>
-                <div className={`detail-visual ${activeFeature % 3 === 0 ? "lines" : activeFeature % 3 === 1 ? "waves" : "dots"}`}></div>
-                <h3>{t.approach.cards[activeFeature].title}</h3>
-                <p>{t.approach.cards[activeFeature].desc}</p>
+            <div className="how-phone-wrap" aria-hidden="true">
+              <div className="phone">
+                <div className="phone-screen">
+                  <PhoneScreen role={role} step={activeStep} />
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="section reveal" id="modes">
-          <h2 className="section-title">{t.features.title}</h2>
-          <p className="section-subtitle">{t.features.subtitle}</p>
-          <div className="grid">
-            {t.features.cards.map((c, i) => (
-              <article className={`tile tile-fold mode-card box-reveal box-reveal--grid box-reveal--silent ${i === 0 ? "box-reveal--cornerflip" : i === 1 ? "box-reveal--ticks" : i === 2 ? "box-reveal--angle" : "box-reveal--offset"}`} key={i}>
-                <div className="tile-fold-inner">
-                  <h3>{c.title}</h3>
-                  <p>{c.desc}</p>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
         <section className="section reveal">
-          <h2 className="section-title">How it works</h2>
-          <div className="process-flow">
-            {t.howItWorks.steps.map((s, i) => (
-              <div className={`process-step box-reveal box-reveal--silent ${i === 1 ? "delay-100" : i === 2 ? "delay-200" : ""}`} key={i}>
-                <div className="process-number">0{i + 1}</div>
-                <div>
-                  <h3>{s.title}</h3>
-                  <p>{s.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section id="stories" className="section reveal">
-          <div className="testimonial box-reveal box-reveal--halo box-reveal--angle">
-            <blockquote>
-              “The structure is simple and it works. I drop in, reset, and get
-              back to myself.”
-            </blockquote>
-            <span>Jada P — 4 months with Exhale</span>
-          </div>
-        </section>
-
-        <section id="pricing" className="section reveal">
-          <h2 className="section-title">{t.pricing.title}</h2>
-          <p className="section-subtitle">{t.pricing.subtitle}</p>
-          <div className="pricing">
-            {t.pricing.tiers.map((plan, i) => (
-              <article className={`price-card box-reveal ${plan.highlight ? "highlight box-reveal--halo box-reveal--offset" : "box-reveal--cut box-reveal--ticks"}`} key={i}>
-                <h4>{plan.name}</h4>
-                <strong>{plan.price}</strong>
-                <ul>
-                  {plan.features.map((f, j) => (
-                    <li key={j}>{f}</li>
-                  ))}
-                </ul>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="section reveal">
-          <div className="cta-panel box-reveal box-reveal--halo box-reveal--cornerflip">
+          <div className="cta-panel">
+            <span className="cta-orb" aria-hidden="true" />
             <h2>{t.cta.title}</h2>
             <p>{t.cta.desc}</p>
-            <div className="hero-actions">
-              <a href="/dashboard" className="cta-button no-underline flex items-center">
-                {t.cta.btn}
-              </a>
-              <a href="/dashboard" className="ghost-button no-underline flex items-center">
-                Schedule a tour
-              </a>
-            </div>
+            <Link href={signupHref} className="cta-button cta-button--lg no-underline">
+              Get Started
+            </Link>
           </div>
         </section>
 
         <footer>
           <div>Exhale © 2026</div>
-          <div>hello@exhale.com · Privacy · Terms</div>
+          <div className="footer-links">
+            <a href="mailto:hello@exhale.com">hello@exhale.com</a>
+            <span>Privacy</span>
+            <span>Terms</span>
+          </div>
         </footer>
       </div>
     </div>

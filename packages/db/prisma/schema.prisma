@@ -1,0 +1,449 @@
+// This is your Prisma schema file
+// Learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")   // pooled (PgBouncer, port 6543) for runtime
+  directUrl = env("DIRECT_URL")     // direct (port 5432) for migrations
+}
+
+// ==========================================
+// User & Authentication
+// ==========================================
+
+model User {
+  id            String    @id            // = Supabase auth.users.id (UUID), set at provision
+  email         String    @unique
+  passwordHash  String?   // Null if using external auth
+  firstName     String
+  lastName      String
+  role          UserRole
+  avatarUrl     String?
+  isActive      Boolean   @default(true)
+
+  // Notification preferences (honored by the reminder cron).
+  notifySessionReminders Boolean @default(true)
+  notifyHomeworkNudges   Boolean @default(true)
+  notifyWeeklyCheckin    Boolean @default(true)
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Role-specific profiles
+  therapistProfile TherapistProfile?
+  patientProfile   PatientProfile?
+
+  // Audit logs for therapist access
+  auditLogs AuditLog[]
+  sentMessages Message[]
+  pushTokens PushToken[]
+
+  @@index([email])
+}
+
+enum UserRole {
+  PATIENT
+  THERAPIST
+  ADMIN
+}
+
+model TherapistProfile {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  licenseNumber String?
+  specialty     String?
+  bio           String?
+  approvedAt    DateTime? // null = pending admin approval; set = approved & active
+
+  // Directory / matching
+  specialties       String[] @default([])
+  availability      String[] @default([])
+  acceptingPatients Boolean  @default(true)
+
+  // Relationships
+  patients      PatientTherapist[]
+  createdHomework Homework[]
+  sessionNotes  SessionNote[]
+  conversations Conversation[]
+
+  @@index([approvedAt, acceptingPatients])
+}
+
+model PatientProfile {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dateOfBirth   DateTime?
+  emergencyContact String?
+
+  // Intake for therapist matching
+  concerns          String[] @default([])
+  availability      String[] @default([])
+  goals             String?
+  cbtIntake         Json?
+  intakeCompletedAt DateTime?
+
+  // Relationships
+  therapists    PatientTherapist[]
+  moodEntries   MoodEntry[]
+  journalEntries JournalEntry[]
+  homeworkAssignments HomeworkAssignment[]
+  patientNotes  PatientNote[]
+  sessions      Session[]
+  conversations Conversation[]
+}
+
+// Many-to-many relationship between patients and therapists
+model PatientTherapist {
+  id          String   @id @default(cuid())
+  patientId   String
+  therapistId String
+  startDate   DateTime @default(now())
+  endDate     DateTime?
+  isActive    Boolean  @default(true)
+  status      ConnectionStatus @default(ACTIVE)
+  // Who opened this link. A PENDING link is a request awaiting the OTHER party:
+  // PATIENT-initiated waits on the therapist; THERAPIST-initiated waits on the patient.
+  initiatedBy RequestInitiator @default(PATIENT)
+  requestNote String?
+
+  patient     PatientProfile   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  therapist   TherapistProfile @relation(fields: [therapistId], references: [id], onDelete: Cascade)
+
+  @@unique([patientId, therapistId])
+  @@index([patientId])
+  @@index([therapistId])
+}
+
+enum RequestInitiator {
+  PATIENT
+  THERAPIST
+}
+
+model Conversation {
+  id          String   @id @default(cuid())
+  patientId   String
+  therapistId String
+  patient     PatientProfile   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  therapist   TherapistProfile @relation(fields: [therapistId], references: [id], onDelete: Cascade)
+  messages    Message[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([patientId, therapistId])
+  @@index([patientId])
+  @@index([therapistId])
+  @@index([updatedAt])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User         @relation(fields: [senderId], references: [id])
+  body           String
+  readAt         DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
+  @@index([senderId])
+}
+
+enum ConnectionStatus {
+  PENDING
+  ACTIVE
+  DECLINED
+  ENDED
+}
+
+// ==========================================
+// Homework & Assignments
+// ==========================================
+
+model Homework {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  type        HomeworkType
+  content     Json     // Flexible content structure (questions, tasks, etc.)
+  createdById String
+  createdBy   TherapistProfile @relation(fields: [createdById], references: [id])
+  isTemplate  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  assignments HomeworkAssignment[]
+
+  @@index([createdById])
+}
+
+enum HomeworkType {
+  READING
+  WRITING
+  QUIZ
+  DRAWING
+  VOICE_NOTE
+  CHECKLIST
+  CUSTOM
+}
+
+model HomeworkAssignment {
+  id          String   @id @default(cuid())
+  homeworkId  String
+  patientId   String
+  dueDate     DateTime?
+  status      AssignmentStatus @default(PENDING)
+  response    Json?    // Patient's completed response
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  homework    Homework       @relation(fields: [homeworkId], references: [id])
+  patient     PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId])
+  @@index([homeworkId])
+  @@index([status, dueDate])
+}
+
+enum AssignmentStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  OVERDUE
+}
+
+// ==========================================
+// Mood Tracking
+// ==========================================
+
+model MoodEntry {
+  id          String   @id @default(cuid())
+  patientId   String
+  patient     PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  moodScore   Float    // 1-10 scale, supports tenths (e.g. 8.6)
+  notes       String?
+  tags        String[] // e.g., ["anxious", "tired", "hopeful"]
+  createdAt   DateTime @default(now())
+
+  @@index([patientId])
+  @@index([createdAt])
+  @@index([patientId, createdAt])
+}
+
+// ==========================================
+// Smart Journal
+// ==========================================
+
+model JournalEntry {
+  id             String   @id @default(cuid())
+  patientId      String
+  patient        PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  // E2E Encryption - server only stores ciphertext
+  encryptedContent String
+  iv              String   // Initialization vector
+
+  // Metadata (not encrypted)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Follow-up prompts (chat-like)
+  followUps       JournalFollowUp[]
+
+  @@index([patientId])
+}
+
+model JournalFollowUp {
+  id             String   @id @default(cuid())
+  journalEntryId String
+  journalEntry   JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+
+  prompt         String   // System-generated follow-up question
+  encryptedResponse String?
+  iv             String?
+  createdAt      DateTime @default(now())
+}
+
+// ==========================================
+// Journal & Reflections (Lumen workspace)
+// ==========================================
+
+model PatientNote {
+  id          String   @id @default(cuid())
+  patientId   String
+  patient     PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  title       String?
+  content     String
+  voiceMediaId String?
+  visibility  NoteVisibility @default(PRIVATE)
+  sharedAt    DateTime?      // first time this entry was shared with the therapist
+  lumenMessages LumenMessage[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([patientId])
+  @@index([patientId, createdAt])
+  @@index([visibility, sharedAt])
+}
+
+enum NoteVisibility {
+  PRIVATE
+  SHARED
+}
+
+// One turn in a patient's Lumen (AI) conversation about a journal entry.
+model LumenMessage {
+  id        String   @id @default(cuid())
+  noteId    String
+  note      PatientNote @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  role      LumenRole
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([noteId, createdAt])
+}
+
+enum LumenRole {
+  USER
+  LUMEN
+}
+
+// ==========================================
+// Sessions
+// ==========================================
+
+model Session {
+  id          String   @id @default(cuid())
+  patientId   String
+  patient     PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  scheduledAt DateTime
+  startedAt   DateTime?
+  endedAt     DateTime?
+  status      SessionStatus @default(SCHEDULED)
+
+  // Video session info
+  videoRoomId String?
+  videoProvider String? // "daily", "twilio", etc.
+
+  notes       SessionNote[]
+  summary     SessionSummary?
+  workspace   SessionWorkspace?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([patientId])
+  @@index([scheduledAt])
+}
+
+model SessionWorkspace {
+  id          String   @id @default(cuid())
+  sessionId   String   @unique
+  session     Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  whiteboard  Json?
+  patientNote String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([updatedAt])
+}
+
+enum SessionStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+model SessionNote {
+  id          String   @id @default(cuid())
+  sessionId   String
+  session     Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  therapistId String
+  therapist   TherapistProfile @relation(fields: [therapistId], references: [id])
+  content     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([sessionId])
+}
+
+model SessionSummary {
+  id          String   @id @default(cuid())
+  sessionId   String   @unique
+  session     Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  summary     String
+  keyPoints   String[]
+  nextSteps   String[]
+  createdAt   DateTime @default(now())
+}
+
+// ==========================================
+// Media & Attachments
+// ==========================================
+
+model Media {
+  id          String   @id @default(cuid())
+  uploaderId  String
+  type        MediaType
+  filename    String
+  s3Key       String
+  mimeType    String
+  sizeBytes   Int
+  metadata    Json?    // Duration for audio, dimensions for images, etc.
+  createdAt   DateTime @default(now())
+
+  @@index([uploaderId])
+}
+
+enum MediaType {
+  IMAGE
+  VOICE_NOTE
+  DRAWING
+  DOCUMENT
+}
+
+// ==========================================
+// Push Notifications
+// ==========================================
+
+model PushToken {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token       String   @unique
+  platform    String   // "ios", "android"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// ==========================================
+// Audit Logging
+// ==========================================
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  action      String   // "VIEW_PATIENT", "UPDATE_HOMEWORK", etc.
+  resourceType String
+  resourceId  String
+  metadata    Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([resourceType, resourceId])
+  @@index([createdAt])
+}

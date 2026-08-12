@@ -2,142 +2,54 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [master, main, architecture-redesign]
   pull_request:
-    branches: [main, develop]
 
 jobs:
-  # ==========================================
-  # Backend (NestJS) CI
-  # ==========================================
-  api-lint-test:
-    name: API - Lint & Test
+  web:
+    name: Web + API checks
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: apps/api
-
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: test_user
-          POSTGRES_PASSWORD: test_password
-          POSTGRES_DB: test_db
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
+    # Placeholder values let Prisma, Next.js, and env validation load without
+    # connecting to external services. Tests mock Supabase and Prisma calls.
+    env:
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+      DIRECT_URL: postgresql://ci:ci@localhost:5432/ci
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-anon-key
+      SUPABASE_SERVICE_ROLE_KEY: ci-service-role-key
+      AI_key: ci-google-ai-key
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: apps/api/package-lock.json
+      # Version comes from package.json "packageManager" (pnpm@10.x).
+      - uses: pnpm/action-setup@v4
 
-      - name: Install dependencies
-        run: npm ci
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma client
-        run: npx prisma generate
+        run: pnpm --filter @exhale/db generate
+
+      - name: Validate Prisma schema
+        run: pnpm --filter @exhale/db validate
 
       - name: Lint
-        run: npm run lint
+        run: pnpm --filter web lint
 
-      - name: Type check
-        run: npm run build --dry-run || true
+      # Recursive so packages/db and apps/mobile are checked too, not just web.
+      - name: Typecheck
+        run: pnpm -r --if-present typecheck
 
-      - name: Run tests
-        run: npm run test
-        env:
-          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
-          REDIS_URL: redis://localhost:6379
-          JWT_SECRET: test-secret-key
+      - name: Test
+        run: pnpm -r --if-present test
 
-  # ==========================================
-  # Web Dashboard (Next.js) CI
-  # ==========================================
-  web-lint-build:
-    name: Web - Lint & Build
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: apps/web
+      - name: Build
+        run: pnpm --filter web build
 
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: apps/web/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Type check
-        run: npm run build
-        env:
-          NEXT_PUBLIC_API_URL: http://localhost:3001
-
-  # ==========================================
-  # Mobile App (Flutter) CI
-  # ==========================================
-  mobile-analyze-test:
-    name: Mobile - Analyze & Test
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: apps/mobile
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.19.0'
-          channel: 'stable'
-          cache: true
-
-      - name: Get dependencies
-        run: flutter pub get
-
-      - name: Analyze
-        run: flutter analyze
-
-      - name: Run tests
-        run: flutter test
-
-  # ==========================================
-  # All checks passed
-  # ==========================================
-  ci-success:
-    name: CI Success
-    needs: [api-lint-test, web-lint-build, mobile-analyze-test]
-    runs-on: ubuntu-latest
-    steps:
-      - name: All checks passed
-        run: echo "All CI checks passed successfully!"
+      - name: Audit dependencies
+        run: pnpm audit --audit-level low

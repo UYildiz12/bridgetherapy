@@ -1,0 +1,28 @@
+{
+  "name": "exhale",
+  "private": true,
+  "packageManager": "pnpm@10.14.0",
+  "engines": {
+    "node": ">=20 <21"
+  },
+  "scripts": {
+    "dev": "dotenv -e .env -- pnpm --filter web dev",
+    "build": "dotenv -e .env -- pnpm --filter web build",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present test",
+    "db:generate": "dotenv -e .env -- pnpm --filter @exhale/db generate",
+    "db:migrate": "dotenv -e .env -- pnpm --filter @exhale/db migrate"
+  },
+  "devDependencies": {
+    "dotenv-cli": "^11.0.0",
+    "sharp": "^0.35.2",
+    "typescript": "^5.6.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "postcss": "8.5.10",
+      "uuid": "^11.1.1",
+      "js-yaml": "^4.2.0"
+    }
+  }
+}
