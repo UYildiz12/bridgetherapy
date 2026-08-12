@@ -1,5 +1,5 @@
-"use client"                    
-import { useState, useEffect } from "react" 
+"use client"
+import { useState } from "react"
 import Link from "next/link"     
 import { Button } from "@/components/ui/button" ;
 import { Input } from "@/components/ui/input";
@@ -11,15 +11,9 @@ export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [role, setRole] = useState<"patient" | "therapist">("patient")
-  const [isDark, setIsDark] = useState(false)
-
-  // Dark mode'u localStorage'dan oku
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("auth-theme")
-    if (savedTheme) {
-      setIsDark(savedTheme === "dark")
-    }
-  }, [])
+  const [isDark, setIsDark] = useState(
+    () => typeof window !== "undefined" && localStorage.getItem("auth-theme") === "dark",
+  )
 
   // Dark mode'u toggle et
   const toggleTheme = () => {
@@ -171,4 +165,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
