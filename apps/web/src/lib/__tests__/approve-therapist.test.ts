@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const findUnique = vi.fn();
 const update = vi.fn();
 const writeAuditLog = vi.fn();
-vi.mock("@exhale/db", () => ({
+vi.mock("@bridge/db", () => ({
   prisma: { user: { findUnique }, therapistProfile: { update } },
 }));
 // Mock the exact specifier the module under test imports (it uses "./audit").

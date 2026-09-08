@@ -1,8 +1,8 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LifeBuoy, Menu, X } from "lucide-react";
-import { useState } from "react";
+import { LifeBuoy, Menu, Moon, Sun, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { SignOutButton } from "./sign-out-button";
 import { AccountMenu } from "./account-menu";
@@ -51,12 +51,22 @@ export function AppShell({
 }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [theme, setTheme] = useState<"dark" | "light">(() => {
+    if (typeof window === "undefined") return "dark";
+    const saved = window.localStorage.getItem("bridge-theme");
+    return saved === "light" ? "light" : "dark";
+  });
   const name = [firstName, lastName].filter(Boolean).join(" ").trim();
   const display = name || email || "Your account";
   const initials = (
     name ? name.split(/\s+/).map((w) => w[0]).slice(0, 2).join("") : email?.[0] ?? "?"
   ).toUpperCase();
   const links = NAV[role === "THERAPIST" ? "THERAPIST" : "PATIENT"];
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    window.localStorage.setItem("bridge-theme", theme);
+  }, [theme]);
 
   const renderLinks = (variant: "desktop" | "mobile") =>
     links.map((l) => {
@@ -86,12 +96,12 @@ export function AppShell({
     });
 
   return (
-    <div className="app-shell dark min-h-screen bg-background text-foreground">
+    <div className="app-shell min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-40 border-b border-border bg-background/92 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
           <div className="flex min-w-0 items-center gap-5">
             <Link href="/dashboard" className="text-lg font-semibold tracking-tight">
-              exhale
+              bridge
             </Link>
             <nav
               aria-label="Primary navigation"
@@ -102,6 +112,15 @@ export function AppShell({
             </nav>
           </div>
           <div className="flex items-center gap-3">
+            <button
+              type="button"
+              aria-label={theme === "dark" ? "Açık modu aç" : "Koyu modu aç"}
+              onClick={() => setTheme((current) => (current === "dark" ? "light" : "dark"))}
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-2.5 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+            >
+              {theme === "dark" ? <Sun className="size-4" aria-hidden="true" /> : <Moon className="size-4" aria-hidden="true" />}
+              <span>{theme === "dark" ? "Açık mod" : "Koyu mod"}</span>
+            </button>
             {/* Always-visible, quiet route to crisis resources from any page. */}
             <Link
               href="/wellness?tab=crisis"

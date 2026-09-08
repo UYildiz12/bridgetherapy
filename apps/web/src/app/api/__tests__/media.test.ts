@@ -14,7 +14,7 @@ const rateCheck = vi.fn();
 vi.mock("@/lib/auth", () => ({ getAuthUser }));
 vi.mock("@/lib/storage", () => ({ signedMediaUrl, uploadMedia }));
 vi.mock("@/lib/rate-limit", () => ({ createRateLimiter: () => ({ check: rateCheck }) }));
-vi.mock("@exhale/db", () => ({
+vi.mock("@bridge/db", () => ({
   prisma: {
     media: { findUnique: mediaFindUnique, create: mediaCreate },
     user: { findUnique: userFindUnique },

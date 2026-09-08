@@ -1,8 +1,8 @@
-# Exhale — Architecture Redesign Design
+# Bridge — Architecture Redesign Design
 
 **Date:** 2026-06-20 (revised 2026-06-21)
 **Status:** Approved; Phase 0 implemented.
-**Goal:** Re-architect Exhale to prioritize **stability** and **easy deployment**, targeting a **usable MVP for real people** (real therapists/patients), delivered on **web + an installable PWA**.
+**Goal:** Re-architect Bridge to prioritize **stability** and **easy deployment**, targeting a **usable MVP for real people** (real therapists/patients), delivered on **web + an installable PWA**.
 
 > **Revision (2026-06-21) — mobile strategy changed.** The original plan paired the Next.js web app with a separate **Flutter** mobile app. That meant building every screen twice in two languages (TSX + Dart) with no shared types — the most expensive way to get "app + web." **Decision: drop Flutter.** v1 ships the Next.js app as an **installable PWA** (one codebase = web + phone app). Real native iOS/Android, when needed (App Store presence, HealthKit, robust iOS push), comes later via **Expo / React Native**, which reuses the same TypeScript + Supabase stack so the switch is a UI re-skin, not a rewrite. Sections below are updated to reflect this.
 

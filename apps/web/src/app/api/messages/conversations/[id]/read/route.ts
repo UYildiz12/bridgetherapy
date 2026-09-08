@@ -1,4 +1,4 @@
-import { prisma } from "@exhale/db";
+import { prisma } from "@bridge/db";
 import { json, withErrorHandling } from "@/lib/http";
 import { conversationWhere, requireMessenger } from "@/lib/messages/server";
 

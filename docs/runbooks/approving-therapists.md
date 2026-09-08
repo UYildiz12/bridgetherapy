@@ -49,5 +49,5 @@ API calls return 403.
   UI/route will reuse).
 - The `approvedAt` column is added by the Prisma migration `add_therapist_approval`.
   If it has not been applied to your database yet, run
-  `pnpm --filter @exhale/db migrate -- --name add_therapist_approval` (needs
+  `pnpm --filter @bridge/db migrate -- --name add_therapist_approval` (needs
   `DATABASE_URL` + `DIRECT_URL`).

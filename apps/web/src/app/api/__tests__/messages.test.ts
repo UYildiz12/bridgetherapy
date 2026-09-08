@@ -12,7 +12,7 @@ const messageCreate = vi.fn();
 const messageUpdateMany = vi.fn();
 
 vi.mock("@/lib/auth", () => ({ getAuthUser }));
-vi.mock("@exhale/db", () => ({
+vi.mock("@bridge/db", () => ({
   prisma: {
     user: { findUnique: userFindUnique },
     patientTherapist: { findMany: linkFindMany, findFirst: linkFindFirst },

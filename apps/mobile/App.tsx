@@ -9,7 +9,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { ExhaleApiClient } from "./src/api/client";
+import { BridgeApiClient } from "./src/api/client";
 import type {
   ConversationListItem,
   CurrentUser,
@@ -39,7 +39,7 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
 
   const client = useMemo(
-    () => (token.trim() ? new ExhaleApiClient({ baseUrl, token: token.trim() }) : null),
+    () => (token.trim() ? new BridgeApiClient({ baseUrl, token: token.trim() }) : null),
     [baseUrl, token],
   );
 
@@ -58,7 +58,7 @@ export default function App() {
       ]);
       setSnapshot({ me, moods, reflections, homework, conversations, progress });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not load Exhale.");
+      setError(err instanceof Error ? err.message : "Could not load Bridge.");
     } finally {
       setLoading(false);
     }
@@ -83,10 +83,10 @@ export default function App() {
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.root}>
         <View style={styles.header}>
-          <Text style={styles.eyebrow}>EXHALE MOBILE</Text>
+          <Text style={styles.eyebrow}>BRIDGE MOBILE</Text>
           <Text style={styles.title}>Care cockpit</Text>
           <Text style={styles.sub}>
-            Native shell for the same Exhale APIs: mood, reflections, homework, messages, reports, and wellness.
+            Native shell for the same Bridge APIs: mood, reflections, homework, messages, reports, and wellness.
           </Text>
         </View>
 

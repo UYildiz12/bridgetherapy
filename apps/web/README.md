@@ -1,4 +1,4 @@
-# Exhale Web
+# Bridge Web
 
 The web app is a Next.js App Router application that contains both the browser UI and API Route Handlers. It uses Supabase for auth, Prisma for database access, and can be installed as a PWA.
 

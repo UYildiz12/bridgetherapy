@@ -1,5 +1,5 @@
 import "server-only";
-import { prisma } from "@exhale/db";
+import { prisma } from "@bridge/db";
 // Relative import (not @/lib/audit): the db:approve CLI loads this module under
 // tsx, which does not reliably resolve the @/ tsconfig path alias.
 import { writeAuditLog } from "./audit";

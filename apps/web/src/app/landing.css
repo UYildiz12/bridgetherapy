@@ -830,13 +830,13 @@
     background-blend-mode: multiply;
 }
 
-.landing-page .exhale-word {
+.landing-page .bridge-word {
     position: relative;
     display: inline-block;
-    animation: exhale 10s ease-in-out infinite;
+    animation: bridge 10s ease-in-out infinite;
 }
 
-.landing-page .exhale-word::before {
+.landing-page .bridge-word::before {
     content: "";
     position: absolute;
     left: 0;
@@ -849,10 +849,10 @@
     opacity: 0.18;
     transform: scaleX(0.7);
     transform-origin: left;
-    animation: exhaleUnderline 10s ease-in-out infinite;
+    animation: bridgeUnderline 10s ease-in-out infinite;
 }
 
-.landing-page .exhale-word::after {
+.landing-page .bridge-word::after {
     content: "";
     position: absolute;
     left: 0;
@@ -864,7 +864,7 @@
     opacity: 0.15;
     transform: scaleX(0.6);
     transform-origin: left;
-    animation: exhaleUnderlineGlow 10s ease-in-out infinite;
+    animation: bridgeUnderlineGlow 10s ease-in-out infinite;
     pointer-events: none;
 }
 
@@ -1498,7 +1498,7 @@
     }
 }
 
-@keyframes exhale {
+@keyframes bridge {
 
     0%,
     100% {
@@ -1512,7 +1512,7 @@
     }
 }
 
-@keyframes exhaleUnderline {
+@keyframes bridgeUnderline {
 
     0%,
     100% {
@@ -1531,7 +1531,7 @@
     }
 }
 
-@keyframes exhaleUnderlineGlow {
+@keyframes bridgeUnderlineGlow {
 
     0%,
     100% {

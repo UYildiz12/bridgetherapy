@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { prisma, type Prisma } from "@exhale/db";
+import { prisma, type Prisma } from "@bridge/db";
 
 const Point = z.object({
   x: z.number().min(0).max(4096),

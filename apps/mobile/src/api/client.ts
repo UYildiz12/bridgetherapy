@@ -7,16 +7,16 @@ import type {
   ReflectionEntry,
 } from "./types";
 
-export interface ExhaleApiClientOptions {
+export interface BridgeApiClientOptions {
   baseUrl: string;
   token: string;
 }
 
-export class ExhaleApiClient {
+export class BridgeApiClient {
   private readonly baseUrl: string;
   private readonly token: string;
 
-  constructor(options: ExhaleApiClientOptions) {
+  constructor(options: BridgeApiClientOptions) {
     this.baseUrl = options.baseUrl.replace(/\/+$/, "");
     this.token = options.token;
   }

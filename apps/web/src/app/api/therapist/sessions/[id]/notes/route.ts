@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { prisma } from "@exhale/db";
+import { prisma } from "@bridge/db";
 import { requireApprovedTherapist } from "@/lib/authz";
 import { json, withErrorHandling } from "@/lib/http";
 import { parseBody } from "@/lib/validation";

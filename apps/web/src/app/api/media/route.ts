@@ -1,4 +1,4 @@
-import { prisma } from "@exhale/db";
+import { prisma } from "@bridge/db";
 import { getAuthUser } from "@/lib/auth";
 import { json, withErrorHandling } from "@/lib/http";
 import { createRateLimiter } from "@/lib/rate-limit";

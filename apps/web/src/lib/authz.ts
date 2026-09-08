@@ -1,8 +1,8 @@
 import "server-only";
 import { getAuthUser } from "@/lib/auth";
 import { json } from "@/lib/http";
-import { prisma } from "@exhale/db";
-import type { Prisma } from "@exhale/db";
+import { prisma } from "@bridge/db";
+import type { Prisma } from "@bridge/db";
 
 const therapistSelect = {
   id: true,

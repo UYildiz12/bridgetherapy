@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ExhaleApiClient } from "../client";
+import { BridgeApiClient } from "../client";
 
-describe("ExhaleApiClient", () => {
+describe("BridgeApiClient", () => {
   beforeEach(() => vi.restoreAllMocks());
 
   it("sends bearer tokens when fetching the current user", async () => {
@@ -12,12 +12,12 @@ describe("ExhaleApiClient", () => {
     );
     vi.stubGlobal("fetch", fetchMock);
 
-    const client = new ExhaleApiClient({ baseUrl: "https://api.exhale.test", token: "jwt" });
+    const client = new BridgeApiClient({ baseUrl: "https://api.bridge.test", token: "jwt" });
     const me = await client.me();
 
     expect(me.email).toBe("sam@example.com");
     expect(fetchMock).toHaveBeenCalledWith(
-      "https://api.exhale.test/api/me",
+      "https://api.bridge.test/api/me",
       expect.objectContaining({ headers: expect.objectContaining({ authorization: "Bearer jwt" }) }),
     );
   });
@@ -28,12 +28,12 @@ describe("ExhaleApiClient", () => {
     );
     vi.stubGlobal("fetch", fetchMock);
 
-    const client = new ExhaleApiClient({ baseUrl: "https://api.exhale.test", token: "jwt" });
+    const client = new BridgeApiClient({ baseUrl: "https://api.bridge.test", token: "jwt" });
     const mood = await client.createMood({ moodScore: 8.4, notes: "Steady", tags: ["calm"] });
 
     expect(mood.moodScore).toBe(8.4);
     expect(fetchMock).toHaveBeenCalledWith(
-      "https://api.exhale.test/api/mood",
+      "https://api.bridge.test/api/mood",
       expect.objectContaining({
         method: "POST",
         body: JSON.stringify({ moodScore: 8.4, notes: "Steady", tags: ["calm"] }),

@@ -1,5 +1,5 @@
 {
-  "name": "exhale",
+  "name": "bridge",
   "private": true,
   "packageManager": "pnpm@10.14.0",
   "engines": {
@@ -10,8 +10,8 @@
     "build": "dotenv -e .env -- pnpm --filter web build",
     "typecheck": "pnpm -r --if-present typecheck",
     "test": "pnpm -r --if-present test",
-    "db:generate": "dotenv -e .env -- pnpm --filter @exhale/db generate",
-    "db:migrate": "dotenv -e .env -- pnpm --filter @exhale/db migrate"
+    "db:generate": "dotenv -e .env -- pnpm --filter @bridge/db generate",
+    "db:migrate": "dotenv -e .env -- pnpm --filter @bridge/db migrate"
   },
   "devDependencies": {
     "dotenv-cli": "^11.0.0",

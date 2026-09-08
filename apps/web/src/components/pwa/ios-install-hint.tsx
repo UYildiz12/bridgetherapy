@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 
-const DISMISS_KEY = "exhale-ios-install-dismissed";
+const DISMISS_KEY = "bridge-ios-install-dismissed";
 
 /**
  * iOS Safari doesn't show an install prompt — users must tap Share → Add to
@@ -35,7 +35,7 @@ export function IosInstallHint() {
   return (
     <div
       role="dialog"
-      aria-label="Install Exhale"
+      aria-label="Install Bridge"
       style={{
         position: "fixed",
         left: 16,
@@ -55,7 +55,7 @@ export function IosInstallHint() {
       }}
     >
       <span style={{ flex: 1 }}>
-        Install Exhale: tap <strong>Share</strong> then <strong>Add to Home Screen</strong>.
+        Install Bridge: tap <strong>Share</strong> then <strong>Add to Home Screen</strong>.
       </span>
       <button
         onClick={dismiss}

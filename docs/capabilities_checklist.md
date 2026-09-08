@@ -1,4 +1,4 @@
-# Exhale Capabilities Checklist
+# Bridge Capabilities Checklist
 
 Source: local CBT therapist survey CSV in `Scaleresults/`, summarized from 5 usable rating responses. Raw survey exports are intentionally not committed here.
 

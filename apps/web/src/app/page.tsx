@@ -44,7 +44,7 @@ const content = {
       { title: "Stay connected", desc: "Share what matters with your therapist between sessions, securely." },
     ] as ValueProp[],
     howItWorks: [
-      { title: "Connect", desc: "Invite your current therapist into Exhale, or complete the intake to find a CBT therapist who fits your needs." },
+      { title: "Connect", desc: "Invite your current therapist into Bridge, or complete the intake to find a CBT therapist who fits your needs." },
       { title: "Engage", desc: "Work through CBT homework sets and daily check-ins your therapist assigns." },
       { title: "Grow", desc: "Track your trends and bring clearer patterns into the next session." },
     ],
@@ -90,7 +90,7 @@ const content = {
 // Blueprint vignettes shown on the phone, one per step, swapped as the active step changes.
 const phoneScreens: Record<Role, React.ReactNode[]> = {
   patient: [
-    // Connect: use Exhale with your therapist, or find a CBT-first match.
+    // Connect: use Bridge with your therapist, or find a CBT-first match.
     <>
       <div className="ps-head">Set up your therapy workspace</div>
       <div className="ps-prefs">
@@ -106,7 +106,7 @@ const phoneScreens: Record<Role, React.ReactNode[]> = {
           <span className="ps-avatar sm" />
           <div className="ps-mt">
             <div className="ps-name">Invite your therapist</div>
-            <div className="ps-role">Use Exhale with your current therapist</div>
+            <div className="ps-role">Use Bridge with your current therapist</div>
             <div className="ps-why">Share reflections, homework, and check-ins with the therapist you already trust.</div>
           </div>
         </li>
@@ -420,7 +420,7 @@ export default function Home() {
         <nav className="nav">
           <div className="logo">
             <span className="logo-badge"></span>
-            exhale
+            bridge
             <span className="ml-3 hidden text-[10px] tracking-widest text-white/70 uppercase border border-white/10 px-2 py-0.5 rounded-full sm:inline-block">
               {t.badge}
             </span>
@@ -449,7 +449,7 @@ export default function Home() {
         <section className="hero">
           <div className="hero-copy stagger" key={role}>
             <h1>
-              <span className="exhale-word accent">Exhale</span>: {t.hero.title}
+              <span className="bridge-word accent">Bridge</span>: {t.hero.title}
             </h1>
             <p>{t.hero.desc}</p>
             <div className="hero-actions">
@@ -562,9 +562,9 @@ export default function Home() {
         </section>
 
         <footer>
-          <div>Exhale © 2026</div>
+          <div>Bridge © 2026</div>
           <div className="footer-links">
-            <a href="mailto:hello@exhale.com">hello@exhale.com</a>
+            <a href="mailto:hello@bridge.com">hello@bridge.com</a>
             <span>Privacy</span>
             <span>Terms</span>
           </div>

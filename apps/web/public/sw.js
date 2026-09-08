@@ -1,4 +1,4 @@
-// Exhale service worker — minimal & safe.
+// Bridge service worker — minimal & safe.
 // Its only jobs right now are (a) to make the app installable as a PWA and
 // (b) to take control quickly on update. It deliberately does NOT cache
 // responses yet — caching auth/API responses naively risks serving stale or

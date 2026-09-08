@@ -2,7 +2,7 @@
 
 Date: 2026-07-02
 Status: Approved direction (Approach B), spec for review
-Owner: exhale web (apps/web), consumed read-only by mobile
+Owner: bridge web (apps/web), consumed read-only by mobile
 
 ## Goal
 

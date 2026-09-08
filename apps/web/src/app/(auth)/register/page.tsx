@@ -1,7 +1,7 @@
 "use client"
 
 // 1. Import'lar
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -24,7 +24,11 @@ interface Errors {
 export default function RegisterPage() {
   const [role, setRole] = useState<"patient" | "therapist">("patient")
   const [isDark, setIsDark] = useState(
-    () => typeof window !== "undefined" && localStorage.getItem("auth-theme") === "dark",
+    () => {
+      if (typeof window === "undefined") return true
+      const saved = window.localStorage.getItem("bridge-theme")
+      return saved === "dark" || saved === null
+    },
   )
   const [formData, setFormData] = useState<FormData>({
     email: "",
@@ -106,10 +110,13 @@ export default function RegisterPage() {
     }, 1000)
   }
 
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", isDark)
+    window.localStorage.setItem("bridge-theme", isDark ? "dark" : "light")
+  }, [isDark])
+
   const toggleTheme = () => {
-    const newTheme = !isDark
-    setIsDark(newTheme)
-    localStorage.setItem("auth-theme", newTheme ? "dark" : "light")
+    setIsDark((current) => !current)
   }
 
   return (
@@ -138,7 +145,7 @@ export default function RegisterPage() {
         <div className={`p-8 space-y-6 ${isDark ? "text-slate-100" : "text-slate-900"}`}>
           {/* Header */}
           <div className="text-center space-y-2">
-            <h1 className="text-4xl font-serif font-bold text-blue-600">exhale</h1>
+            <h1 className="text-4xl font-serif font-bold text-blue-600">bridge</h1>
             <p className={`text-sm ${isDark ? "text-slate-400" : "text-slate-600"}`}>
               hesap oluştur
             </p>

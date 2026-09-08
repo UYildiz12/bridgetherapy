@@ -9,24 +9,27 @@ vi.mock("next/navigation", () => ({
 import LoginPage from "../login/page"
 import RegisterPage from "../register/page"
 
-describe("auth theme initialization", () => {
+describe("manual theme initialization", () => {
   beforeEach(() => {
     localStorage.clear()
+    document.documentElement.classList.remove("dark")
   })
 
   afterEach(cleanup)
 
-  it("uses the saved dark theme on login page", () => {
-    localStorage.setItem("auth-theme", "dark")
+  it("applies the saved dark theme on login page", () => {
+    localStorage.setItem("bridge-theme", "dark")
     const { container } = render(<LoginPage />)
 
+    expect(document.documentElement.classList.contains("dark")).toBe(true)
     expect(container.querySelector("button.fixed")?.className).toContain("bg-blue-900")
   })
 
-  it("uses the saved dark theme on register page", () => {
-    localStorage.setItem("auth-theme", "dark")
+  it("applies the saved light theme on register page", () => {
+    localStorage.setItem("bridge-theme", "light")
     const { container } = render(<RegisterPage />)
 
-    expect(container.querySelector("button.fixed")?.className).toContain("bg-blue-900")
+    expect(document.documentElement.classList.contains("dark")).toBe(false)
+    expect(container.querySelector("button.fixed")?.className).toContain("bg-white")
   })
 })

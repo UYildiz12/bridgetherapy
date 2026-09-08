@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -12,13 +12,20 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [isDark, setIsDark] = useState(
-    () => typeof window !== "undefined" && localStorage.getItem("auth-theme") === "dark",
+    () => {
+      if (typeof window === "undefined") return true;
+      const saved = window.localStorage.getItem("bridge-theme");
+      return saved === "dark" || saved === null;
+    },
   );
 
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", isDark);
+    window.localStorage.setItem("bridge-theme", isDark ? "dark" : "light");
+  }, [isDark]);
+
   const toggleTheme = () => {
-    const next = !isDark;
-    setIsDark(next);
-    localStorage.setItem("auth-theme", next ? "dark" : "light");
+    setIsDark((current) => !current);
   };
 
   async function onSubmit(e: React.FormEvent) {
@@ -53,7 +60,7 @@ export default function LoginPage() {
       </button>
 
       <div className="auth-card">
-        <div className="auth-brand">Exhale</div>
+        <div className="auth-brand">Bridge</div>
         <div className="auth-eyebrow">Welcome back</div>
         <h1 className="auth-title">Sign in</h1>
         <p className="auth-sub">Continue to your care plan and progress journal.</p>

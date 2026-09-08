@@ -17,12 +17,12 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "Exhale - Therapy designed for steady focus",
-  description: "Exhale keeps support focused and steady: quiet sessions, clear structure, and calm guidance built for your nervous system.",
-  applicationName: "Exhale",
+  title: "Bridge - Therapy designed for steady focus",
+  description: "Bridge keeps support focused and steady: quiet sessions, clear structure, and calm guidance built for your nervous system.",
+  applicationName: "Bridge",
   appleWebApp: {
     capable: true,
-    title: "Exhale",
+    title: "Bridge",
     statusBarStyle: "black-translucent",
   },
   icons: {

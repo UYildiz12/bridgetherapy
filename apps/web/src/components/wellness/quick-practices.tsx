@@ -152,8 +152,8 @@ function PracticeRunner({
       const content = buildRecapText(practice, answers);
       const prompts = practice.summary.lumen.map((t) => fill(t, answers));
       const entry = await createEntry({ title: practice.title, content });
-      sessionStorage.setItem("exhale:notes-open", entry.id);
-      sessionStorage.setItem(`exhale:lumen-seed:${entry.id}`, JSON.stringify({ prompts, prefill }));
+      sessionStorage.setItem("bridge:notes-open", entry.id);
+      sessionStorage.setItem(`bridge:lumen-seed:${entry.id}`, JSON.stringify({ prompts, prefill }));
       router.push("/notes");
     } catch (e) {
       setLumenError(e instanceof Error ? e.message : "Couldn't open Lumen just now.");

@@ -5,7 +5,7 @@ const userFindUnique = vi.fn();
 const userUpdate = vi.fn();
 
 vi.mock("@/lib/auth", () => ({ getAuthUser }));
-vi.mock("@exhale/db", () => ({
+vi.mock("@bridge/db", () => ({
   prisma: { user: { findUnique: userFindUnique, update: userUpdate } },
 }));
 

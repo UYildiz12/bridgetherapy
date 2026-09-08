@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Exhale",
-    short_name: "Exhale",
+    name: "Bridge",
+    short_name: "Bridge",
     description:
       "A calmer, clearer space for therapy: track mood, capture reflections, and stay connected with your therapist.",
     start_url: "/dashboard",

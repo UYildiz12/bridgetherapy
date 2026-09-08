@@ -19,7 +19,7 @@ vi.mock("@/lib/patient", () => ({ requirePatient }));
 vi.mock("@/lib/authz", () => ({ requireApprovedTherapist }));
 vi.mock("@/lib/lumen", () => ({ lumenConfigured, askLumen }));
 vi.mock("@/lib/storage", () => ({ downloadMedia }));
-vi.mock("@exhale/db", () => ({
+vi.mock("@bridge/db", () => ({
   prisma: {
     patientNote: {
       create: noteCreate,

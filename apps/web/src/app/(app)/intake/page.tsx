@@ -660,7 +660,7 @@ export default function IntakePage() {
       <section className="border-t border-border pt-8">
         <div className="grid gap-4 md:grid-cols-3">
           {[
-            ["Private by default", "Only your care workflow uses this intake inside Exhale."],
+            ["Private by default", "Only your care workflow uses this intake inside Bridge."],
             ["CBT-informed", "The questions map situations, thoughts, feelings, body signals, and behavior loops."],
             ["Match-ready", "Therapists are ranked by focus fit, related concerns, and schedule overlap."],
           ].map(([title, body]) => (

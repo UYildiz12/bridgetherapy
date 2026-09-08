@@ -65,7 +65,7 @@ describe("SettingsPage", () => {
       }),
     );
     // Persistence now lives on the User row, not in this browser.
-    expect(localStorage.getItem("exhale.settings.homeworkNudges")).toBeNull();
+    expect(localStorage.getItem("bridge.settings.homeworkNudges")).toBeNull();
   });
 
   it("reverts the toggle and surfaces an error when saving fails", async () => {
@@ -107,6 +107,6 @@ describe("SettingsPage", () => {
     fireEvent.change(select, { target: { value: "sameDay" } });
 
     expect(select.value).toBe("sameDay");
-    expect(localStorage.getItem("exhale.settings.urgentAccessPreference")).toBe("sameDay");
+    expect(localStorage.getItem("bridge.settings.urgentAccessPreference")).toBe("sameDay");
   });
 });

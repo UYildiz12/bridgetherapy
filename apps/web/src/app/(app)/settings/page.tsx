@@ -36,7 +36,7 @@ function displayName(account: AccountSettings) {
 
 function storedUrgentAccessPreference(): UrgentAccessPreference {
   if (typeof window === "undefined") return "standard";
-  const value = window.localStorage.getItem("exhale.settings.urgentAccessPreference");
+  const value = window.localStorage.getItem("bridge.settings.urgentAccessPreference");
   return value === "sameDay" || value === "unavailable" ? value : "standard";
 }
 
@@ -72,7 +72,7 @@ export default function SettingsPage() {
 
   function updateUrgentAccess(value: UrgentAccessPreference) {
     setUrgentAccess(value);
-    window.localStorage.setItem("exhale.settings.urgentAccessPreference", value);
+    window.localStorage.setItem("bridge.settings.urgentAccessPreference", value);
   }
 
   return (

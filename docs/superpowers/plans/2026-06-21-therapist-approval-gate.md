@@ -4,9 +4,9 @@
 
 **Goal:** Make the self-assignable `THERAPIST` role harmless by putting every new therapist into a pending state that grants no therapist functionality until an admin approves them via a CLI.
 
-**Architecture:** Keep trusting the client-sent role at signup, but add an `approvedAt` flag on `TherapistProfile` that the client cannot set. A reusable server-side guard (`requireApprovedTherapist`) is the gate every future therapist route calls; a tested `approveTherapist(email)` helper + `tsx` CLI flips the flag. The signup page moves onto the existing `auth-card`/`auth-segment` design system with a verification warning and prominent Exhale branding.
+**Architecture:** Keep trusting the client-sent role at signup, but add an `approvedAt` flag on `TherapistProfile` that the client cannot set. A reusable server-side guard (`requireApprovedTherapist`) is the gate every future therapist route calls; a tested `approveTherapist(email)` helper + `tsx` CLI flips the flag. The signup page moves onto the existing `auth-card`/`auth-segment` design system with a verification warning and prominent Bridge branding.
 
-**Tech Stack:** Next.js 16 (App Router), Prisma 6 + Postgres (Supabase), Supabase Auth, Vitest (node env, mocked `@exhale/db`/`@/lib/auth`/`@/lib/audit`), pnpm workspaces, `tsx` for the CLI.
+**Tech Stack:** Next.js 16 (App Router), Prisma 6 + Postgres (Supabase), Supabase Auth, Vitest (node env, mocked `@bridge/db`/`@/lib/auth`/`@/lib/audit`), pnpm workspaces, `tsx` for the CLI.
 
 ---
 
@@ -33,7 +33,7 @@
 - `apps/web/src/app/api/auth/provision/route.ts` — clarifying comment only; behavior already creates pending therapists.
 - `apps/web/src/app/api/__tests__/provision.test.ts` — add a regression guard that a registered therapist is pending.
 - `apps/web/src/app/app/page.tsx` — pending-approval screen for unapproved therapists.
-- `apps/web/src/app/(auth)/signup/page.tsx` — redesign onto `auth-card` + `auth-segment` + warning + Exhale brand + `?role=` deep-link.
+- `apps/web/src/app/(auth)/signup/page.tsx` — redesign onto `auth-card` + `auth-segment` + warning + Bridge brand + `?role=` deep-link.
 - `apps/web/src/app/(auth)/auth.css` — add `.auth-brand`, `.auth-warning`.
 - `apps/web/package.json` — add `tsx` + `dotenv-cli` devDeps and `db:approve` script.
 
@@ -68,7 +68,7 @@ model TherapistProfile {
 
 - [ ] **Step 2: Create + apply the migration and regenerate the client**
 
-Run: `pnpm --filter @exhale/db migrate -- --name add_therapist_approval`
+Run: `pnpm --filter @bridge/db migrate -- --name add_therapist_approval`
 Expected: Prisma creates `packages/db/prisma/migrations/<timestamp>_add_therapist_approval/migration.sql`, applies it, and regenerates the client. The SQL should be exactly:
 
 ```sql
@@ -76,11 +76,11 @@ Expected: Prisma creates `packages/db/prisma/migrations/<timestamp>_add_therapis
 ALTER TABLE "TherapistProfile" ADD COLUMN "approvedAt" TIMESTAMP(3);
 ```
 
-**Fallback if the dev DB is unreachable this session:** run `pnpm --filter @exhale/db generate` instead (regenerates the client types offline so the rest of the plan typechecks and tests pass), and create+apply the migration above before deploying.
+**Fallback if the dev DB is unreachable this session:** run `pnpm --filter @bridge/db generate` instead (regenerates the client types offline so the rest of the plan typechecks and tests pass), and create+apply the migration above before deploying.
 
 - [ ] **Step 3: Verify the generated client knows the field**
 
-Run: `pnpm --filter @exhale/db typecheck`
+Run: `pnpm --filter @bridge/db typecheck`
 Expected: PASS (no type errors).
 
 - [ ] **Step 4: Commit**
@@ -110,7 +110,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const getAuthUser = vi.fn();
 const findUnique = vi.fn();
 vi.mock("@/lib/auth", () => ({ getAuthUser }));
-vi.mock("@exhale/db", () => ({ prisma: { user: { findUnique } } }));
+vi.mock("@bridge/db", () => ({ prisma: { user: { findUnique } } }));
 
 function req() {
   return new Request("http://t/api/therapist/whatever");
@@ -188,8 +188,8 @@ Expected: FAIL — cannot find module `../authz`.
 import "server-only";
 import { getAuthUser } from "./auth";
 import { json } from "./http";
-import { prisma } from "@exhale/db";
-import type { Prisma } from "@exhale/db";
+import { prisma } from "@bridge/db";
+import type { Prisma } from "@bridge/db";
 
 const therapistSelect = {
   id: true,
@@ -255,7 +255,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const findUnique = vi.fn();
 const update = vi.fn();
 const writeAuditLog = vi.fn();
-vi.mock("@exhale/db", () => ({
+vi.mock("@bridge/db", () => ({
   prisma: { user: { findUnique }, therapistProfile: { update } },
 }));
 vi.mock("@/lib/audit", () => ({ writeAuditLog }));
@@ -330,7 +330,7 @@ Expected: FAIL — cannot find module `../approve-therapist`.
 
 ```ts
 import "server-only";
-import { prisma } from "@exhale/db";
+import { prisma } from "@bridge/db";
 import { writeAuditLog } from "./audit";
 
 /** Thrown for operator-correctable problems (unknown email, not a therapist). */
@@ -582,7 +582,7 @@ Replace the entire contents of `apps/web/src/app/app/page.tsx` with:
 ```tsx
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { prisma } from "@exhale/db";
+import { prisma } from "@bridge/db";
 
 export default async function AppHome() {
   const supabase = await createSupabaseServerClient();
@@ -638,7 +638,7 @@ git commit -m "feat(web): show pending-approval screen for unapproved therapists
 
 ---
 
-## Task 7: Signup redesign — design system, Exhale brand, role toggle, therapist warning
+## Task 7: Signup redesign — design system, Bridge brand, role toggle, therapist warning
 
 **Files:**
 - Modify: `apps/web/src/app/(auth)/signup/page.tsx`
@@ -740,7 +740,7 @@ export default function SignupPage() {
 
   return (
     <div className="auth-card">
-      <div className="auth-brand">Exhale</div>
+      <div className="auth-brand">Bridge</div>
       <div className="auth-eyebrow">Create your account</div>
       <h1 className="auth-title">Start your journey</h1>
       <p className="auth-sub">A calm, structured space — for patients and therapists alike.</p>
@@ -851,13 +851,13 @@ Expected: PASS.
 
 - [ ] **Step 4: Manual verification (optional, needs dev server)**
 
-With `pnpm dev`: visit `/signup` → large "Exhale" brand, segmented Patient/Therapist toggle, no warning. Click **Therapist** → amber verification warning appears. Visit `/signup?role=therapist` → Therapist pre-selected with the warning shown. Submitting as Patient and as Therapist both reach `/app`.
+With `pnpm dev`: visit `/signup` → large "Bridge" brand, segmented Patient/Therapist toggle, no warning. Click **Therapist** → amber verification warning appears. Visit `/signup?role=therapist` → Therapist pre-selected with the warning shown. Submitting as Patient and as Therapist both reach `/app`.
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git add apps/web/src/app/(auth)/signup/page.tsx apps/web/src/app/(auth)/auth.css
-git commit -m "feat(web): redesign signup with role toggle, therapist warning, Exhale brand"
+git commit -m "feat(web): redesign signup with role toggle, therapist warning, Bridge brand"
 ```
 
 ---
@@ -908,7 +908,7 @@ Expected: PASS — all suites green, including the new `authz`, `approve-therapi
 - [ ] **Step 3: Typecheck the whole repo**
 
 Run: `pnpm -r typecheck`
-Expected: PASS for `@exhale/db` and `web`.
+Expected: PASS for `@bridge/db` and `web`.
 
 - [ ] **Step 4: Lint the web app**
 
@@ -931,6 +931,6 @@ git commit -m "docs: runbook for approving therapists"
 - `approveTherapist` + `pnpm --filter web db:approve <email>` is the admin approval path (tested helper; idempotent; audit-logged).
 - Provision behavior locked by a regression test: registered therapists are pending.
 - `/app` shows a pending screen to unapproved therapists.
-- Signup uses the `auth-card` design system with a prominent Exhale brand, a segmented role control, a therapist verification warning, and landing deep-link pre-selection.
+- Signup uses the `auth-card` design system with a prominent Bridge brand, a segmented role control, a therapist verification warning, and landing deep-link pre-selection.
 - Operator runbook documents approval.
 ```

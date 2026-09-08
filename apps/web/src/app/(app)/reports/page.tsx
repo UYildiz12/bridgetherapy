@@ -79,7 +79,7 @@ export default function ReportsPage() {
         action={
           patientRows.length > 0 ? (
             <Button asChild variant="outline">
-              <a href={csvHref(patientRows)} download="exhale-progress.csv">
+              <a href={csvHref(patientRows)} download="bridge-progress.csv">
                 <Download className="h-4 w-4" />
                 Export CSV
               </a>

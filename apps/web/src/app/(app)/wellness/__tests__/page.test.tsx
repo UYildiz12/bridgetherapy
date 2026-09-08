@@ -38,7 +38,7 @@ describe("WellnessPage", () => {
 
     fireEvent.click(await screen.findByRole("button", { name: /4-7-8 breathing/i }));
 
-    expect(screen.getByText(/long exhale signals/i)).toBeDefined();
+    expect(screen.getByText(/long bridge signals/i)).toBeDefined();
     expect(screen.getByText(/Breathe out · 8s/i)).toBeDefined();
   });
 

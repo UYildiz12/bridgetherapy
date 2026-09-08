@@ -5,7 +5,7 @@ const create = vi.fn();
 const findUniqueOrThrow = vi.fn();
 const writeAuditLog = vi.fn();
 vi.mock("@/lib/auth", () => ({ getAuthUser }));
-vi.mock("@exhale/db", () => ({
+vi.mock("@bridge/db", () => ({
   prisma: { user: { create, findUniqueOrThrow } },
 }));
 vi.mock("@/lib/audit", () => ({ writeAuditLog }));

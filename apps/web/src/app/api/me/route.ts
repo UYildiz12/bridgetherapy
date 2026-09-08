@@ -1,5 +1,5 @@
 import { getAuthUser } from "@/lib/auth";
-import { prisma } from "@exhale/db";
+import { prisma } from "@bridge/db";
 import { json, withErrorHandling } from "@/lib/http";
 import { publicUserSelect } from "@/lib/user-select";
 

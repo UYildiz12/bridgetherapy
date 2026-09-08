@@ -1,5 +1,5 @@
 import "server-only";
-import { Prisma } from "@exhale/db";
+import { Prisma } from "@bridge/db";
 
 /**
  * Fields safe to return to clients. Deliberately omits `passwordHash`.

@@ -17,7 +17,7 @@ const noteCreate = vi.fn();
 
 vi.mock("@/lib/authz", () => ({ requireApprovedTherapist }));
 vi.mock("@/lib/auth", () => ({ getAuthUser }));
-vi.mock("@exhale/db", () => ({
+vi.mock("@bridge/db", () => ({
   prisma: {
     user: { findUnique: userFindUnique },
     session: {
@@ -137,7 +137,7 @@ describe("/api/therapist/sessions", () => {
       endedAt: null,
       status: "SCHEDULED",
       videoProvider: "jitsi",
-      videoRoomId: "exhale-room",
+      videoRoomId: "bridge-room",
       patient: { user: { firstName: "Sam", lastName: "Lee", email: "sam@example.com" } },
       notes: [],
       summary: null,
@@ -163,7 +163,7 @@ describe("/api/therapist/sessions", () => {
           patientId: "pp1",
           status: "SCHEDULED",
           videoProvider: "jitsi",
-          videoRoomId: expect.stringMatching(/^exhale-[a-f0-9]{32}$/),
+          videoRoomId: expect.stringMatching(/^bridge-[a-f0-9]{32}$/),
         }),
       }),
     );
@@ -201,7 +201,7 @@ describe("/api/therapist/sessions/[id]", () => {
       endedAt: null,
       status: "SCHEDULED",
       videoProvider: "jitsi",
-      videoRoomId: "exhale-room",
+      videoRoomId: "bridge-room",
       patient: { user: { firstName: "Sam", lastName: "Lee", email: "sam@example.com" } },
       notes: [],
       summary: null,
@@ -215,7 +215,7 @@ describe("/api/therapist/sessions/[id]", () => {
         endedAt: null,
         status: "COMPLETED",
         videoProvider: "jitsi",
-        videoRoomId: "exhale-previous",
+        videoRoomId: "bridge-previous",
         patient: { user: { firstName: "Sam", lastName: "Lee", email: "sam@example.com" } },
         notes: [{ id: "n0", content: "Reviewed exposure hierarchy.", createdAt: new Date(), updatedAt: new Date() }],
         summary: {
@@ -294,7 +294,7 @@ describe("/api/therapist/sessions/[id]/video", () => {
       endedAt: null,
       status: "SCHEDULED",
       videoProvider: "jitsi",
-      videoRoomId: "exhale-room",
+      videoRoomId: "bridge-room",
       patient: { user: { firstName: "Sam", lastName: "Lee", email: "sam@example.com" } },
       notes: [],
       summary: null,
@@ -315,16 +315,16 @@ describe("/api/therapist/sessions/[id]/video", () => {
         where: { id: "s1" },
         data: expect.objectContaining({
           videoProvider: "jitsi",
-          videoRoomId: expect.stringMatching(/^exhale-[a-f0-9]{32}$/),
+          videoRoomId: expect.stringMatching(/^bridge-[a-f0-9]{32}$/),
         }),
       }),
     );
-    expect(body.data.videoUrl).toBe("https://meet.jit.si/exhale-room");
+    expect(body.data.videoUrl).toBe("https://meet.jit.si/bridge-room");
   });
 
   it("POST preserves an existing Jitsi room", async () => {
     requireApprovedTherapist.mockResolvedValue(okTherapist);
-    sessionFindFirst.mockResolvedValue({ id: "s1", videoProvider: "jitsi", videoRoomId: "exhale-existing" });
+    sessionFindFirst.mockResolvedValue({ id: "s1", videoProvider: "jitsi", videoRoomId: "bridge-existing" });
     sessionUpdate.mockResolvedValue({
       id: "s1",
       patientId: "pp1",
@@ -333,7 +333,7 @@ describe("/api/therapist/sessions/[id]/video", () => {
       endedAt: null,
       status: "SCHEDULED",
       videoProvider: "jitsi",
-      videoRoomId: "exhale-existing",
+      videoRoomId: "bridge-existing",
       patient: { user: { firstName: "Sam", lastName: "Lee", email: "sam@example.com" } },
       notes: [],
       summary: null,
@@ -497,7 +497,7 @@ describe("/api/sessions", () => {
         endedAt: null,
         status: "SCHEDULED",
         videoProvider: "jitsi",
-        videoRoomId: "exhale-room",
+        videoRoomId: "bridge-room",
         summary: {
           id: "sum1",
           sessionId: "s1",
@@ -528,7 +528,7 @@ describe("/api/sessions", () => {
     );
     expect(body.data[0]).toMatchObject({
       id: "s1",
-      videoUrl: "https://meet.jit.si/exhale-room",
+      videoUrl: "https://meet.jit.si/bridge-room",
       summary: { summary: "Practice paced breathing before sleep." },
     });
   });

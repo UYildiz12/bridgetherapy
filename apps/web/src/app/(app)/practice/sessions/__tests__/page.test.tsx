@@ -45,8 +45,8 @@ describe("TherapistSessionsPage", () => {
       endedAt: null,
       status: "SCHEDULED",
       videoProvider: "jitsi",
-      videoRoomId: "exhale-room",
-      videoUrl: "https://meet.jit.si/exhale-room",
+      videoRoomId: "bridge-room",
+      videoUrl: "https://meet.jit.si/bridge-room",
       noteCount: 0,
       hasSummary: false,
     });

@@ -63,8 +63,8 @@ const DETAIL = {
   endedAt: null,
   status: "SCHEDULED",
   videoProvider: "jitsi",
-  videoRoomId: "exhale-room",
-  videoUrl: "https://meet.jit.si/exhale-room",
+  videoRoomId: "bridge-room",
+  videoUrl: "https://meet.jit.si/bridge-room",
   history: [
     {
       id: "s0",
@@ -129,7 +129,7 @@ describe("SessionDetailPage", () => {
 
     expect(screen.getByRole("textbox", { name: /^session note$/i })).toBeDefined();
     expect(screen.getByRole("link", { name: /join video/i }).getAttribute("href")).toBe(
-      "https://meet.jit.si/exhale-room",
+      "https://meet.jit.si/bridge-room",
     );
     expect(screen.getByText(/embedded video room/i)).toBeDefined();
     expect(screen.getByText(/previous sessions/i)).toBeDefined();
@@ -195,8 +195,8 @@ describe("SessionDetailPage", () => {
       ...DETAIL,
       history: [],
       videoProvider: "jitsi",
-      videoRoomId: "exhale-new",
-      videoUrl: "https://meet.jit.si/exhale-new",
+      videoRoomId: "bridge-new",
+      videoUrl: "https://meet.jit.si/bridge-new",
     });
 
     render(<SessionDetailPage />);
@@ -207,7 +207,7 @@ describe("SessionDetailPage", () => {
     await waitFor(() => expect(ensureSessionVideo).toHaveBeenCalledWith("s1"));
     await waitFor(() =>
       expect(screen.getByRole("link", { name: /join video/i }).getAttribute("href")).toBe(
-        "https://meet.jit.si/exhale-new",
+        "https://meet.jit.si/bridge-new",
       ),
     );
     expect(screen.getByText(/client reviewed exposure hierarchy/i)).toBeDefined();

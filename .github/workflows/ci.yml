@@ -33,10 +33,10 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma client
-        run: pnpm --filter @exhale/db generate
+        run: pnpm --filter @bridge/db generate
 
       - name: Validate Prisma schema
-        run: pnpm --filter @exhale/db validate
+        run: pnpm --filter @bridge/db validate
 
       - name: Lint
         run: pnpm --filter web lint

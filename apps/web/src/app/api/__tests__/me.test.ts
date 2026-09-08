@@ -4,7 +4,7 @@ const getAuthUser = vi.fn();
 const findUnique = vi.fn();
 const sessionFindMany = vi.fn();
 vi.mock("@/lib/auth", () => ({ getAuthUser }));
-vi.mock("@exhale/db", () => ({
+vi.mock("@bridge/db", () => ({
   prisma: {
     user: { findUnique },
     session: { findMany: sessionFindMany },

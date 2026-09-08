@@ -1,11 +1,11 @@
 import { z } from "zod";
-import { prisma } from "@exhale/db";
+import { prisma } from "@bridge/db";
 import { requirePatient } from "@/lib/patient";
 import { parseBody } from "@/lib/validation";
 import { json, withErrorHandling } from "@/lib/http";
 import { CONCERN_IDS, AVAILABILITY_IDS } from "@/lib/matching/taxonomy";
 import { normalizeCbtIntake, type CbtIntake } from "@/lib/intake/schema";
-import type { Prisma } from "@exhale/db";
+import type { Prisma } from "@bridge/db";
 
 const SaveIntake = z.object({
   concerns: z.array(z.string()).max(20),

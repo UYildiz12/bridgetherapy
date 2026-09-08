@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { prisma } from "@exhale/db";
+import { prisma } from "@bridge/db";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/app/page-header";
 

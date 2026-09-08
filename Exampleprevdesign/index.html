@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Exhale — therapy designed for steady focus</title>
+  <title>Bridge — therapy designed for steady focus</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:opsz@8..60&display=swap" rel="stylesheet" />
@@ -789,13 +789,13 @@
       background-blend-mode: multiply;
     }
 
-    .exhale-word {
+    .bridge-word {
       position: relative;
       display: inline-block;
-      animation: exhale 10s ease-in-out infinite;
+      animation: bridge 10s ease-in-out infinite;
     }
 
-    .exhale-word::before {
+    .bridge-word::before {
       content: "";
       position: absolute;
       left: 0;
@@ -808,10 +808,10 @@
       opacity: 0.18;
       transform: scaleX(0.7);
       transform-origin: left;
-      animation: exhaleUnderline 10s ease-in-out infinite;
+      animation: bridgeUnderline 10s ease-in-out infinite;
     }
 
-    .exhale-word::after {
+    .bridge-word::after {
       content: "";
       position: absolute;
       left: 0;
@@ -823,7 +823,7 @@
       opacity: 0.15;
       transform: scaleX(0.6);
       transform-origin: left;
-      animation: exhaleUnderlineGlow 10s ease-in-out infinite;
+      animation: bridgeUnderlineGlow 10s ease-in-out infinite;
       pointer-events: none;
     }
 
@@ -1133,18 +1133,18 @@
       50% { transform: scale(1.2); opacity: 1; }
     }
 
-    @keyframes exhale {
+    @keyframes bridge {
       0%, 100% { opacity: 1; transform: translateY(0); }
       50% { opacity: 0.82; transform: translateY(0); }
     }
 
-    @keyframes exhaleUnderline {
+    @keyframes bridgeUnderline {
       0%, 100% { opacity: 0.22; transform: scaleX(0.3); }
       40% { opacity: 0.75; transform: scaleX(1); }
       60% { opacity: 0.75; transform: scaleX(1); }
     }
 
-    @keyframes exhaleUnderlineGlow {
+    @keyframes bridgeUnderlineGlow {
       0%, 100% { opacity: 0.12; transform: scaleX(0.3); }
       40% { opacity: 0.35; transform: scaleX(1); }
       60% { opacity: 0.35; transform: scaleX(1); }
@@ -1374,7 +1374,7 @@
     <nav class="nav">
       <div class="logo">
         <span class="logo-badge"></span>
-        exhale
+        bridge
       </div>
       <div class="nav-links">
         <a href="#approach">Approach</a>
@@ -1390,9 +1390,9 @@
 
     <section class="hero">
       <div class="hero-copy stagger">
-        <h1><span class="exhale-word accent">Exhale</span> — therapy designed for steady focus.</h1>
+        <h1><span class="bridge-word accent">Bridge</span> — therapy designed for steady focus.</h1>
         <div class="flow-axis">steady state</div>
-        <p>Exhale keeps support focused and steady: quiet sessions, clear structure, and calm guidance built for your nervous system.</p>
+        <p>Bridge keeps support focused and steady: quiet sessions, clear structure, and calm guidance built for your nervous system.</p>
         <div class="hero-actions">
           <button class="cta-button">Start a session</button>
           <button class="ghost-button">Meet your therapist</button>
@@ -1449,7 +1449,7 @@
 
     <section id="approach" class="section reveal">
       <h2 class="section-title">A calm system with clear edges.</h2>
-      <p class="section-subtitle">Exhale strips out noise. Every session is precise, guided, and designed to move you from overwhelm to steady.</p>
+      <p class="section-subtitle">Bridge strips out noise. Every session is precise, guided, and designed to move you from overwhelm to steady.</p>
       <div class="grid">
         <article class="tile box-reveal box-reveal--double box-reveal--cornerflip">
           <h3>Signal-aware check-ins</h3>
@@ -1527,7 +1527,7 @@
     <section id="stories" class="section reveal">
       <div class="testimonial box-reveal box-reveal--halo box-reveal--angle">
         <blockquote>“The structure is simple and it works. I drop in, reset, and get back to myself.”</blockquote>
-        <span>Jada P — 4 months with Exhale</span>
+        <span>Jada P — 4 months with Bridge</span>
       </div>
     </section>
 
@@ -1568,7 +1568,7 @@
     <section class="section reveal">
       <div class="cta-panel box-reveal box-reveal--halo box-reveal--cornerflip">
         <h2>Begin with clarity.</h2>
-        <p>Exhale is designed to help you steady, focus, and feel supported every day. Start a session and meet a therapist who keeps it clear.</p>
+        <p>Bridge is designed to help you steady, focus, and feel supported every day. Start a session and meet a therapist who keeps it clear.</p>
         <div class="hero-actions">
           <button class="cta-button">Start today</button>
           <button class="ghost-button">Schedule a tour</button>
@@ -1577,8 +1577,8 @@
     </section>
 
     <footer>
-      <div>Exhale © 2026</div>
-      <div>hello@exhale.com · Privacy · Terms</div>
+      <div>Bridge © 2026</div>
+      <div>hello@bridge.com · Privacy · Terms</div>
     </footer>
   </div>
 
@@ -1613,7 +1613,7 @@
     }
 
     const themeToggle = document.querySelector(".theme-toggle");
-    const storedTheme = localStorage.getItem("exhale-theme");
+    const storedTheme = localStorage.getItem("bridge-theme");
     if (storedTheme === "light") {
       document.body.setAttribute("data-theme", "light");
     }
@@ -1632,10 +1632,10 @@
         const isLight = document.body.getAttribute("data-theme") === "light";
         if (isLight) {
           document.body.removeAttribute("data-theme");
-          localStorage.setItem("exhale-theme", "dark");
+          localStorage.setItem("bridge-theme", "dark");
         } else {
           document.body.setAttribute("data-theme", "light");
-          localStorage.setItem("exhale-theme", "light");
+          localStorage.setItem("bridge-theme", "light");
         }
         updateThemeToggle();
       });

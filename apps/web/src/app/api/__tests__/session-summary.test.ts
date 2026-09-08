@@ -8,7 +8,7 @@ const summarizeSessionNotes = vi.fn();
 
 vi.mock("@/lib/authz", () => ({ requireApprovedTherapist }));
 vi.mock("@/lib/ai/session-summary", () => ({ summarizeSessionNotes }));
-vi.mock("@exhale/db", () => ({
+vi.mock("@bridge/db", () => ({
   prisma: {
     session: { findFirst: sessionFindFirst },
     sessionSummary: { upsert: summaryUpsert },

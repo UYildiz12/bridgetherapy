@@ -115,7 +115,7 @@ describe("sessions-client", () => {
 
   it("ensureSessionVideo posts to the video route", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify({ data: { id: "s1", videoRoomId: "exhale-room" } }), { status: 200 }),
+      new Response(JSON.stringify({ data: { id: "s1", videoRoomId: "bridge-room" } }), { status: 200 }),
     );
     vi.stubGlobal("fetch", fetchMock);
 

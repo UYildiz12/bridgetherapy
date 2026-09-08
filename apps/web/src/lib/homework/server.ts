@@ -1,5 +1,5 @@
 import "server-only";
-import { prisma, type Homework, type Prisma } from "@exhale/db";
+import { prisma, type Homework, type Prisma } from "@bridge/db";
 import { z } from "zod";
 import { parseContent, parseResponse, countComplete, setContentSchema } from "./schema";
 import {

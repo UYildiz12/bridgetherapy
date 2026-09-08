@@ -1,4 +1,4 @@
-import { prisma } from "@exhale/db";
+import { prisma } from "@bridge/db";
 import { summarizeSessionNotes } from "@/lib/ai/session-summary";
 import { requireApprovedTherapist } from "@/lib/authz";
 import { json, withErrorHandling } from "@/lib/http";

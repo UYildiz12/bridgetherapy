@@ -1,4 +1,4 @@
-# Exhale Feature Inventory
+# Bridge Feature Inventory
 
 This repo is currently a Next.js App Router application with Route Handler APIs, Prisma, Supabase Auth/Postgres/Storage integration, PWA support, and a lightweight Expo/React Native mobile client against the same APIs. Billing and HIPAA/compliance deliverables are intentionally out of scope for the current branch.
 

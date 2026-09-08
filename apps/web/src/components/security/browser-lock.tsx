@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Fingerprint } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const LOCK_KEY = "exhale.security.browserLockEnabled";
+const LOCK_KEY = "bridge.security.browserLockEnabled";
 
 type Availability = "unchecked" | "checking" | "available" | "unavailable";
 

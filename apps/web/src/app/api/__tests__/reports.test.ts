@@ -9,7 +9,7 @@ const sessionFindMany = vi.fn();
 const linkFindMany = vi.fn();
 
 vi.mock("@/lib/auth", () => ({ getAuthUser }));
-vi.mock("@exhale/db", () => ({
+vi.mock("@bridge/db", () => ({
   prisma: {
     user: { findUnique: userFindUnique },
     moodEntry: { findMany: moodFindMany },

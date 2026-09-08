@@ -17,7 +17,7 @@ const googleGenAI = vi.fn(function GoogleGenAI() {
 vi.mock("@/lib/patient", () => ({ requirePatient }));
 vi.mock("@/lib/authz", () => ({ requireApprovedTherapist }));
 vi.mock("@google/genai", () => ({ GoogleGenAI: googleGenAI }));
-vi.mock("@exhale/db", () => ({
+vi.mock("@bridge/db", () => ({
   prisma: {
     homeworkAssignment: { findFirst: aFindFirst, updateMany: aUpdateMany, create: aCreate },
     homework: { findFirst: hwFindFirst, create: hwCreate },

@@ -5,7 +5,7 @@ const create = vi.fn();
 const findMany = vi.fn();
 const count = vi.fn();
 vi.mock("@/lib/patient", () => ({ requirePatient }));
-vi.mock("@exhale/db", () => ({ prisma: { moodEntry: { create, findMany, count } } }));
+vi.mock("@bridge/db", () => ({ prisma: { moodEntry: { create, findMany, count } } }));
 import { json } from "@/lib/http";
 
 function post(body: unknown) {

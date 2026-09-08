@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const getAuthUser = vi.fn();
 const findUnique = vi.fn();
 vi.mock("@/lib/auth", () => ({ getAuthUser }));
-vi.mock("@exhale/db", () => ({ prisma: { user: { findUnique } } }));
+vi.mock("@bridge/db", () => ({ prisma: { user: { findUnique } } }));
 
 function req() {
   return new Request("http://t/api/therapist/whatever");

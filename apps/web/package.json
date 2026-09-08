@@ -13,7 +13,7 @@
     "db:approve": "dotenv -e ../../.env -- tsx --conditions=react-server src/scripts/approve-therapist.ts"
   },
   "dependencies": {
-    "@exhale/db": "workspace:*",
+    "@bridge/db": "workspace:*",
     "@google/genai": "^2.9.0",
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-avatar": "^1.1.11",

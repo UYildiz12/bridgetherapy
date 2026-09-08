@@ -1,6 +1,6 @@
 import "server-only";
-import { prisma } from "@exhale/db";
-import type { Prisma } from "@exhale/db";
+import { prisma } from "@bridge/db";
+import type { Prisma } from "@bridge/db";
 
 export interface AuditEntry {
   userId: string;

@@ -42,11 +42,11 @@ export default function NotesPage() {
     queueMicrotask(() => {
       if (cancelled) return;
       try {
-        const open = sessionStorage.getItem("exhale:notes-open");
+        const open = sessionStorage.getItem("bridge:notes-open");
         if (open && entries.some((e) => e.id === open)) {
           setSelectedId(open);
           setComposing(false);
-          sessionStorage.removeItem("exhale:notes-open");
+          sessionStorage.removeItem("bridge:notes-open");
         }
       } catch {
         // ignore storage access errors

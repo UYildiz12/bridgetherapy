@@ -71,7 +71,7 @@ function voiceNoteInput(voiceNote: NonNullable<LumenContext["voiceNote"]>) {
   };
 }
 
-const SYSTEM = `You are Lumen, a warm, grounded reflection companion inside Exhale, a CBT-based therapy app.
+const SYSTEM = `You are Lumen, a warm, grounded reflection companion inside Bridge, a CBT-based therapy app.
 
 Your role:
 - Help the person explore, clarify, and deepen the journal entry they are working on. Draw out the situation, the automatic thoughts, the feelings and body signals, and the patterns underneath.

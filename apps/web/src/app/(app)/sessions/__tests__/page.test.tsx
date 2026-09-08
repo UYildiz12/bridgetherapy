@@ -51,8 +51,8 @@ describe("PatientSessionsPage", () => {
         endedAt: null,
         status: "SCHEDULED",
         videoProvider: "jitsi",
-        videoRoomId: "exhale-room",
-        videoUrl: "https://meet.jit.si/exhale-room",
+        videoRoomId: "bridge-room",
+        videoUrl: "https://meet.jit.si/bridge-room",
         summary: {
           id: "sum1",
           sessionId: "s1",
@@ -91,7 +91,7 @@ describe("PatientSessionsPage", () => {
     expect(screen.getByText(/next session/i)).toBeDefined();
     expect(screen.getByText("scheduled")).toBeDefined();
     expect(screen.getByRole("link", { name: /join video/i }).getAttribute("href")).toBe(
-      "https://meet.jit.si/exhale-room",
+      "https://meet.jit.si/bridge-room",
     );
     expect(screen.getByText(/practice paced breathing before sleep/i)).toBeDefined();
     expect(screen.getByDisplayValue(/ask about sleep homework/i)).toBeDefined();

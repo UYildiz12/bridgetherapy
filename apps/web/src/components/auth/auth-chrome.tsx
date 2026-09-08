@@ -12,7 +12,7 @@ export function AuthChrome({ children }: { children: React.ReactNode }) {
       <div className="auth-shell">
         <Link href="/" className="auth-logo">
           <span className="auth-logo-badge" />
-          exhale
+          bridge
         </Link>
         {children}
       </div>

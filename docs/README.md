@@ -1,6 +1,6 @@
 # Documentation
 
-Project documentation for Exhale.
+Project documentation for Bridge.
 
 ## Contents
 

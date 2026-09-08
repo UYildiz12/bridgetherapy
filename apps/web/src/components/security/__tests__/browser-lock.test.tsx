@@ -25,7 +25,7 @@ describe("BrowserLock", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /enable browser lock/i }));
 
-    expect(localStorage.getItem("exhale.security.browserLockEnabled")).toBe("true");
+    expect(localStorage.getItem("bridge.security.browserLockEnabled")).toBe("true");
     expect(screen.getByRole("button", { name: /disable browser lock/i })).toBeDefined();
   });
 });

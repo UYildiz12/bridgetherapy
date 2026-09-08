@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 // kept in sessionStorage and shown instantly on revisit while a fresh copy loads
 // in the background. Scoped to the tab, cleared when the tab closes.
 
-const PREFIX = "exhale:swr:";
+const PREFIX = "bridge:swr:";
 const MAX_AGE_MS = 10 * 60 * 1000;
 
 function read<T>(key: string): T | null {

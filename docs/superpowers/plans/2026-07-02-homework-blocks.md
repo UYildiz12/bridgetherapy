@@ -783,7 +783,7 @@ export const saveMyEntry = (id: string, entry: { date: string; blocks: Record<st
 
 **Files:**
 - Modify: reminder cron copy (locate with `grep -rn "due" apps/web/src/app/api/cron -l`) — cadence-aware line: daily/weekly assignments say "Today's entry is waiting" instead of "Due soon" (read the cron file first; keep payload shape).
-- Modify: `apps/mobile` homework screen (locate the assignment renderer) — if `content.version === 2`, render title/description + "Open Exhale on the web to complete this one." instead of items.
+- Modify: `apps/mobile` homework screen (locate the assignment renderer) — if `content.version === 2`, render title/description + "Open Bridge on the web to complete this one." instead of items.
 - Modify: `docs/frontend_pages.md` (homework rows) + `docs/capabilities_checklist.md` (homework line mentions blocks/recurrence) to match reality.
 
 - [ ] **Step 1: Implement the three above.**

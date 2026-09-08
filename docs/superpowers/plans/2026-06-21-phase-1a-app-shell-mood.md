@@ -6,7 +6,7 @@
 
 **Architecture:** Approach B (see [architecture spec](../specs/2026-06-20-architecture-redesign-design.md)). The authenticated app lives under a `(app)` route group with a server-side auth guard; it uses **shadcn/ui + Tailwind in dark mode** (distinct from the marketing landing's "blueprint" look, but a shared dark palette keeps it cohesive). Data access is in **plain portable functions** (`mood-client.ts`) — not React hooks — so a future Expo client reuses them; only the presentational layer is web-specific. All mood reads/writes go through `/api/mood`, which enforces patient-only, own-data access.
 
-**Tech Stack:** Next.js 16 App Router, TypeScript, Tailwind, shadcn/ui, Prisma (`@exhale/db`), Supabase Auth, zod, Vitest.
+**Tech Stack:** Next.js 16 App Router, TypeScript, Tailwind, shadcn/ui, Prisma (`@bridge/db`), Supabase Auth, zod, Vitest.
 
 **Phase 1 decomposition (this is slice 1A of 5):** 1A app shell + mood · 1B journal (E2E) · 1C patient–therapist linking · 1D homework · 1E scheduling. Each ships independently.
 
@@ -90,7 +90,7 @@ export function AppShell({
       <header className="border-b border-border">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
           <Link href="/dashboard" className="font-semibold tracking-tight">
-            exhale
+            bridge
           </Link>
           <div className="flex items-center gap-3 text-sm">
             <span className="text-muted-foreground">
@@ -111,7 +111,7 @@ export function AppShell({
 ```tsx
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { prisma } from "@exhale/db";
+import { prisma } from "@bridge/db";
 import { AppShell } from "@/components/app/app-shell";
 
 export default async function AppLayout({
@@ -187,7 +187,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const getAuthUser = vi.fn();
 const findUnique = vi.fn();
 vi.mock("@/lib/auth", () => ({ getAuthUser }));
-vi.mock("@exhale/db", () => ({ prisma: { user: { findUnique } } }));
+vi.mock("@bridge/db", () => ({ prisma: { user: { findUnique } } }));
 
 describe("requirePatient", () => {
   beforeEach(() => { vi.resetModules(); getAuthUser.mockReset(); findUnique.mockReset(); });
@@ -229,7 +229,7 @@ Run: `pnpm --filter web test src/lib/__tests__/patient.test.ts`
 ```ts
 import "server-only";
 import { getAuthUser } from "@/lib/auth";
-import { prisma } from "@exhale/db";
+import { prisma } from "@bridge/db";
 import { json } from "@/lib/http";
 
 type PatientResult =
@@ -280,7 +280,7 @@ const requirePatient = vi.fn();
 const create = vi.fn();
 const findMany = vi.fn();
 vi.mock("@/lib/patient", () => ({ requirePatient }));
-vi.mock("@exhale/db", () => ({ prisma: { moodEntry: { create, findMany } } }));
+vi.mock("@bridge/db", () => ({ prisma: { moodEntry: { create, findMany } } }));
 import { json } from "@/lib/http";
 
 function post(body: unknown) {
@@ -337,7 +337,7 @@ Run: `pnpm --filter web test src/app/api/__tests__/mood.test.ts`
 
 ```ts
 import { z } from "zod";
-import { prisma } from "@exhale/db";
+import { prisma } from "@bridge/db";
 import { requirePatient } from "@/lib/patient";
 import { parseBody } from "@/lib/validation";
 import { json } from "@/lib/http";

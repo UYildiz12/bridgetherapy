@@ -35,7 +35,7 @@ const PATTERNS: Pattern[] = [
     id: "478",
     name: "4-7-8 breathing",
     tone: "Settle",
-    benefit: "A long exhale signals the body that it is safe to stand down.",
+    benefit: "A long bridge signals the body that it is safe to stand down.",
     whenToUse: "When you feel activated or panicky, or to wind down for sleep.",
     phases: [
       { label: "Breathe in", seconds: 4, scale: 1 },
@@ -55,8 +55,8 @@ const PATTERNS: Pattern[] = [
     ],
   },
   {
-    id: "exhale",
-    name: "Extended exhale",
+    id: "bridge",
+    name: "Extended bridge",
     tone: "Soften",
     benefit: "A longer out-breath than in, with nothing to hold, to ease the body down.",
     whenToUse: "When you want to downshift without holding your breath.",

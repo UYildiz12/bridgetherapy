@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "Exhale",
-    "slug": "exhale",
-    "scheme": "exhale",
+    "name": "Bridge",
+    "slug": "bridge",
+    "scheme": "bridge",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,

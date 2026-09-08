@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { randomUUID } from "node:crypto";
-import { prisma } from "@exhale/db";
+import { prisma } from "@bridge/db";
 import { requireApprovedTherapist } from "@/lib/authz";
 import { json, withErrorHandling } from "@/lib/http";
 import { parseBody } from "@/lib/validation";
@@ -57,7 +57,7 @@ export const POST = withErrorHandling(async (req: Request) => {
       scheduledAt: new Date(parsed.data.scheduledAt),
       status: "SCHEDULED",
       videoProvider: VIDEO_PROVIDER,
-      videoRoomId: `exhale-${randomUUID().replaceAll("-", "")}`,
+      videoRoomId: `bridge-${randomUUID().replaceAll("-", "")}`,
     },
     include: sessionInclude(therapistId),
   });

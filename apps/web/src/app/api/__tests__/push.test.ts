@@ -10,7 +10,7 @@ const deliverPushNotification = vi.fn();
 
 vi.mock("@/lib/auth", () => ({ getAuthUser }));
 vi.mock("@/lib/push", () => ({ deliverPushNotification }));
-vi.mock("@exhale/db", () => ({
+vi.mock("@bridge/db", () => ({
   prisma: {
     pushToken: { upsert: tokenUpsert, deleteMany: tokenDeleteMany, findUnique: tokenFindUnique },
     homeworkAssignment: { findMany: homeworkFindMany },

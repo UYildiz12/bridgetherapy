@@ -8,14 +8,14 @@
 
 **Tech Stack:** pnpm workspaces, Prisma 6, Supabase (`@supabase/supabase-js`, `@supabase/ssr`), Next.js 16 (App Router, Route Handlers), TypeScript, zod, Vitest, GitHub Actions, Vercel.
 
-**Conventions for every task:** exact paths are relative to repo root (`exhale/`). Run all `pnpm` commands from repo root unless noted. Commit messages follow Conventional Commits. Do **not** add `Co-Authored-By` lines.
+**Conventions for every task:** exact paths are relative to repo root (`bridge/`). Run all `pnpm` commands from repo root unless noted. Commit messages follow Conventional Commits. Do **not** add `Co-Authored-By` lines.
 
 ---
 
 ## File Structure (decided up front)
 
 ```
-exhale/
+bridge/
 ├── package.json                      # root: workspace scripts + devDeps (MODIFY/CREATE)
 ├── pnpm-workspace.yaml               # workspace globs (CREATE)
 ├── .npmrc                            # pnpm settings (CREATE)
@@ -80,7 +80,7 @@ strict-peer-dependencies=false
 `package.json`:
 ```json
 {
-  "name": "exhale",
+  "name": "bridge",
   "private": true,
   "packageManager": "pnpm@9.12.0",
   "scripts": {
@@ -88,8 +88,8 @@ strict-peer-dependencies=false
     "build": "pnpm --filter web build",
     "typecheck": "pnpm -r --if-present typecheck",
     "test": "pnpm -r --if-present test",
-    "db:generate": "pnpm --filter @exhale/db generate",
-    "db:migrate": "pnpm --filter @exhale/db migrate"
+    "db:generate": "pnpm --filter @bridge/db generate",
+    "db:migrate": "pnpm --filter @bridge/db migrate"
   },
   "devDependencies": {
     "typescript": "^5.6.0"
@@ -121,7 +121,7 @@ git commit -m "chore: adopt pnpm workspace"
 
 ```json
 {
-  "name": "@exhale/db",
+  "name": "@bridge/db",
   "version": "0.0.0",
   "private": true,
   "main": "./src/index.ts",
@@ -210,20 +210,20 @@ export * from "@prisma/client";
 Run:
 ```bash
 pnpm install
-pnpm --filter @exhale/db generate
+pnpm --filter @bridge/db generate
 ```
 Expected: `prisma generate` prints "Generated Prisma Client". (No DB connection needed for generate.)
 
 - [ ] **Step 6: Validate the schema**
 
-Run: `pnpm --filter @exhale/db validate`
+Run: `pnpm --filter @bridge/db validate`
 Expected: "The schema at prisma/schema.prisma is valid 🚀"
 
 - [ ] **Step 7: Commit**
 
 ```bash
 git add packages/db pnpm-lock.yaml
-git commit -m "feat(db): add @exhale/db package with Prisma schema for Supabase"
+git commit -m "feat(db): add @bridge/db package with Prisma schema for Supabase"
 ```
 
 ---
@@ -250,12 +250,12 @@ Expected: prints `.env`. If it prints nothing, add `.env` to `.gitignore`, then 
 
 - [ ] **Step 3: Create the initial migration against Supabase**
 
-Run: `pnpm --filter @exhale/db exec prisma migrate dev --name init`
+Run: `pnpm --filter @bridge/db exec prisma migrate dev --name init`
 Expected: Prisma connects via `DIRECT_URL`, creates all tables, and writes `packages/db/prisma/migrations/<timestamp>_init/migration.sql`. Output ends with "Your database is now in sync with your schema."
 
 - [ ] **Step 4: Verify tables exist**
 
-Run: `pnpm --filter @exhale/db exec prisma db pull --print`
+Run: `pnpm --filter @bridge/db exec prisma db pull --print`
 Expected: the printed schema includes `User`, `PatientProfile`, `TherapistProfile`, `MoodEntry`, `Session`, `AuditLog`, etc.
 
 - [ ] **Step 5: Commit the migration**
@@ -285,7 +285,7 @@ git rm -r apps/api docker-compose.yml
 Replace the entire contents of `.env.example` with:
 ```bash
 # ===================================
-# Exhale Environment Variables
+# Bridge Environment Variables
 # Copy to .env and fill in values from your Supabase project.
 # ===================================
 
@@ -303,11 +303,11 @@ SUPABASE_SERVICE_ROLE_KEY="<service-role-key>"   # server-only, never exposed to
 
 In `README.md`, replace the "Local Development" code block with:
 ```bash
-git clone https://github.com/UYildiz12/exhale.git
-cd exhale
+git clone https://github.com/UYildiz12/bridge.git
+cd bridge
 cp .env.example .env          # fill in Supabase values
 pnpm install
-pnpm --filter @exhale/db migrate   # apply migrations
+pnpm --filter @bridge/db migrate   # apply migrations
 pnpm dev                      # Next.js app (web + API) on http://localhost:3000
 ```
 In the same file, update the Tech Stack table: change Backend to `Next.js Route Handlers, Prisma, Supabase (Postgres/Auth/Storage/Realtime)`, and remove the Redis/MinIO row. Update Project Structure to drop `apps/api` and add `packages/db`.
@@ -382,13 +382,13 @@ git commit -m "test(web): add vitest harness"
 ## Task 6: Supabase client helpers + env validation
 
 **Files:**
-- Modify: `apps/web/package.json` (add deps), add `@exhale/db` dependency
+- Modify: `apps/web/package.json` (add deps), add `@bridge/db` dependency
 - Create: `apps/web/src/lib/env.ts`, `apps/web/src/lib/http.ts`, `apps/web/src/lib/supabase/{admin,server,client}.ts`
 - Test: `apps/web/src/lib/__tests__/env.test.ts`
 
 - [ ] **Step 1: Add dependencies to `apps/web/package.json`**
 
-Add to `dependencies`: `"@supabase/supabase-js": "^2.45.0"`, `"@supabase/ssr": "^0.5.0"`, `"@exhale/db": "workspace:*"`. Then run `pnpm install`.
+Add to `dependencies`: `"@supabase/supabase-js": "^2.45.0"`, `"@supabase/ssr": "^0.5.0"`, `"@bridge/db": "workspace:*"`. Then run `pnpm install`.
 
 - [ ] **Step 2: Write the failing env test**
 
@@ -711,7 +711,7 @@ Expected: 3 passed.
 
 ```ts
 import "server-only";
-import { prisma } from "@exhale/db";
+import { prisma } from "@bridge/db";
 
 export interface AuditEntry {
   userId: string;
@@ -762,7 +762,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const getAuthUser = vi.fn();
 const findUnique = vi.fn();
 vi.mock("@/lib/auth", () => ({ getAuthUser }));
-vi.mock("@exhale/db", () => ({ prisma: { user: { findUnique } } }));
+vi.mock("@bridge/db", () => ({ prisma: { user: { findUnique } } }));
 
 describe("GET /api/me", () => {
   beforeEach(() => { getAuthUser.mockReset(); findUnique.mockReset(); });
@@ -803,7 +803,7 @@ Expected: FAIL — cannot find module `../me/route`.
 
 ```ts
 import { getAuthUser } from "@/lib/auth";
-import { prisma } from "@exhale/db";
+import { prisma } from "@bridge/db";
 import { json } from "@/lib/http";
 
 export async function GET(req: Request) {
@@ -834,7 +834,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const getAuthUser = vi.fn();
 const upsert = vi.fn();
 vi.mock("@/lib/auth", () => ({ getAuthUser }));
-vi.mock("@exhale/db", () => ({ prisma: { user: { upsert } } }));
+vi.mock("@bridge/db", () => ({ prisma: { user: { upsert } } }));
 vi.mock("@/lib/audit", () => ({ writeAuditLog: vi.fn() }));
 
 function post(body: unknown) {
@@ -880,7 +880,7 @@ Expected: FAIL — cannot find module `../auth/provision/route`.
 ```ts
 import { z } from "zod";
 import { getAuthUser } from "@/lib/auth";
-import { prisma } from "@exhale/db";
+import { prisma } from "@bridge/db";
 import { parseBody } from "@/lib/validation";
 import { writeAuditLog } from "@/lib/audit";
 import { json } from "@/lib/http";
@@ -1148,7 +1148,7 @@ export default function LoginPage() {
 ```tsx
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { prisma } from "@exhale/db";
+import { prisma } from "@bridge/db";
 
 export default async function AppHome() {
   const supabase = await createSupabaseServerClient();
@@ -1225,10 +1225,10 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma client
-        run: pnpm --filter @exhale/db generate
+        run: pnpm --filter @bridge/db generate
 
       - name: Validate Prisma schema
-        run: pnpm --filter @exhale/db validate
+        run: pnpm --filter @bridge/db validate
 
       - name: Typecheck
         run: pnpm --filter web typecheck
@@ -1237,7 +1237,7 @@ jobs:
         run: pnpm --filter web test
 ```
 
-Note: tests mock `@exhale/db` and Supabase, so CI needs **no** database or secrets. The Flutter job returns in the Phase 1 mobile plan.
+Note: tests mock `@bridge/db` and Supabase, so CI needs **no** database or secrets. The Flutter job returns in the Phase 1 mobile plan.
 
 - [ ] **Step 2: Verify the workflow file is valid YAML locally**
 
@@ -1265,7 +1265,7 @@ Expected: the `web` job runs on GitHub and passes. Fix any failures before conti
 ```json
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "cd ../.. && pnpm --filter @exhale/db generate && pnpm --filter web build",
+  "buildCommand": "cd ../.. && pnpm --filter @bridge/db generate && pnpm --filter web build",
   "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
   "framework": "nextjs"
 }
@@ -1281,7 +1281,7 @@ Expected: the `web` job runs on GitHub and passes. Fix any failures before conti
 2. Project Settings → Database: copy the pooler URI (port 6543) → `DATABASE_URL`
    (append `?pgbouncer=true&connection_limit=1`); copy the direct URI (5432) → `DIRECT_URL`.
 3. Project Settings → API: copy Project URL, `anon` key, `service_role` key.
-4. Apply migrations from your machine: `pnpm --filter @exhale/db migrate:deploy`.
+4. Apply migrations from your machine: `pnpm --filter @bridge/db migrate:deploy`.
 
 ## Vercel
 1. New Project → import the repo. Set the **Root Directory** to `apps/web`.
@@ -1292,7 +1292,7 @@ Expected: the `web` job runs on GitHub and passes. Fix any failures before conti
 3. Deploy. Every PR gets a preview URL; `master`/`main` deploys production.
 
 ## Migrations in CI/CD
-Run `pnpm --filter @exhale/db migrate:deploy` against `DIRECT_URL` as a release step
+Run `pnpm --filter @bridge/db migrate:deploy` against `DIRECT_URL` as a release step
 (locally or a dedicated GitHub Action) — not during the Vercel build.
 ```
 

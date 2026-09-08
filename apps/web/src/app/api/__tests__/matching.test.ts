@@ -15,7 +15,7 @@ const userFindUnique = vi.fn();
 
 vi.mock("@/lib/patient", () => ({ requirePatient }));
 vi.mock("@/lib/authz", () => ({ requireApprovedTherapist }));
-vi.mock("@exhale/db", () => ({
+vi.mock("@bridge/db", () => ({
   prisma: {
     user: { findUnique: userFindUnique },
     patientTherapist: {

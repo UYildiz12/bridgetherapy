@@ -74,7 +74,7 @@ function SignupForm() {
 
   return (
     <div className="auth-card">
-      <div className="auth-brand">Exhale</div>
+      <div className="auth-brand">Bridge</div>
       <div className="auth-eyebrow">Get started</div>
       <h1 className="auth-title">Create your account</h1>
       <p className="auth-sub">A calmer, clearer space for the work ahead.</p>

@@ -17,7 +17,7 @@ interface LumenSeed {
 function takeSeed(noteId: string): LumenSeed | null {
   if (typeof window === "undefined") return null;
   try {
-    const key = `exhale:lumen-seed:${noteId}`;
+    const key = `bridge:lumen-seed:${noteId}`;
     const raw = sessionStorage.getItem(key);
     if (!raw) return null;
     sessionStorage.removeItem(key);

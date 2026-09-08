@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { prisma } from "@exhale/db";
+import { prisma } from "@bridge/db";
 import { json, withErrorHandling } from "@/lib/http";
 import { requireMessenger, displayName, type Messenger } from "@/lib/messages/server";
 import { parseBody } from "@/lib/validation";

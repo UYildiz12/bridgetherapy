@@ -1,6 +1,6 @@
 import "server-only";
 import { getAuthUser } from "@/lib/auth";
-import { prisma } from "@exhale/db";
+import { prisma } from "@bridge/db";
 import { json } from "@/lib/http";
 
 type PatientResult =

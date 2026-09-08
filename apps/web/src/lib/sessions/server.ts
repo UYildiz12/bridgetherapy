@@ -1,4 +1,4 @@
-import type { Prisma } from "@exhale/db";
+import type { Prisma } from "@bridge/db";
 import { videoRoomUrl } from "@/lib/video";
 
 type UserLabel = { firstName: string; lastName: string; email: string };

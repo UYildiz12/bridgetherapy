@@ -2,7 +2,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
-vi.mock("@exhale/db", () => ({ prisma: {} }));
+vi.mock("@bridge/db", () => ({ prisma: {} }));
 
 import { upsertEntry, entryKeyForDate, parseAnyContent, parseAnyResponse } from "../server";
 import type { HomeworkDoc, ResponseDoc } from "../blocks";

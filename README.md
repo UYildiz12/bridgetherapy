@@ -1,4 +1,4 @@
-# Exhale
+# Bridge
 
 A therapy support application: a Next.js web app, installable as a PWA, whose API lives in Route Handlers and is backed by Supabase and Prisma. It supports patients and therapists across onboarding, mood tracking, therapist matching, homework, media responses, and AI-assisted session summaries.
 
@@ -12,8 +12,8 @@ A therapy support application: a Next.js web app, installable as a PWA, whose AP
 ### Local Development
 
 ```bash
-git clone https://github.com/UYildiz12/exhale.git
-cd exhale
+git clone https://github.com/UYildiz12/bridge.git
+cd bridge
 cp .env.example .env
 pnpm install
 pnpm db:migrate
@@ -25,7 +25,7 @@ The app runs at [http://localhost:3000](http://localhost:3000).
 ## Project Structure
 
 ```text
-exhale/
+bridge/
 |-- apps/
 |   `-- web/          # Next.js app, Route Handler API, installable PWA
 |-- packages/
